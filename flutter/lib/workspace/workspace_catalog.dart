@@ -7,6 +7,8 @@ import 'package:ginkgo_mirror/features/checkin/checkin_page.dart';
 import 'package:ginkgo_mirror/features/classroom/classroom_page.dart';
 import 'package:ginkgo_mirror/features/career/career_events_page.dart';
 import 'package:ginkgo_mirror/features/cgyy/cgyy_page.dart';
+import 'package:ginkgo_mirror/features/evaluation/evaluation_page.dart';
+import 'package:ginkgo_mirror/features/finance/finance_page.dart';
 import 'package:ginkgo_mirror/features/graduate/graduate_page.dart';
 import 'package:ginkgo_mirror/application/graduate.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
@@ -14,13 +16,16 @@ import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_page.dart';
 import 'package:ginkgo_mirror/features/library/library_page.dart';
 import 'package:ginkgo_mirror/features/learning/learning_page.dart';
+import 'package:ginkgo_mirror/features/network_account/network_account_page.dart';
 import 'package:ginkgo_mirror/features/notices/notices_page.dart';
 import 'package:ginkgo_mirror/features/schedule/schedule_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
 import 'package:ginkgo_mirror/workspace/more_page.dart';
+import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/features/settings/settings_page.dart';
 import 'package:ginkgo_mirror/features/tasks/tasks_page.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
+import 'package:ginkgo_mirror/features/undergraduate/undergraduate_page.dart';
 
 import 'package:ginkgo_mirror/workspace/workspace_types.dart';
 
@@ -106,12 +111,32 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     ),
   ),
   WorkspaceDestination(
+    id: 'teaching-evaluation',
+    title: '课程评教',
+    icon: CupertinoIcons.checkmark_rectangle,
+    section: WorkspaceSection.academics,
+    build: (context) => EvaluationPage(
+      gateway: context.capabilities.teachingEvaluation,
+      officialLinks: context.capabilities.studentServiceLinks,
+    ),
+  ),
+  WorkspaceDestination(
     id: 'bykc',
     title: '博雅',
     icon: CupertinoIcons.book_solid,
     section: WorkspaceSection.academics,
     build: (context) =>
         BykcPage(demo: context.service.isDemo, service: context.service),
+  ),
+  WorkspaceDestination(
+    id: 'undergraduate',
+    title: '本科生教务',
+    icon: CupertinoIcons.rosette,
+    section: WorkspaceSection.academics,
+    build: (context) => UndergraduatePage(
+      service: context.service,
+      onOpenFeature: context.openFeature,
+    ),
   ),
   WorkspaceDestination(
     id: 'graduate',
@@ -183,6 +208,24 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
         CampusCardPage(gateway: context.capabilities.campusCard),
   ),
   WorkspaceDestination(
+    id: 'network-account',
+    title: '网费与流量',
+    icon: CupertinoIcons.wifi,
+    section: WorkspaceSection.campus,
+    build: (context) => NetworkAccountPage(
+      gateway: context.capabilities.networkAccount,
+      officialLinks: context.capabilities.studentServiceLinks,
+    ),
+  ),
+  WorkspaceDestination(
+    id: 'finance-incomes',
+    title: '财务收入',
+    icon: CupertinoIcons.money_yen_circle,
+    section: WorkspaceSection.campus,
+    build: (context) =>
+        FinancePage(gateway: context.capabilities.financeIncome),
+  ),
+  WorkspaceDestination(
     id: 'notices',
     title: '校园通知',
     icon: CupertinoIcons.news_solid,
@@ -229,6 +272,13 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
       route: context.route,
       onSignOut: context.onSignOut ?? () async {},
     ),
+  ),
+  WorkspaceDestination(
+    id: 'network-diagnostics',
+    title: '实时接口状态',
+    icon: CupertinoIcons.waveform_path_ecg,
+    sidebar: false,
+    build: (context) => NetworkDiagnosticsPage(service: context.service),
   ),
   WorkspaceDestination(
     id: 'settings',

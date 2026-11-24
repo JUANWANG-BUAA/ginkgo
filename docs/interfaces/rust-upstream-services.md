@@ -32,6 +32,7 @@
 - [library_service](#libraryservice) (1)
 - [library_stats_service](#librarystatsservice) (1)
 - [mod](#mod) (2)
+- [schedule_service](#scheduleservice) (1)
 - [gateway](#gateway) (3)
 - [session_service](#sessionservice) (25)
 - [snapshots](#snapshots) (10)
@@ -320,6 +321,11 @@
 - `pub fn demo_rules() -> Result<(school_time::SchoolDay, schedule::Snapshot), AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/services/mod.rs:64</sub>
 
+## schedule_service
+
+- `pub(crate) fn preferred_academic_term(today: NaiveDate) -> (i32, u8) {…}` — Active BUAA academic `(start_year, semester_index)` inferred from a Beijing
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/schedule_service.rs:537</sub>
+
 ## gateway
 
 - `pub(super) fn finish_gateway_login( &self, outcome: Result<LoginResult, AppError>, owner: &AccountOwner, ) -> Result<(), AppError> {…}`
@@ -452,9 +458,9 @@
     - `library_bookings: Mutex<LibraryBookingCache>`  <sub>:46</sub>
     - `library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>`  <sub>:47</sub>
 - `pub fn clear(&self) {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/snapshots.rs:51</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/snapshots.rs:53</sub>
 - `pub fn poison_events(&self) -> u64 {…}` — How often one of the snapshot locks was recovered from a poisoned state.
-  <sub>fn · rust/crates/ginkgo_upstream/src/services/snapshots.rs:78</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/services/snapshots.rs:81</sub>
 
 ## updates_service
 

@@ -19,32 +19,53 @@
     - `void dispose() {…}`  <sub>:82</sub>
     - `Widget build(BuildContext context) => …`  <sub>:88</sub>
 
+## features/learning/learning_cards.dart
+
+- `Color learningCourseAccent(String seed) {…}` — Deterministic accent palette for SPOC courses so each course keeps a stable
+  <sub>function · features/learning/learning_cards.dart:11</sub>
+- `class LearningCourseCard extends StatelessWidget` — Tactile course card on the SPOC Learning root list.
+  <sub>class · features/learning/learning_cards.dart:34</sub>
+    - `const LearningCourseCard({ super.key, required this.course, required this.onTap, });`  <sub>:35</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
+- `class LearningCourseHeroCard extends StatelessWidget` — Identity hero banner at the top of LearningCoursePage.
+  <sub>class · features/learning/learning_cards.dart:154</sub>
+    - `const LearningCourseHeroCard({ super.key, required this.course, this.onOpenSource, });`  <sub>:155</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:169</sub>
+- `class LearningAnnouncementCard extends StatelessWidget` — Announcement row card inside a SPOC course.
+  <sub>class · features/learning/learning_cards.dart:296</sub>
+    - `const LearningAnnouncementCard({ super.key, required this.announcement, required this.onTap, });`  <sub>:297</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:310</sub>
+- `class LearningAssessmentCard extends StatelessWidget` — Read-only assessment card with color-coded metadata pills.
+  <sub>class · features/learning/learning_cards.dart:363</sub>
+    - `const LearningAssessmentCard({ super.key, required this.item, required this.fallbackSummary, });`  <sub>:364</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:376</sub>
+
 ## features/learning/learning_course_page.dart
 
 - `enum LearningCourseTab { resources, announcements, assessments }`
-  <sub>enum · features/learning/learning_course_page.dart:16</sub>
+  <sub>enum · features/learning/learning_course_page.dart:17</sub>
 - `class LearningCoursePage extends StatefulWidget`
-  <sub>class · features/learning/learning_course_page.dart:18</sub>
-    - `const LearningCoursePage({ super.key, required this.course, required this.service, this.accountId, required this.saveFile, this.isOwnerCurrent, });`  <sub>:19</sub>
-    - `final bool Function()? isOwnerCurrent;`  <sub>:31</sub>
-    - `State<LearningCoursePage> createState() => …`  <sub>:33</sub>
+  <sub>class · features/learning/learning_course_page.dart:19</sub>
+    - `const LearningCoursePage({ super.key, required this.course, required this.service, this.accountId, required this.saveFile, this.isOwnerCurrent, });`  <sub>:20</sub>
+    - `final bool Function()? isOwnerCurrent;`  <sub>:32</sub>
+    - `State<LearningCoursePage> createState() => …`  <sub>:34</sub>
 
 ## features/learning/learning_page.dart
 
 - `class LearningPage extends StatefulWidget`
-  <sub>class · features/learning/learning_page.dart:14</sub>
-    - `const LearningPage({ super.key, required this.service, this.accountId, required this.fileActions, });`  <sub>:15</sub>
-    - `State<LearningPage> createState() => …`  <sub>:27</sub>
+  <sub>class · features/learning/learning_page.dart:15</sub>
+    - `const LearningPage({ super.key, required this.service, this.accountId, required this.fileActions, });`  <sub>:16</sub>
+    - `State<LearningPage> createState() => …`  <sub>:28</sub>
 
 ## features/learning/learning_resource_section.dart
 
 - `class LearningResourceSection extends StatelessWidget` — 课程资料的目录浏览区：面包屑、当前页筛选、条目列表与分页。
-  <sub>class · features/learning/learning_resource_section.dart:14</sub>
-    - `const LearningResourceSection({ super.key, required this.path, required this.page, required this.items, required this.resourceQuery, required this.resources, required this.supported, required this.hasContext, required this.saveFile, required this.contextToken, required this.onQueryChanged, required this.onNavigate, required this.onRefresh, required this.onDownload, required this.isCurrent, });`  <sub>:15</sub>
-    - `final void Function(List<CourseResource> nextPath, int nextPage) onNavigate;`  <sub>:43</sub>
-    - `final Future<LearningDownload> Function(CourseResource item) onDownload;`  <sub>:45</sub>
-    - `final bool Function() isCurrent;`  <sub>:46</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:49</sub>
+  <sub>class · features/learning/learning_resource_section.dart:76</sub>
+    - `const LearningResourceSection({ super.key, required this.path, required this.page, required this.items, required this.resourceQuery, required this.resources, required this.supported, required this.hasContext, required this.saveFile, required this.contextToken, required this.onQueryChanged, required this.onNavigate, required this.onRefresh, required this.onDownload, required this.isCurrent, });`  <sub>:77</sub>
+    - `final void Function(List<CourseResource> nextPath, int nextPage) onNavigate;`  <sub>:105</sub>
+    - `final Future<LearningDownload> Function(CourseResource item) onDownload;`  <sub>:107</sub>
+    - `final bool Function() isCurrent;`  <sub>:108</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:111</sub>
 
 ## features/learning/learning_snapshots_page.dart
 

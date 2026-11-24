@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
-import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/application/library_stats.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/widgets/resource_meter.dart';
-
-import 'package:ginkgo_mirror/application/library_stats.dart';
-
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/liquid_vial_gauge.dart';
+import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/resource_meter.dart';
+import 'package:ginkgo_mirror/widgets/telemetry_instrument_card.dart';
 
 /// Public counts are a snapshot, not a promise that a resource is bookable.
 class LibraryStatsPage extends StatefulWidget {
@@ -99,6 +100,19 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     );
   }
 
+  static const EdgeInsets _captionPadding = EdgeInsets.fromLTRB(
+    GinkgoSpacing.xxl,
+    GinkgoSpacing.base,
+    GinkgoSpacing.xxl,
+    0,
+  );
+  static const EdgeInsets _disclaimerPadding = EdgeInsets.fromLTRB(
+    GinkgoSpacing.xxl,
+    GinkgoSpacing.xl,
+    GinkgoSpacing.xxl,
+    GinkgoSpacing.xxl,
+  );
+
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -120,15 +134,14 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
           SliverList.list(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
+                padding: _captionPadding,
                 child: Text(
                   widget.service.isDemo
                       ? '离线合成样例 · 不代表当前人数'
                       : updatedAt == null
                       ? '图书馆官网公开信息'
                       : '更新于 $updatedAt${fromCache ? ' · 缓存' : ''}',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: GinkgoTypography.footnote.copyWith(
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
@@ -148,17 +161,16 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
               if (campuses case final items?)
                 for (final campus in items) _campus(campus),
               Padding(
-                padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
+                padding: _disclaimerPadding,
                 child: Text(
                   '人数与空间余量由图书馆官网提供，可能存在更新延迟。空闲不代表一定可预约，请以预约系统为准。',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: GinkgoTypography.footnote.copyWith(
                     color: CupertinoColors.secondaryLabel.resolveFrom(context),
                     height: 1.4,
                   ),
                 ),
               ),
-              const SizedBox(height: 64),
+              const SizedBox(height: GinkgoSpacing.bottomScrollClearance),
             ],
           ),
         ],
@@ -166,37 +178,107 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
     ),
   );
 
-  Widget _campus(LibraryCampusStats campus) => AppleSection(
-    header: Semantics(header: true, child: Text(campus.name)),
-    children: [
-      Padding(
-        key: Key('library-stats-${campus.id}'),
-        padding: const EdgeInsets.all(20),
-        child: Align(
-          alignment: Alignment.centerLeft,
+  Widget _campus(LibraryCampusStats campus) {
+    final seatFree = campus.seats?.available;
+    final seatTotal = campus.seats?.total;
+    final hasSeats = seatFree != null && seatTotal != null && seatTotal > 0;
+    final occupiedRatio = hasSeats
+        ? ((seatTotal - seatFree) / seatTotal).clamp(0.0, 1.0)
+        : null;
+    final occPct = occupiedRatio == null ? null : (occupiedRatio * 100).round();
+    final maxRoomPeople = campus.readingRooms.fold<int>(
+      1,
+      (prev, r) => r.people > prev ? r.people : prev,
+    );
+
+    return AppleSection(
+      header: Semantics(header: true, child: Text(campus.name)),
+      children: [
+        Padding(
+          key: Key('library-stats-${campus.id}'),
+          padding: GinkgoSpacing.edgeInsetsCard,
           child: Semantics(
             label: '${campus.name}，在馆人数 ${campus.people} 人',
             excludeSemantics: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text('在馆人数', style: TextStyle(fontSize: 15)),
-                const SizedBox(height: 6),
-                Text.rich(
-                  TextSpan(
+                LiquidVialWell(
+                  code: 'LIB',
+                  readout: occPct != null ? '$occPct%' : '${campus.people}人',
+                  fillRatio: occupiedRatio,
+                  palette: occupiedRatio != null && occupiedRatio >= 0.85
+                      ? LiquidPalette.amber
+                      : LiquidPalette.cobalt,
+                  scaleTicks: hasSeats
+                      ? [
+                          '- ${(seatTotal * 0.75).round()}',
+                          '- ${(seatTotal * 0.50).round()}',
+                          '- ${(seatTotal * 0.25).round()}',
+                        ]
+                      : const ['- 75%', '- 50%', '- 25%'],
+                  footer: hasSeats ? '座位占用率' : '实时在馆',
+                ),
+                const SizedBox(width: GinkgoSpacing.base),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextSpan(
-                        text: '${campus.people}',
-                        style: const TextStyle(
-                          fontSize: 40,
+                      Text(
+                        '实时在馆人数',
+                        style: GinkgoTypography.callout.copyWith(
                           fontWeight: FontWeight.w600,
-                          letterSpacing: -1,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
                         ),
                       ),
-                      const TextSpan(
-                        text: ' 人',
-                        style: TextStyle(fontSize: 17),
+                      const SizedBox(height: GinkgoSpacing.small),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${campus.people}',
+                              style: GinkgoTypography.largeTitle.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontFeatures: GinkgoTypography.tabularDigits,
+                                color: CupertinoColors.label.resolveFrom(
+                                  context,
+                                ),
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' 人',
+                              style: GinkgoTypography.headline.copyWith(
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      if (hasSeats) ...[
+                        const SizedBox(height: GinkgoSpacing.sm),
+                        SegmentedCapsuleBar(
+                          segments: [
+                            BarSegment(
+                              fraction: occupiedRatio!,
+                              startColor: const Color(0xFF1D4ED8),
+                              endColor: const Color(0xFF38BDF8),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: GinkgoSpacing.xs),
+                        Text(
+                          '空闲座位 $seatFree / $seatTotal 座',
+                          style: GinkgoTypography.caption.copyWith(
+                            fontFeatures: GinkgoTypography.tabularDigits,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -204,17 +286,36 @@ class _LibraryStatsPageState extends State<LibraryStatsPage> {
             ),
           ),
         ),
-      ),
-      for (final room in campus.readingRooms)
-        AppleListTile(
-          title: Text(room.name),
-          subtitle: Text('${room.people} 人'),
-        ),
-      _metric('预约座位', '座', campus.seats),
-      _metric('研讨间', '间', campus.studyRooms),
-      _metric('寄存柜', '个', campus.lockers),
-    ],
-  );
+        for (final room in campus.readingRooms)
+          AppleListTile(
+            title: Text(room.name),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: GinkgoSpacing.xs),
+              child: SegmentedCapsuleBar(
+                height: 5.5,
+                segments: [
+                  BarSegment(
+                    fraction: (room.people / maxRoomPeople).clamp(0.0, 1.0),
+                    startColor: const Color(0xFF0D9488),
+                    endColor: const Color(0xFF5EEAD4),
+                  ),
+                ],
+              ),
+            ),
+            trailing: Text(
+              '${room.people} 人',
+              style: GinkgoTypography.footnote.copyWith(
+                fontWeight: FontWeight.w600,
+                fontFeatures: GinkgoTypography.tabularDigits,
+              ),
+            ),
+          ),
+        _metric('预约座位', '座', campus.seats),
+        _metric('研讨间', '间', campus.studyRooms),
+        _metric('寄存柜', '个', campus.lockers),
+      ],
+    );
+  }
 
   Widget _metric(String name, String unit, CountPair? pair) => ResourceMeter(
     label: name,

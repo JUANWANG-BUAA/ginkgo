@@ -27,4 +27,7 @@ pub mod updates_http;
 
 pub mod homework_files_http;
 
+pub mod evaluation_http;
+pub mod finance_http;
 pub mod learning;
+pub mod network_account_http;

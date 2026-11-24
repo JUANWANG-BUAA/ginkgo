@@ -116,7 +116,10 @@ void main() {
         find.byKey(const Key('schedule-current-week')),
       );
       final chip = tester.getRect(find.byKey(const Key('schedule-week-7')));
-      expect(tester.getRect(strip).bottom - term.top, lessThanOrEqualTo(140));
+      expect(
+        tester.getRect(strip).bottom - picker.top,
+        lessThanOrEqualTo(175),
+      );
       for (final target in [term, picker, current, chip]) {
         expect(target.height, greaterThanOrEqualTo(48));
       }

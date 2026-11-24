@@ -4,11 +4,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/local_tasks.dart';
-import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/design/tokens/spacing.dart';
+import 'package:ginkgo_mirror/widgets/top_bounce_scroll_physics.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
@@ -26,7 +26,6 @@ import 'today_page_header.dart';
 import 'today_status_strip.dart';
 import 'today_tasks_section.dart';
 import 'today_exam_section.dart';
-import 'today_notice_section.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({
@@ -92,16 +91,11 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   late RefreshSection<TodayTasksSnapshot> tasks;
   late RefreshSection<TodayResponse> courses;
   late RefreshSection<HomeworkResponse> homework;
-  late RefreshSection<NoticesRead> notices;
   late RefreshSection<CheckInResponse> checkin;
   TodayResponse? get data => courses.value;
   String? get error => courses.error;
   bool get busy =>
-      courses.loading ||
-      homework.loading ||
-      tasks.loading ||
-      notices.loading ||
-      checkin.loading;
+      courses.loading || homework.loading || tasks.loading || checkin.loading;
 
   @override
   void initState() {
@@ -135,7 +129,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     tasks = RefreshSection<TodayTasksSnapshot>()..addListener(_changed);
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
-    notices = RefreshSection<NoticesRead>()..addListener(_changed);
     checkin = RefreshSection<CheckInResponse>()..addListener(_changed);
     load();
   }
@@ -154,7 +147,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       tasks.dispose();
       courses.dispose();
       homework.dispose();
-      notices.dispose();
       checkin.dispose();
       _createSection();
     }
@@ -168,7 +160,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     tasks.dispose();
     courses.dispose();
     homework.dispose();
-    notices.dispose();
     checkin.dispose();
     super.dispose();
   }
@@ -180,7 +171,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
       _loadCourses(force: force),
       _loadHomework(force: force),
       _loadTasks(),
-      _loadNotices(force: force),
       if (force) _loadCheckIn(force: true),
     ]);
     if (mounted && generation == _generation) setState(() => routeRevision++);
@@ -239,21 +229,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   Future<String> _tasksRoot() async =>
       widget.storageRoot ?? await TaskStorageScope.read(context)();
 
-  Future<void> _loadNotices({bool force = false}) {
-    final service = widget.service;
-    return notices.refresh(
-      () async {
-        final result = await service.notices(forceRefresh: force);
-        return SectionResult(
-          value: result.failure == null ? result : null,
-          error: result.failure == null ? null : failureMessage(result.failure),
-        );
-      },
-      fallbackError: '校园通知暂不可用，请重试',
-      force: force,
-    );
-  }
-
   Future<void> _loadTasks() {
     final service = widget.service;
     return tasks.refresh(() async {
@@ -300,14 +275,12 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   List<String> get _loadingLabels => [
     if (courses.loading) '今日课表',
     if (homework.loading) '学校作业',
-    if (notices.loading) '校园通知',
     if (checkin.loading) '课程签到',
   ];
 
   int get _readySections => [
     courses.value != null && courses.error == null,
     homework.value != null && homework.error == null,
-    notices.value != null && notices.error == null,
     checkin.value != null && checkin.error == null,
   ].where((ok) => ok).length;
 
@@ -315,7 +288,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     courses.error != null,
     homework.error != null,
     tasks.error != null,
-    notices.error != null,
     checkin.error != null,
   ].where((failed) => failed).length;
 
@@ -339,7 +311,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
         MediaQuery.paddingOf(context).bottom;
     final physics = MediaQuery.disableAnimationsOf(context)
         ? const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics())
-        : const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics());
+        : const AlwaysScrollableScrollPhysics(parent: TopBounceScrollPhysics());
 
     return PageRefreshShortcut(
       onRefresh: busy ? null : () => load(force: true),
@@ -367,9 +339,8 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                     readySections: _readySections,
                     errorSections: _errorSections,
                     routeRevision: routeRevision,
-                    verifiedRoute: ServiceCapabilities.resolve(
-                      widget.service,
-                    ).verifiedRoute,
+                    verifiedRoute: ServiceCapabilities.resolve(widget.service)
+                        .verifiedRoute,
                     onOpenDiagnostics: _openDiagnostics,
                   ),
                   if (data == null)
@@ -433,13 +404,6 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                     ).map((item) => item.id).toSet(),
                     onRetry: _loadTasks,
                     onOpen: _openTasks,
-                  ),
-                  TodayNoticeSection(
-                    section: notices,
-                    onRetry: () => _loadNotices(force: true),
-                    onOpen: widget.onOpenFeature == null
-                        ? () {}
-                        : () => widget.onOpenFeature!('notices'),
                   ),
                   SizedBox(height: bottomClearance),
                 ],

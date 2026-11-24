@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
@@ -61,7 +63,7 @@ class GraduateCreditBar extends StatelessWidget {
     this.valueColor,
     this.pendingColor,
     this.height = 5,
-    this.borderRadius = 3,
+    this.borderRadius = GinkgoRadii.pill,
     this.semanticLabel,
   });
 
@@ -76,6 +78,10 @@ class GraduateCreditBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final trackColor = dark ? const Color(0xFF222834) : const Color(0xFFE6E9EF);
+    final resolvedMain =
+        valueColor ?? CupertinoColors.systemGreen.resolveFrom(context);
     final bar = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: SizedBox(
@@ -83,28 +89,33 @@ class GraduateCreditBar extends StatelessWidget {
         height: height,
         child: Stack(
           children: [
-            Positioned.fill(
-              child: ColoredBox(
-                color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-              ),
-            ),
+            Positioned.fill(child: ColoredBox(color: trackColor)),
             FractionallySizedBox(
               widthFactor: (value + pendingValue).clamp(0.0, 1.0),
-              child: ColoredBox(
-                color:
-                    pendingColor ??
-                    AppleDesign.statusPending
-                        .resolveFrom(context)
-                        .withValues(alpha: 0.65),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  color:
+                      pendingColor ??
+                      AppleDesign.statusPending
+                          .resolveFrom(context)
+                          .withValues(alpha: 0.72),
+                ),
                 child: SizedBox(height: height),
               ),
             ),
             FractionallySizedBox(
               widthFactor: value.clamp(0.0, 1.0),
-              child: ColoredBox(
-                color:
-                    valueColor ??
-                    CupertinoColors.systemGreen.resolveFrom(context),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  gradient: LinearGradient(
+                    colors: [
+                      resolvedMain,
+                      Color.lerp(resolvedMain, const Color(0xFF5EEAD4), 0.35)!,
+                    ],
+                  ),
+                ),
                 child: SizedBox(height: height),
               ),
             ),
@@ -125,6 +136,9 @@ class GraduateCreditBar extends StatelessWidget {
 class GraduateCreditProgress extends StatelessWidget {
   const GraduateCreditProgress({super.key, required this.progress});
   final GraduateProgress progress;
+
+  static const double _ringSize = 86.0;
+
   @override
   Widget build(BuildContext context) {
     final required = progress.requiredCredits;
@@ -132,57 +146,216 @@ class GraduateCreditProgress extends StatelessWidget {
     final pending = progress.pending;
     final ratio = progress.earnedRatio;
     final remaining = progress.remaining;
-    return Padding(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AcademicMetricGrid(
-            children: [
-              AcademicMetric(
-                label: '方案已认定',
-                value: graduateCreditLabel(earned),
-                prominent: true,
-              ),
-              AcademicMetric(
-                label: '要求学分',
-                value: graduateCreditLabel(required),
-              ),
-              AcademicMetric(label: '待考核', value: graduateCreditLabel(pending)),
-            ],
-          ),
-          const SizedBox(height: 18),
-          if (ratio != null)
-            GraduateCreditBar(
-              value: ratio,
-              pendingValue: progress.pendingRatio,
-              semanticLabel: '已认定学分占要求的比例',
+    final pct = ratio == null ? '--' : '${(ratio * 100).round()}%';
+
+    final ring = _CreditProgressRing(
+      size: _ringSize,
+      earnedRatio: ratio ?? 0,
+      pendingRatio: progress.pendingRatio,
+      centerLabel: pct,
+      subLabel: ratio == null ? '待确认' : '已认定',
+    );
+
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AcademicMetricGrid(
+          children: [
+            AcademicMetric(
+              label: '方案已认定',
+              value: graduateCreditLabel(earned),
+              prominent: true,
             ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              AcademicBadge('尚需 ${graduateCreditLabel(remaining)}'),
-              if (required == 0)
-                const AcademicBadge('本项无最低学分要求')
-              else if (required == null || earned == null)
-                const AcademicBadge(
-                  '学分信息不完整',
-                  icon: CupertinoIcons.question_circle,
-                ),
-              if (pending != null && pending > 0)
-                AcademicBadge(
-                  '待考核 ${graduateCreditLabel(pending)}',
-                  tint: AppleDesign.statusPending,
-                  icon: CupertinoIcons.clock,
-                ),
-            ],
+            AcademicMetric(
+              label: '要求学分',
+              value: graduateCreditLabel(required),
+            ),
+            AcademicMetric(label: '待考核', value: graduateCreditLabel(pending)),
+          ],
+        ),
+        const SizedBox(height: GinkgoSpacing.pageInset),
+        if (ratio != null)
+          GraduateCreditBar(
+            value: ratio,
+            pendingValue: progress.pendingRatio,
+            semanticLabel: '已认定学分占要求的比例',
           ),
-        ],
+        const SizedBox(height: GinkgoSpacing.sm),
+        Wrap(
+          spacing: GinkgoSpacing.md,
+          runSpacing: GinkgoSpacing.sm,
+          children: [
+            AcademicBadge('尚需 ${graduateCreditLabel(remaining)}'),
+            if (required == 0)
+              const AcademicBadge('本项无最低学分要求')
+            else if (required == null || earned == null)
+              const AcademicBadge(
+                '学分信息不完整',
+                icon: CupertinoIcons.question_circle,
+              ),
+            if (pending != null && pending > 0)
+              AcademicBadge(
+                '待考核 ${graduateCreditLabel(pending)}',
+                tint: AppleDesign.statusPending,
+                icon: CupertinoIcons.clock,
+              ),
+          ],
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(GinkgoSpacing.pageInset),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final stacked =
+              constraints.maxWidth < 310 ||
+              MediaQuery.textScalerOf(context).scale(1) > 1.5;
+          if (stacked) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ring,
+                const SizedBox(height: GinkgoSpacing.md),
+                details,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ring,
+              const SizedBox(width: GinkgoSpacing.pageInset),
+              Expanded(child: details),
+            ],
+          );
+        },
       ),
     );
   }
+}
+
+/// Apple Watch–inspired dual-arc radial ring for recognized + pending credits.
+class _CreditProgressRing extends StatelessWidget {
+  const _CreditProgressRing({
+    required this.size,
+    required this.earnedRatio,
+    required this.pendingRatio,
+    required this.centerLabel,
+    required this.subLabel,
+  });
+
+  final double size;
+  final double earnedRatio;
+  final double pendingRatio;
+  final String centerLabel;
+  final String subLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final trackColor = dark ? const Color(0xFF232936) : const Color(0xFFE7ECF2);
+    final earnedColor = AppleDesign.statusSuccess.resolveFrom(context);
+    final pendingColor = AppleDesign.statusPending.resolveFrom(context);
+    final labelColor = CupertinoColors.label.resolveFrom(context);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+
+    final clampedEarned = earnedRatio.clamp(0.0, 1.0);
+    final clampedPending = pendingRatio.clamp(0.0, 1.0);
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _CreditRingPainter(
+          earnedRatio: clampedEarned,
+          pendingRatio: clampedPending,
+          trackColor: trackColor,
+          earnedColor: earnedColor,
+          pendingColor: pendingColor,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                centerLabel,
+                maxLines: 1,
+                style: GinkgoTypography.headline.copyWith(
+                  color: labelColor,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: GinkgoTypography.tabularDigits,
+                ),
+              ),
+              Text(
+                subLabel,
+                maxLines: 1,
+                style: GinkgoTypography.caption2.copyWith(color: secondary),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditRingPainter extends CustomPainter {
+  const _CreditRingPainter({
+    required this.earnedRatio,
+    required this.pendingRatio,
+    required this.trackColor,
+    required this.earnedColor,
+    required this.pendingColor,
+  });
+
+  final double earnedRatio;
+  final double pendingRatio;
+  final Color trackColor;
+  final Color earnedColor;
+  final Color pendingColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const stroke = 7.5;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (math.min(size.width, size.height) - stroke) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    const startAngle = -math.pi / 2;
+
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke;
+    canvas.drawCircle(center, radius, trackPaint);
+
+    final totalRatio = (earnedRatio + pendingRatio).clamp(0.0, 1.0);
+    if (totalRatio > 0) {
+      final pendingPaint = Paint()
+        ..color = pendingColor.withValues(alpha: 0.72)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, startAngle, math.pi * 2 * totalRatio, false, pendingPaint);
+    }
+
+    if (earnedRatio > 0) {
+      final earnedPaint = Paint()
+        ..color = earnedColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, startAngle, math.pi * 2 * earnedRatio, false, earnedPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CreditRingPainter old) =>
+      old.earnedRatio != earnedRatio ||
+      old.pendingRatio != pendingRatio ||
+      old.trackColor != trackColor ||
+      old.earnedColor != earnedColor ||
+      old.pendingColor != pendingColor;
 }
 
 /// A collapsible block. The page owns the expanded state so a reload can

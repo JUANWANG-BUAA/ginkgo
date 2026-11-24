@@ -50,6 +50,7 @@ SUMMARY_TOKENS = (
     'AcademicMetricGrid(',
     'AcademicOverview(',  # Hero value plus labeled supporting academic metrics.
     'ResourceMeter(',
+    'TelemetryInstrumentCard(',
     'CheckinStatusSummary(',
     'GraduateStat(',
     'GraduateProgress(',

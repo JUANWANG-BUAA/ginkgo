@@ -8,11 +8,11 @@ CupertinoApp 组合与主题桥接。
 ## app/ginkgo_app.dart
 
 - `class GinkgoScrollBehavior extends CupertinoScrollBehavior` — Ensures [CupertinoSliverRefreshControl] works on Android (where Flutter's
-  <sub>class · app/ginkgo_app.dart:17</sub>
-    - `const GinkgoScrollBehavior();`  <sub>:18</sub>
-    - `ScrollPhysics getScrollPhysics(BuildContext context) {…}`  <sub>:21</sub>
+  <sub>class · app/ginkgo_app.dart:18</sub>
+    - `const GinkgoScrollBehavior();`  <sub>:19</sub>
+    - `ScrollPhysics getScrollPhysics(BuildContext context) {…}`  <sub>:22</sub>
 - `Widget ginkgoApp({ required Widget home, Brightness? brightness, AppPreferences? preferences, StartupUpdateController? startupUpdate, ExternalLinkLauncher externalLinkLauncher = launchExternalLink, }) {…}`
-  <sub>function · app/ginkgo_app.dart:31</sub>
+  <sub>function · app/ginkgo_app.dart:32</sub>
 
 ## main.dart
 

@@ -4,15 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ginkgo · 北航校园工作台 Android 版</title>
-    <meta name="description" content="Ginkgo 把北航课表、作业、签到、图书馆座位与研讨室收进一个 Android 工作台。免费开源，直连学校系统，不经过项目自建中转服务器。" />
-    <meta name="keywords" content="北航,BUAA,Ginkgo,Android,课表,作业,签到,图书馆,研讨室,校园助手,开源" />
+    <meta name="description" content="Ginkgo 把北航课表、作业、签到码、图书馆座位、研讨室与校园账户查询收进一个 Android 应用。免费开源，Flutter + Rust 本地直连学校系统，无自建中转服务器。" />
+    <meta name="keywords" content="北航,BUAA,Ginkgo,Android,课表,作业,签到,图书馆,研讨室,校园卡,网费流量,评教,校园助手,开源" />
     <meta name="theme-color" content="#ece8e0" />
     <meta name="color-scheme" content="light" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://api.github.com; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(), camera=(), microphone=()" />
-    <meta property="og:title" content="Ginkgo · 把北航的一天，装进手机" />
-    <meta property="og:description" content="课表、作业、签到、图书馆与研讨室，一个 Android 工作台。免费开源，为北航同学而做。" />
+    <meta property="og:title" content="Ginkgo · 北航校园工作台 Android 版" />
+    <meta property="og:description" content="课表、作业、签到、图书馆、研讨室与校园账户查询，免费开源，直连学校系统，无自建中转服务器。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://juanwang-buaa.github.io/ginkgo/" />
     <meta property="og:image" content="https://juanwang-buaa.github.io/ginkgo/images/ginkgo-android-social.png" />
@@ -35,21 +35,23 @@
           <span lang="en">Ginkgo</span><span class="brand-note">北航校园工作台</span>
         </a>
         <nav class="desktop-nav" aria-label="主导航">
-          <a href="#features">能做什么</a>
-          <a href="#screenshots">界面</a>
+          <a href="#features">功能</a>
+          <a href="#screenshots">界面预览</a>
+          <a href="#architecture">本地与隐私</a>
           <a href="#install">安装</a>
-          <a href="#beta">Beta 说明</a>
+          <a href="#beta">试用说明</a>
           <a href="https://github.com/JUANWANG-BUAA/ginkgo">GitHub ↗</a>
         </nav>
         <a class="button button-small header-download" data-download-apk href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk">下载 <span data-android-channel>Beta</span> 版</a>
         <details class="mobile-nav">
-          <summary aria-label="展开导航">导航 <span aria-hidden="true">＋</span></summary>
+          <summary aria-label="展开导航">菜单 <span aria-hidden="true">＋</span></summary>
           <nav aria-label="移动导航">
-            <a href="#features">能做什么</a>
-            <a href="#screenshots">界面与演示</a>
+            <a href="#features">功能</a>
+            <a href="#screenshots">界面预览</a>
+            <a href="#architecture">本地与隐私</a>
             <a href="#install">安装 Android</a>
-            <a href="#beta">Beta 说明</a>
-            <a href="#privacy">隐私与数据</a>
+            <a href="#beta">试用说明</a>
+            <a href="#acknowledgments">开源致谢</a>
             <a href="https://github.com/JUANWANG-BUAA/ginkgo">GitHub ↗</a>
           </nav>
         </details>
@@ -59,19 +61,19 @@
     <main id="main">
       <section class="hero wrap" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="release-dot" aria-hidden="true"></span>ANDROID · <span data-android-channel>ALPHA</span> 公开试用</div>
+          <div class="eyebrow"><span class="release-dot" aria-hidden="true"></span>ANDROID · <span data-android-channel>BETA</span> 公开试用 · FLUTTER + RUST</div>
           <h1 id="hero-title">把北航的一天，<br />装进<span class="accent">手机。</span></h1>
-          <p class="hero-lead">今天的课、待交的作业、能签到的课、能坐的图书馆座位。打开 Ginkgo，就知道接下来要关注什么。</p>
+          <p class="hero-lead">从早八课表、课堂实时签到码、SPOC 作业截止，到图书馆座位、研讨室与校园账户余量——打开 Ginkgo，眼前要忙的事一目了然。</p>
           <div class="actions">
             <a class="button button-primary" data-download-apk href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk">下载 Android <span data-android-channel>Beta</span> 版 <span aria-hidden="true">↓</span></a>
-            <a class="text-link" href="#screenshots">先看离线演示 <span aria-hidden="true">↗</span></a>
+            <a class="button" href="#screenshots">观看 20 秒演示</a>
           </div>
           <dl class="hero-facts" aria-label="下载信息">
-            <div><dt>当前版本</dt><dd data-android-version>0.1.0-beta.11</dd></div>
-            <div><dt>设备要求</dt><dd>Android 7.0+ · ARM64</dd></div>
-            <div><dt>价格与许可</dt><dd>免费 · MIT 开源</dd></div>
+            <div><dt>当前公开版本</dt><dd data-android-version>0.1.0-beta.11</dd></div>
+            <div><dt>运行环境</dt><dd>Android 7.0+ · ARM64</dd></div>
+            <div><dt>连接与许可</dt><dd>本机直连 · MIT 开源</dd></div>
           </dl>
-          <p class="hero-disclaimer">非官方个人开源项目。公开试用中，重要信息请以学校官方记录为准。</p>
+          <p class="hero-disclaimer">非官方个人开源项目。公开试用中，重要学业与预约记录请以学校官方系统为准。</p>
         </div>
         <div class="hero-visual" aria-label="Android 应用界面预览">
           <div class="phone-stage">
@@ -79,57 +81,74 @@
               <a href="images/android-today.png" data-preview aria-label="放大 Android 工作台截图">
                 <picture><source srcset="images/android-today-640.webp" type="image/webp" /><img src="images/android-today.png" width="1080" height="2400" fetchpriority="high" alt="Ginkgo Android 工作台：今日课程、学校作业与个人待办" /></picture>
               </a>
-              <figcaption>01 · 工作台</figcaption>
+              <figcaption>01 · 今日工作台</figcaption>
             </figure>
             <figure class="phone-shot phone-shot-second" aria-hidden="true">
               <picture><source srcset="images/android-schedule-640.webp" type="image/webp" /><img src="images/android-schedule.png" width="1080" height="2400" alt="" /></picture>
-              <figcaption>02 · 课表</figcaption>
+              <figcaption>02 · 周课表与清单</figcaption>
             </figure>
           </div>
-          <div class="visual-note"><span>真实 Android 界面</span><span>离线演示合成数据</span></div>
+          <div class="visual-note"><span>真实 Android 渲染界面</span><span>100% 离线合成演示数据</span></div>
         </div>
       </section>
 
       <div class="wrap">
-        <div class="principles" aria-label="产品原则">
-          <span>为北航校园服务而做</span>
-          <span>直连学校或北航 WebVPN</span>
-          <span>不经过项目自建中转服务器</span>
-          <a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/LICENSE">MIT 开源 ↗</a>
+        <div class="principles" aria-label="设计原则">
+          <span>直连校内系统或北航官方 WebVPN</span>
+          <span>无自建中转服务器</span>
+          <span>余额与发放记录默认遮挡且不落盘</span>
+          <span>按功能拆分的独立模块</span>
+          <a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/LICENSE">MIT 开源许可 ↗</a>
         </div>
       </div>
 
       <section class="section wrap" id="features" aria-labelledby="features-title">
         <div class="section-heading">
-          <div><div class="eyebrow">从早八，到晚自习</div><h2 id="features-title">常用的事，放在顺手的位置。</h2></div>
-          <p>不是简单搬运网页，而是围绕一天的节奏，重新组织课程、学习和空间信息。</p>
+          <div><div class="eyebrow">常用校园服务</div><h2 id="features-title">按日常使用场景分组，按需读取。</h2></div>
+          <p>各功能使用独立接口，只在打开对应页面时请求学校服务，单个系统维护不影响其它页面。</p>
         </div>
         <div class="feature-stories">
           <article class="feature-story">
-            <span class="story-number">01 / 今天</span>
-            <div><h3>出门前，先知道今天</h3><p>当天课程、签到状态、近期作业和个人待办集中在一屏。少切几个系统，先安排眼前的事。</p></div>
+            <span class="story-number">01 / 日常</span>
+            <div>
+              <h3>今天要上的课与待处理事项</h3>
+              <p>同屏汇总当日课程、近期截止作业、校园通知与本机个人待办；课程签到支持在课前生成实时签到二维码并保存到相册。</p>
+              <div class="pill-row"><span>今日工作台</span><span>实时签到码</span><span>本机待办</span></div>
+            </div>
           </article>
           <article class="feature-story">
             <span class="story-number">02 / 学业</span>
-            <div><h3>课表与作业，看得清楚</h3><p>周课表与当日清单、课程搜索、考试、SPOC 作业和资料、成绩与研究生学分地图，各有明确入口。</p></div>
+            <div>
+              <h3>课表、作业、成绩与培养方案</h3>
+              <p>包含周课表与考试安排、SPOC 作业与课程资料下载、原始成绩、研究生培养方案学分地图、博雅课程，以及本学期评教完成状态检查。</p>
+              <div class="pill-row"><span>周课表与考试</span><span>SPOC 作业/学习</span><span>成绩与学分图</span><span>评教状态检查</span></div>
+            </div>
           </article>
           <article class="feature-story">
             <span class="story-number">03 / 空间</span>
-            <div><h3>为下一段专注，找个位置</h3><p>查询图书馆座位、研讨室时段和空教室。预约与管理操作逐次确认，不自动重复提交。</p></div>
+            <div>
+              <h3>图书馆、研讨室与空教室</h3>
+              <p>查看两校区图书馆在馆人数与选座、教学楼研讨室（CGYY）空档与门锁密码、筛选空教室，以及查询公开书目与个人当前借阅。</p>
+              <div class="pill-row"><span>图书馆选座</span><span>研讨室与门锁码</span><span>空教室</span><span>书目与借阅</span></div>
+            </div>
           </article>
           <article class="feature-story">
-            <span class="story-number">04 / 校园</span>
-            <div><h3>分散的服务，一个入口</h3><p>公开查书、博雅、校园通知、校车时刻表和本机待办，也收进同一个移动工作台。</p></div>
+            <span class="story-number">04 / 账户与校内信息</span>
+            <div>
+              <h3>校园账户查询与公开通知</h3>
+              <p>按需查询校园卡余额、网费余额与校园网流量明细、助研津贴与助学金发放记录（默认遮挡、退后台即清空），以及校车时刻表、就业宣讲与学术讲座。</p>
+              <div class="pill-row"><span>校园卡余额</span><span>网费与流量</span><span>财务收入只读</span><span>就业与讲座</span></div>
+            </div>
           </article>
         </div>
-        <a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/FEATURES-AND-PROTOCOLS.md">查看完整功能与读写边界 <span aria-hidden="true">↗</span></a>
+        <a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/FEATURES-AND-PROTOCOLS.md">查看完整功能清单与读写边界 <span aria-hidden="true">↗</span></a>
       </section>
 
       <section class="section screenshot-section" id="screenshots" aria-labelledby="screenshots-title">
         <div class="wrap">
           <div class="section-heading">
-            <div><div class="eyebrow">所见即所得</div><h2 id="screenshots-title">手机上的工作台，长这样。</h2></div>
-            <p>全部来自真实 Android 构建的离线演示模式。界面为合成样例，不含真实账号或个人数据。</p>
+            <div><div class="eyebrow">界面预览</div><h2 id="screenshots-title">真实 Android 构建截图与离线演示。</h2></div>
+            <p>以下截图均来自隔离模拟器的离线演示模式，使用合成样例数据，不包含任何真实账号或个人课程信息。</p>
           </div>
           <div class="gallery-layout">
             <div class="phone-grid">
@@ -147,9 +166,9 @@
               </figure>
             </div>
             <aside class="demo-panel panel">
-              <div class="eyebrow">20 秒，快速认识 Ginkgo</div>
-              <h3>不用登录，<br />也能先看看。</h3>
-              <p>离线演示依次走过工作台、课表、作业、签到与预约。视频不自动播放，由你决定何时开始。</p>
+              <div class="eyebrow">20 秒认识 Ginkgo</div>
+              <h3>无需登录，<br />先体验离线演示。</h3>
+              <p>内置完整合成演示环境，安装后不输入学号也可浏览工作台、课表、作业、签到与空间预约流程。</p>
               <video src="media/ginkgo-android-demo.mp4" poster="images/android-today-640.webp" width="720" height="1600" controls muted loop playsinline preload="none" aria-label="Ginkgo Android 离线演示录屏"></video>
               <div class="more-shots" aria-label="更多界面截图">
                 <a href="images/android-checkin.png" data-preview>签到</a>
@@ -162,87 +181,95 @@
         </div>
       </section>
 
+      <section class="section wrap privacy-section" id="architecture" aria-labelledby="privacy-title">
+        <div class="section-heading">
+          <div><div class="eyebrow">本地直连与数据边界</div><h2 id="privacy-title">请求在手机本机发出，<br />没有自建中转服务器。</h2></div>
+          <p>所有学校请求均在应用进程内由本地 Rust 模块直连北航系统，或经北航官方 WebVPN 访问，账号密码与 Cookie 不经过第三方服务器。</p>
+        </div>
+        <dl class="privacy-details">
+          <div><dt>凭据与匿名会话分离</dt><dd>仅在主动勾选“记住密码”后写入系统 Android Keystore；校车、宣讲与新闻等公开信息使用无 Cookie 匿名会话读取。</dd></div>
+          <div><dt>账户数据仅存内存</dt><dd>校园卡、网费、财务收入与本人借阅默认遮挡金额，并在 Rust 层剔除银行卡号与证件号，离开页面或退到后台立即清空内存，不写入磁盘。</dd></div>
+          <div><dt>写操作不自动重发</dt><dd>预约、取消与作业提交均需本人确认后单次发送；若网络超时或返回状态不明，只允许只读回查，不自动重发。</dd></div>
+        </dl>
+        <a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/PRIVACY.md">阅读完整隐私与本地数据说明 <span aria-hidden="true">↗</span></a>
+      </section>
+
       <section class="section wrap" id="install" aria-labelledby="install-title">
         <div class="section-heading">
           <div><div class="eyebrow">带到你的 Android 手机上</div><h2 id="install-title">三步，开始安排今天。</h2></div>
-          <p>适用于 Android 7.0 及以上的 ARM64 设备。暂不支持 32 位设备与 x86 模拟器安装包。</p>
+          <p>支持 Android 7.0 及以上的 64 位 ARM 设备，安装包内置应用更新校验能力。</p>
         </div>
         <div class="install-layout">
           <ol class="install-steps">
-            <li><span>01</span><div><h3>下载官方 APK</h3><p>从本页或 GitHub Release 下载，核对版本与 SHA-256。第三方备用入口不是主下载源。</p></div></li>
-            <li><span>02</span><div><h3>允许本次安装</h3><p>按 Android 系统提示允许浏览器安装未知来源应用。系统安装确认始终由你掌握。</p></div></li>
-            <li><span>03</span><div><h3>登录，或进入离线演示</h3><p>使用本人的北航统一身份认证；也可以先不登录，用合成数据了解界面。</p></div></li>
+            <li><span>01</span><div><h3>下载官方签名 APK</h3><p>从本页或 GitHub Release 获取安装包；使用第三方镜像加速下载后请核对官方 SHA-256 摘要。</p></div></li>
+            <li><span>02</span><div><h3>系统确认安装</h3><p>按 Android 系统引导允许本次安装。升级新版可直接覆盖安装以保留本机个人待办。</p></div></li>
+            <li><span>03</span><div><h3>校内直连、WebVPN 或离线预览</h3><p>登录本人北航统一身份认证即可使用；校园网内外可按需切换直连或官方 WebVPN，也可先体验离线演示。</p></div></li>
           </ol>
           <article class="download-card panel" id="android">
-            <div class="download-card-top"><span class="tag"><span data-android-channel>Beta</span> 公开试用</span><span lang="en">ANDROID</span></div>
+            <div class="download-card-top"><span class="tag"><span data-android-channel>Beta</span> 公开试用</span><span lang="en">ANDROID · ARM64</span></div>
             <h3>Ginkgo for Android</h3>
-            <div class="download-version"><span data-android-version>0.1.0-beta.11</span><span>ARM64 APK</span></div>
+            <div class="download-version"><span data-android-version>0.1.0-beta.11</span><span>Signed Release APK</span></div>
             <a class="button button-primary" data-download-apk href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk">下载官方 APK <span aria-hidden="true">↓</span></a>
             <div class="download-links">
-              <a data-android-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk.sha256">SHA-256</a>
+              <a data-android-checksums href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk.sha256">SHA-256 校验</a>
               <a data-android-release href="https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.11">发布说明 ↗</a>
-              <a data-download-apk-proxy href="https://gh-proxy.com/https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk" title="第三方代理，下载后请核对 SHA-256">第三方备用入口 ↗</a>
+              <a data-download-apk-proxy href="https://gh-proxy.com/https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk" title="第三方代理，下载后请核对 SHA-256">国内加速备用 ↗</a>
             </div>
-            <p class="download-note">覆盖升级前建议备份重要个人待办；不建议降级或卸载。调试版与公开版签名不同时，可能需要先卸载，卸载会清除本机数据。</p>
+            <p class="download-note">覆盖升级前建议备份重要个人待办；不建议降级安装。若曾安装本地 Debug 调试包，因签名不同需先卸载旧调试包。</p>
           </article>
         </div>
       </section>
 
       <section class="section beta-section" id="beta" aria-labelledby="beta-title">
         <div class="wrap beta-layout">
-          <div><div class="eyebrow">公开试用，也把边界说清楚</div><h2 id="beta-title">Beta 不是一句“都稳定了”。</h2><p>Ginkgo 已具备完整的日常使用界面与多项校园服务链路，但不同账号类型、学校系统状态和设备环境仍可能影响结果。</p></div>
+          <div><div class="eyebrow">Beta 试用说明</div><h2 id="beta-title">清楚说明已完成范围，<br />不夸大未验收能力。</h2><p>仓库区分“合成测试通过”与“真实账号实机验收”，尚未完成全场景真机核对的能力均在文档中如实标注。</p></div>
           <div class="beta-points">
-            <article><h3>写操作由你确认</h3><p>签到、预约、取消和作业提交均需逐次确认；结果不明时只回查，不自动重发。部分真实写入仍在验收，请以学校记录为准。</p></article>
-            <article><h3>验收范围透明</h3><p>物理设备、完整 TalkBack、部分真实账号与非空数据仍在持续验收。借阅、门锁密码等功能不应被理解为所有账号均已验证。</p></article>
-            <article><h3>问题可以具体反馈</h3><p>附上版本、设备、账号类型、网络路线与复现步骤。不要提交密码、Cookie、真实学号、HAR 或未打码截图。</p><a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md">反馈 Android Beta 问题 <span aria-hidden="true">↗</span></a></article>
+            <article><h3>不接资金与代填提交接口</h3><p>校园卡、网费与财务模块仅做只读查询，不接入充值、挂失、转账或应用内评教提交写操作。</p></article>
+            <article><h3>模块故障互不牵连</h3><p>各功能通过独立接口通信；单一上游系统维护或会话过期时，不会清空全局登录态或影响课表与本机待办。</p></article>
+            <article><h3>提交脱敏问题反馈</h3><p>遇到适配问题请附上版本号、机型、本科/研究生类别与直连/WebVPN 路线，请勿上传密码、Cookie 或未打码截图。</p><a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md">提交试用反馈 <span aria-hidden="true">↗</span></a></article>
           </div>
         </div>
       </section>
 
-      <section class="section wrap privacy-section" id="privacy" aria-labelledby="privacy-title">
-        <div class="section-heading">
-          <div><div class="eyebrow">你的校园，你的数据</div><h2 id="privacy-title">不经过我们的服务器，<br />因为根本没有。</h2></div>
-          <p>查询在设备进程内直连学校系统，或经北航官方 WebVPN。登录和提交会把相应数据发送给学校，但不会经过 Ginkgo 项目自建中转服务器。</p>
-        </div>
-        <dl class="privacy-details">
-          <div><dt>密码保存由你决定</dt><dd>只有主动勾选“记住密码”后，才写入 Android Keystore 保护的本机保险库。</dd></div>
-          <div><dt>本机数据按账号隔离</dt><dd>个人待办保存在本机；普通查询快照目前主要在进程内保留，重启后需重新联网读取。</dd></div>
-          <div><dt>没有第三方统计</dt><dd>应用不接入第三方统计。版本检查访问 GitHub；选用第三方下载代理时，请核对官方 SHA-256。</dd></div>
-        </dl>
-        <a class="text-link" href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/PRIVACY.md">阅读完整隐私说明 <span aria-hidden="true">↗</span></a>
-      </section>
-
       <section class="section wrap faq-section" aria-labelledby="faq-title">
-        <div class="section-heading"><div><div class="eyebrow">开始之前</div><h2 id="faq-title">你可能还想了解。</h2></div></div>
+        <div class="section-heading"><div><div class="eyebrow">常见疑问</div><h2 id="faq-title">开始之前，你可能想了解。</h2></div></div>
         <div class="faq-list">
-          <details><summary>这是学校官方应用吗？<span aria-hidden="true">＋</span></summary><p>不是。Ginkgo 是非官方个人开源项目，与北京航空航天大学及其任何部门无隶属、合作或授权关系。校园信息请以学校官方渠道为准。</p></details>
-          <details><summary>需要注册 Ginkgo 账号吗？<span aria-hidden="true">＋</span></summary><p>不需要。使用本人的北航统一身份认证账号登录。学校系统的网络策略、验证码或维护状态可能影响服务，也可以先进入离线演示。</p></details>
-          <details><summary>Android 怎么升级？<span aria-hidden="true">＋</span></summary><p>可在应用内检查、下载并校验更新，再交给系统确认安装；也可从本页下载新版 APK 覆盖安装。升级前建议备份重要个人待办，不建议降级。</p></details>
-          <details><summary>校车余票和所有学校服务都能用吗？<span aria-hidden="true">＋</span></summary><p>校车目前提供官方公开时刻表，不包含应用内实时余票或购票。各账号可访问的学校服务不同，具体读写边界请查看功能说明。</p></details>
+          <details><summary>这是学校官方应用吗？<span aria-hidden="true">＋</span></summary><p>不是。Ginkgo 是非官方个人开源项目，与北京航空航天大学及其任何部门无隶属、合作或授权关系。重要信息请以学校官方系统为准。</p></details>
+          <details><summary>在校外网络可以使用吗？<span aria-hidden="true">＋</span></summary><p>可以。支持自动、直连与北航官方 WebVPN 路线切换；校外环境可通过本人北航统一身份认证经官方 WebVPN 访问支持的校内服务。</p></details>
+          <details><summary>财务、校园卡和网费查询安全吗？<span aria-hidden="true">＋</span></summary><p>这些模块均为用户手动触发的纯只读请求，金额默认遮挡且剥离证件号与银行卡号，数据仅存于当前页面内存，切后台或离页即刻销毁，不写入本地磁盘。</p></details>
+          <details><summary>为什么课程评教只显示状态而不支持应用内一键评教？<span aria-hidden="true">＋</span></summary><p>为尊重教学评价严肃性并规避上游网页端状态锁死风险，应用仅提供应评课程与未评数量提醒，并提供官方评教系统入口在浏览器中由本人完成。</p></details>
         </div>
       </section>
 
       <section class="wrap other-platforms" aria-labelledby="other-title">
-        <h2 id="other-title">其它平台</h2>
+        <h2 id="other-title">其它平台状态</h2>
         <div class="other-grid">
-          <article id="windows"><span class="tag">共用工程 · 不再排期</span><h3>Windows</h3><p><span data-windows-version>0.1.0-alpha.6</span> · x64。只保证可编译，安装器未签名。</p><a data-download-windows href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.6/Ginkgo-0.1.0-alpha.6-windows-x64-setup.exe">下载安装器 ↗</a><a data-download-windows-zip href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.6/Ginkgo-0.1.0-alpha.6-windows-x64.zip">便携 ZIP</a></article>
-          <article id="macos"><span class="tag">历史版本 · 已冻结</span><h3>macOS</h3><p><span data-latest-version>v0.1.0-alpha.7</span>。保留原生源码与归档，不再做功能开发。</p><a data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/v0.1.0-alpha.7/Ginkgo-v0.1.0-alpha.7.dmg">下载历史 DMG ↗</a></article>
-          <article id="ios"><span class="tag">源码构建 · 已冻结</span><h3>iOS &amp; iPadOS</h3><p>无 App Store / TestFlight 发布，不再排期。</p><a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/IOS.md">查看构建说明 ↗</a></article>
+          <article id="windows"><span class="tag">共用工程 · 不再排期</span><h3>Windows</h3><p><span data-windows-version>0.1.0-alpha.6</span> · x64。与 Android 共用底层工程保持可编译，历史安装包未签名。</p><a data-download-windows href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.6/Ginkgo-0.1.0-alpha.6-windows-x64-setup.exe">下载安装器 ↗</a><a data-download-windows-zip href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/windows-v0.1.0-alpha.6/Ginkgo-0.1.0-alpha.6-windows-x64.zip">便携 ZIP</a></article>
+          <article id="macos"><span class="tag">历史归档 · 已冻结</span><h3>macOS</h3><p><span data-latest-version>v0.1.0-alpha.7</span>。保留原生 SwiftUI 源码与归档包，不再排期开发。</p><a data-download-dmg href="https://github.com/JUANWANG-BUAA/ginkgo/releases/download/v0.1.0-alpha.7/Ginkgo-v0.1.0-alpha.7.dmg">下载历史 DMG ↗</a></article>
+          <article id="ios"><span class="tag">源码归档 · 已冻结</span><h3>iOS &amp; iPadOS</h3><p>不提供公开分发包，保留原生源码供自行编译学习。</p><a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/IOS.md">查看构建说明 ↗</a></article>
         </div>
       </section>
 
-      <section class="disclaimer wrap" id="disclaimer" aria-labelledby="disclaimer-title">
-        <h2 id="disclaimer-title">使用说明与免责声明</h2>
-        <p>Ginkgo 仅供个人学习与自用。使用者应遵守学校服务条款与网络使用规定，不用于绕过风控或替代官方服务。软件依 MIT 许可按原样提供；请自行核对重要信息并承担使用风险。</p>
+      <section class="disclaimer wrap" id="acknowledgments" aria-labelledby="ack-title">
+        <div class="ack-grid">
+          <div>
+            <h2 id="ack-title">开源致谢</h2>
+            <p>感谢以下开源项目及其作者与贡献者：<a href="https://github.com/BUAASubnet/UBAA">BUAASubnet/UBAA</a>、<a href="https://github.com/fontlos/buaa-api">fontlos/buaa-api</a>、<a href="https://github.com/CoolwindHF/Auto-BUAA-icw">CoolwindHF/Auto-BUAA-icw</a>。</p>
+          </div>
+          <div id="disclaimer">
+            <h2>免责声明</h2>
+            <p>Ginkgo 仅供个人学习与自用。使用者应遵守学校服务条款与网络管理规定，不用于绕过风控或替代官方渠道。软件依 MIT 许可按“原样”提供，请自行核对重要信息。</p>
+          </div>
+        </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="wrap footer-inner">
-        <div><a class="brand" href="#top"><img src="images/ginkgo-mark.svg" width="28" height="28" alt="" /><span lang="en">Ginkgo</span></a><p>希望成为你每天都会经过的地方。</p><div class="footer-note">北航校园工作台 · 非官方开源项目</div></div>
-        <nav aria-label="页脚导航"><a href="https://github.com/JUANWANG-BUAA/ginkgo">GitHub</a><a href="https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md">反馈问题</a><a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/PRIVACY.md">隐私</a><a href="#disclaimer">免责声明</a></nav>
+        <div><a class="brand" href="#top"><img src="images/ginkgo-mark.svg" width="28" height="28" alt="" /><span lang="en">Ginkgo</span></a><p>把北航常用的校园服务收进一个干净好用的 Android 应用。</p><div class="footer-note">北航校园工作台 · Flutter + Rust · 非官方开源项目</div></div>
+        <nav aria-label="页脚导航"><a href="https://github.com/JUANWANG-BUAA/ginkgo">GitHub 仓库</a><a href="https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md">问题反馈</a><a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/ARCHITECTURE-TOPOLOGY.md">架构文档</a><a href="https://github.com/JUANWANG-BUAA/ginkgo/blob/main/docs/PRIVACY.md">隐私边界</a><a href="#acknowledgments">致谢与声明</a></nav>
       </div>
-      <div class="wrap footer-credit"><span>感谢 <a href="https://github.com/BUAASubnet/UBAA">UBAA</a> 的开源协议研究与实现。</span><a href="#top">回到顶部 ↑</a></div>
+      <div class="wrap footer-credit"><span>MIT License · Ginkgo Contributors · 致谢 <a href="https://github.com/BUAASubnet/UBAA">UBAA</a>、<a href="https://github.com/fontlos/buaa-api">buaa-api</a>、<a href="https://github.com/CoolwindHF/Auto-BUAA-icw">Auto-BUAA-icw</a></span><a href="#top">回到顶部 ↑</a></div>
     </footer>
 
     <dialog class="lightbox panel" id="lightbox" aria-label="应用截图预览">

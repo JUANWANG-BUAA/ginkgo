@@ -14,6 +14,8 @@
 - [cgyy_http](#cgyyhttp) (8)
 - [checkin_http](#checkinhttp) (12)
 - [classroom_http](#classroomhttp) (3)
+- [evaluation_http](#evaluationhttp) (8)
+- [finance_http](#financehttp) (7)
 - [grades_http](#gradeshttp) (2)
 - [graduate_http](#graduatehttp) (3)
 - [graduate_schedule_http](#graduateschedulehttp) (7)
@@ -27,9 +29,10 @@
 - [library_http](#libraryhttp) (13)
 - [library_loans_http](#libraryloanshttp) (3)
 - [library_stats_http](#librarystatshttp) (3)
+- [network_account_http](#networkaccounthttp) (13)
 - [notices_http](#noticeshttp) (1)
 - [reqwest_transport](#reqwesttransport) (2)
-- [schedule_http](#schedulehttp) (13)
+- [schedule_http](#schedulehttp) (15)
 - [shuttle_http](#shuttlehttp) (2)
 - [student_services](#studentservices) (1)
 - [updates_http](#updateshttp) (2)
@@ -130,6 +133,44 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:21</sub>
 - `pub async fn query_classrooms_with_recovery<T: HttpTransport, C: CredentialSource>( session: &Session<T>, store: &C, account: &str, campus: i32, date: &str, ) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Retry a classroom read exactly once after a confirmed expired session.
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/classroom_http.rs:59</sub>
+
+## evaluation_http
+
+- `pub const PJXT_ROOT: &str = "https://spoc.buaa.edu.cn/pjxt/";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:17</sub>
+- `pub const CAS_START: &str = "https://spoc.buaa.edu.cn/pjxt/cas";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:18</sub>
+- `pub const TASKS_URL: &str = "https://spoc.buaa.edu.cn/pjxt/personnelEvaluation/listObtainPersonnelEvaluationTasks";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:19</sub>
+- `pub const QUESTIONNAIRES_URL: &str = "https://spoc.buaa.edu.cn/pjxt/evaluationMethodSix/getQuestionnaireListToTask";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:21</sub>
+- `pub const REVIEWS_URL: &str = "https://spoc.buaa.edu.cn/pjxt/evaluationMethodSix/getRequiredReviewsData";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:23</sub>
+- `pub(crate) enum BootstrapOutcome`
+  <sub>enum · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:101</sub>
+- `pub(crate) async fn bootstrap<T: HttpTransport>( session: &Session<T>, ) -> Result<BootstrapOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:106</sub>
+- `pub(crate) async fn load<T: HttpTransport>( session: &Session<T>, account: &str, check_owner: impl Fn() -> Result<(), AppError>, ) -> Result<TeachingEvaluationReport, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/evaluation_http.rs:202</sub>
+
+## finance_http
+
+- `pub const PORTAL_START: &str = "https://sso.buaa.edu.cn/login?service=http%3A%2F%2Ficw.buaa.edu.cn%2Fcheckbuaa.aspx";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:19</sub>
+- `pub const JUMP_URL: &str = "https://icw.buaa.edu.cn/jump.aspx?sysid=wscx";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:21</sub>
+- `pub const API_LOGIN_URL: &str = "https://chaxun.icw.buaa.edu.cn/api-zhcx/login";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:22</sub>
+- `pub const API_SRCX_URL: &str = "https://chaxun.icw.buaa.edu.cn/api-zhcx/getStudentSRCX";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:23</sub>
+- `pub(crate) struct FinanceToken`
+  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:29</sub>
+    - `user_id: String`  <sub>:30</sub>
+    - `token: String`  <sub>:31</sub>
+- `pub(crate) async fn authenticate<T: HttpTransport>( session: &Session<T>, expected_account: &str, ) -> Result<FinanceToken, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:148</sub>
+- `pub(crate) async fn fetch_all_pages<T: HttpTransport>( session: &Session<T>, credential: &FinanceToken, check_owner: impl Fn() -> Result<(), AppError>, ) -> Result<(Vec<FinanceIncomeEntry>, u32), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/finance_http.rs:217</sub>
 
 ## grades_http
 
@@ -320,6 +361,40 @@
 - `pub async fn load<T: HttpTransport + Sync>( shared: &Session<T>, preference: RouteMode, ) -> Result<Vec<CampusStats>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/library_stats_http.rs:20</sub>
 
+## network_account_http
+
+- `pub const PORTAL_LOGIN_START: &str = "https://it.buaa.edu.cn/manage/common/login/index?redirect=https%3A%2F%2Fit.buaa.edu.cn%2Fhome%2F";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:15</sub>
+- `pub const PORTAL_HOME: &str = "https://it.buaa.edu.cn/home/";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:17</sub>
+- `pub const PORTAL_INFO: &str = "https://it.buaa.edu.cn/personal/frontend/data/info";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:18</sub>
+- `pub const PORTAL_ITEMS: &str = "https://it.buaa.edu.cn/personal/frontend/data/items?type=personal_data";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:19</sub>
+- `pub const PORTAL_DETAIL_BASE: &str = "https://it.buaa.edu.cn/personal/frontend/data/detail";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:21</sub>
+- `pub const ZFW_CAS_START: &str = "https://zfw.buaa.edu.cn/sso/cas/index";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:23</sub>
+- `pub const ZFW_PAY_CARD: &str = "https://zfw.buaa.edu.cn/pay/card";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:24</sub>
+- `pub const ZFW_HOME: &str = "https://zfw.buaa.edu.cn/home";`
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:25</sub>
+- `pub(crate) struct PortalMetricsSnapshot`
+  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:31</sub>
+    - `net_fee_minor: Option<i64>`  <sub>:32</sub>
+    - `net_fee_failure: Option<ErrorCode>`  <sub>:33</sub>
+    - `unreturned_books: Option<PortalMetricValue>`  <sub>:34</sub>
+    - `unread_mail: Option<PortalMetricValue>`  <sub>:35</sub>
+    - `cloud_drive_free: Option<PortalMetricValue>`  <sub>:36</sub>
+- `pub(crate) async fn bootstrap_portal<T: HttpTransport>( session: &Session<T>, ) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:154</sub>
+- `pub(crate) async fn fetch_portal_metrics<T: HttpTransport>( session: &Session<T>, check_owner: impl Fn() -> Result<(), AppError>, ) -> Result<PortalMetricsSnapshot, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:212</sub>
+- `pub(crate) async fn bootstrap_zfw<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:293</sub>
+- `pub(crate) async fn fetch_traffic<T: HttpTransport>( session: &Session<T>, check_owner: impl Fn() -> Result<(), AppError>, ) -> Result<Vec<NetworkTrafficProduct>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/network_account_http.rs:367</sub>
+
 ## notices_http
 
 - `pub async fn load<T: HttpTransport + Sync>(session: &Session<T>) -> Result<Vec<Notice>, AppError> {…}`
@@ -346,20 +421,24 @@
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:17</sub>
 - `pub const TODAY_URL: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/teachingSchedule/detail.do";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:18</sub>
+- `pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt.buaa.edu.cn%2Fjwapp%2Fsys%2Fhomeapp%2Findex.do%3FcontextPath%3D%2Fjwapp";` — Student-portal activation page used by the reference `buaa-api` AAS login.
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:21</sub>
 - `pub enum Portal`
-  <sub>enum · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:26</sub>
+  <sub>enum · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:29</sub>
 - `pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Portal, AppError> {…}` — Probe the shared session once and classify the portal (API.md §2.1).
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:36</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:39</sub>
+- `pub async fn activate_portal<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {…}` — Visit the portal home once through the normal session so BYXT initialises
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:62</sub>
 - `pub async fn load_terms<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Term>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:56</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:75</sub>
 - `pub async fn load_weeks<T: HttpTransport>( session: &Session<T>, term_id: &str, ) -> Result<Vec<Week>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:64</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:83</sub>
 - `pub async fn load_week_courses<T: HttpTransport>( session: &Session<T>, term_id: &str, week: i32, ) -> Result<Vec<CourseMeeting>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:81</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:100</sub>
 - `pub async fn load_exams<T: HttpTransport>( session: &Session<T>, term_id: &str, ) -> Result<Vec<Exam>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:106</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:125</sub>
 - `pub async fn load_today<T: HttpTransport>( session: &Session<T>, date: &str, ) -> Result<Vec<TodayCourse>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:126</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/schedule_http.rs:145</sub>
 
 ## shuttle_http
 

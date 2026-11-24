@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/widgets/feature_intro.dart';
-import 'package:ginkgo_mirror/widgets/academic_overview.dart';
+import 'package:ginkgo_mirror/features/grades/grades_visuals.dart';
 
 import 'package:ginkgo_mirror/design/tokens.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
@@ -8,7 +8,6 @@ import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 
 class GradesPage extends StatefulWidget {
   const GradesPage({super.key, required this.service});
@@ -196,22 +195,7 @@ class _GradesPageState extends State<GradesPage> {
   );
 
   List<Widget> _content(GradeResponse data) => [
-    AcademicOverview(
-      title: '加权平均',
-      value: data.summary.weightedAverage?.toStringAsFixed(1) ?? '未提供',
-      icon: CupertinoIcons.chart_bar_alt_fill,
-      facts: [
-        (label: '已发布', value: '${data.summary.courseCount} 门'),
-        (
-          label: '平均绩点',
-          value: data.summary.gradePointAverage?.toStringAsFixed(2) ?? '未提供',
-        ),
-        (label: '总学分', value: _credit(data.summary.creditTotal)),
-      ],
-      note: widget.service.isDemo
-          ? '离线合成样例 · 统计百分制或计分方式未标明的有效数字成绩'
-          : '统计百分制或计分方式未标明的有效数字成绩 · 更新于 ${schoolTimestampLabel(data.fetchedAt)}',
-    ),
+    GradesInstrumentCard(data: data, demo: widget.service.isDemo),
     if (data.courses.isEmpty)
       AppleSection(
         children: const [

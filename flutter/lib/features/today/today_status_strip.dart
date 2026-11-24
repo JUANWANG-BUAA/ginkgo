@@ -90,75 +90,121 @@ class TodayStatusStrip extends StatelessWidget {
             : onOpenDiagnostics != null
             ? '接口状态'
             : null;
+        final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+        final surface = CupertinoColors.secondarySystemGroupedBackground
+            .resolveFrom(context);
+        final borderTint = (issues > 0 || sessionExpired)
+            ? color.withValues(alpha: dark ? 0.45 : 0.35)
+            : CupertinoColors.separator
+                  .resolveFrom(context)
+                  .withValues(alpha: dark ? 0.5 : 0.45);
         return Padding(
           padding: GinkgoSpacing.edgeInsetsPage,
           child: GestureDetector(
             key: const Key('today-open-diagnostics'),
             behavior: HitTestBehavior.opaque,
             onTap: primaryTap,
-            child: Padding(
-              padding: GinkgoSpacing.edgeInsetsPickerTitle,
-              child: Row(
-                children: [
-                  if (isSyncing)
-                    const GinkgoActivity(size: 14)
-                  else
-                    Icon(icon, color: color, size: 15),
-                  const SizedBox(width: GinkgoSpacing.small),
-                  Expanded(
-                    child: Semantics(
-                      liveRegion: true,
-                      child: DefaultTextStyle(
-                        style: GinkgoTypography.footnote.copyWith(
-                          color: secondary,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: BorderRadius.circular(GinkgoRadii.pill),
+                border: Border.all(color: borderTint, width: 0.75),
+                boxShadow: dark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.08),
+                          blurRadius: GinkgoSpacing.sm,
+                          offset: const Offset(0, GinkgoSpacing.opticalIconInset),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                headline,
-                                style: GinkgoTypography.footnote.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: issues > 0 || sessionExpired
-                                      ? color
-                                      : CupertinoColors.label.resolveFrom(
-                                          context,
-                                        ),
+                      ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GinkgoSpacing.md,
+                  vertical: GinkgoSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    if (isSyncing)
+                      const GinkgoActivity(size: GinkgoSpacing.md)
+                    else
+                      Icon(icon, color: color, size: GinkgoSpacing.pageInset),
+                    const SizedBox(width: GinkgoSpacing.small),
+                    Expanded(
+                      child: Semantics(
+                        liveRegion: true,
+                        child: DefaultTextStyle(
+                          style: GinkgoTypography.footnote.copyWith(
+                            color: secondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  headline,
+                                  style: GinkgoTypography.footnote.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: issues > 0 || sessionExpired
+                                        ? color
+                                        : CupertinoColors.label.resolveFrom(
+                                            context,
+                                          ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (verifiedRoute != null) ...[
-                              Text(' · ', style: TextStyle(color: secondary)),
-                              Flexible(
-                                child: VerifiedRouteLabel(
-                                  gateway: verifiedRoute!,
-                                  revision: routeRevision,
+                              if (verifiedRoute != null) ...[
+                                Text(' · ', style: TextStyle(color: secondary)),
+                                Flexible(
+                                  child: VerifiedRouteLabel(
+                                    gateway: verifiedRoute!,
+                                    revision: routeRevision,
+                                  ),
                                 ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (trailingLabel != null) ...[
+                      const SizedBox(width: GinkgoSpacing.sm),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: CupertinoTheme.of(
+                            context,
+                          ).primaryColor.withValues(alpha: dark ? 0.2 : 0.1),
+                          borderRadius: BorderRadius.circular(GinkgoRadii.pill),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: GinkgoSpacing.sm,
+                            vertical: GinkgoSpacing.xs,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                trailingLabel,
+                                style: GinkgoTypography.caption.copyWith(
+                                  color: CupertinoTheme.of(context).primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Icon(
+                                CupertinoIcons.chevron_forward,
+                                size: GinkgoSpacing.md,
+                                color: CupertinoTheme.of(context).primaryColor,
                               ),
                             ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  if (trailingLabel != null) ...[
-                    const SizedBox(width: GinkgoSpacing.sm),
-                    Text(
-                      trailingLabel,
-                      style: GinkgoTypography.footnote.copyWith(
-                        color: CupertinoTheme.of(context).primaryColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Icon(
-                      CupertinoIcons.chevron_forward,
-                      size: 13,
-                      color: CupertinoTheme.of(context).primaryColor,
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

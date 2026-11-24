@@ -40,4 +40,7 @@ pub mod query_snapshots;
 mod session;
 mod shuttle;
 
+pub mod evaluation;
+pub mod finance;
 mod learning;
+pub mod network_account;

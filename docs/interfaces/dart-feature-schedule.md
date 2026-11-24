@@ -29,83 +29,83 @@
 
 ## features/schedule/schedule_controls.dart
 
-- `class ScheduleControls extends StatelessWidget` — Term and week pickers shown above the schedule content.
-  <sub>class · features/schedule/schedule_controls.dart:15</sub>
-    - `const ScheduleControls({ super.key, required this.snapshot, required this.terms, required this.weeks, required this.selectedTerm, required this.selectedWeek, required this.onSelectTerm, required this.onSelectWeek, });`  <sub>:16</sub>
-    - `final Future<void> Function(String termId) onSelectTerm;`  <sub>:31</sub>
-    - `final void Function(int week) onSelectWeek;`  <sub>:32</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:35</sub>
+- `class ScheduleControls extends StatelessWidget` — Compact iOS Calendar-style top header replacing stacked title & control cards.
+  <sub>class · features/schedule/schedule_controls.dart:11</sub>
+    - `const ScheduleControls({ super.key, required this.snapshot, required this.terms, required this.weeks, required this.selectedTerm, required this.selectedWeek, required this.busy, required this.searchActive, required this.onSelectTerm, required this.onSelectWeek, required this.onToggleSearch, required this.onRefresh, });`  <sub>:12</sub>
+    - `final Future<void> Function(String termId) onSelectTerm;`  <sub>:33</sub>
+    - `final void Function(int week) onSelectWeek;`  <sub>:34</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
 
 ## features/schedule/schedule_course_detail.dart
 
 - `class ScheduleCourseDetailPage extends StatelessWidget` — The pushed course detail page.
   <sub>class · features/schedule/schedule_course_detail.dart:14</sub>
     - `const ScheduleCourseDetailPage({ super.key, required this.course, required this.termName, required this.weekNumber, required this.week, required this.dayTitle, this.onOpenCheckIn, });`  <sub>:15</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:32</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:32</sub>
 
 ## features/schedule/schedule_day_strip.dart
 
-- `class ScheduleDayStrip extends StatelessWidget`
-  <sub>class · features/schedule/schedule_day_strip.dart:9</sub>
-    - `const ScheduleDayStrip({ super.key, required this.weekStart, required this.selectedDay, required this.onSelected, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:22</sub>
+- `class ScheduleDayStrip extends StatelessWidget` — iOS Apple Calendar-style 7-day circular date selector with colored course
+  <sub>class · features/schedule/schedule_day_strip.dart:12</sub>
+    - `const ScheduleDayStrip({ super.key, required this.weekStart, required this.selectedDay, required this.onSelected, this.dayCourses = const {}, });`  <sub>:13</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:27</sub>
 
 ## features/schedule/schedule_grid.dart
 
-- `class ScheduleGrid extends StatefulWidget` — Seven-day timetable grid. Course blocks span their section range and open
-  <sub>class · features/schedule/schedule_grid.dart:16</sub>
-    - `const ScheduleGrid({ super.key, required this.courses, required this.onCourseTap, this.weekStart, });`  <sub>:17</sub>
-    - `State<ScheduleGrid> createState() => …`  <sub>:28</sub>
+- `class ScheduleGrid extends StatefulWidget` — Full-week 7-column iOS timetable card.
+  <sub>class · features/schedule/schedule_grid.dart:19</sub>
+    - `const ScheduleGrid({ super.key, required this.courses, required this.onCourseTap, this.weekStart, });`  <sub>:20</sub>
+    - `State<ScheduleGrid> createState() => …`  <sub>:31</sub>
 
 ## features/schedule/schedule_grid_course_block.dart
 
-- `class ScheduleGridCourseBlock extends StatelessWidget` — One course block inside the timetable grid.
-  <sub>class · features/schedule/schedule_grid_course_block.dart:10</sub>
-    - `const ScheduleGridCourseBlock({ super.key, required this.course, required this.onTap, });`  <sub>:11</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:20</sub>
+- `class ScheduleGridCourseBlock extends StatelessWidget` — Pastel iOS timetable block with a saturated top accent bar and room tag.
+  <sub>class · features/schedule/schedule_grid_course_block.dart:9</sub>
+    - `const ScheduleGridCourseBlock({ super.key, required this.course, required this.onTap, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:19</sub>
 
 ## features/schedule/schedule_grid_layout.dart
 
 - `class ScheduleGridLayout` — Where each course sits inside its day column, plus the section times.
-  <sub>class · features/schedule/schedule_grid_layout.dart:21</sub>
-    - `const ScheduleGridLayout({required this.placements, required this.times});`  <sub>:22</sub>
+  <sub>class · features/schedule/schedule_grid_layout.dart:43</sub>
+    - `const ScheduleGridLayout({ required this.placements, required this.times, required this.sectionCount, });`  <sub>:44</sub>
 
 ## features/schedule/schedule_page.dart
 
 - `class SchedulePage extends StatefulWidget`
-  <sub>class · features/schedule/schedule_page.dart:16</sub>
-    - `const SchedulePage({super.key, required this.service, this.onOpenCheckIn});`  <sub>:17</sub>
-    - `State<SchedulePage> createState() => …`  <sub>:21</sub>
+  <sub>class · features/schedule/schedule_page.dart:17</sub>
+    - `const SchedulePage({super.key, required this.service, this.onOpenCheckIn});`  <sub>:18</sub>
+    - `State<SchedulePage> createState() => …`  <sub>:22</sub>
 
 ## features/schedule/schedule_style.dart
 
 - `TextStyle scheduleSecondary(BuildContext context) => …` — Quiet secondary text used across the schedule surface.
-  <sub>function · features/schedule/schedule_style.dart:10</sub>
+  <sub>function · features/schedule/schedule_style.dart:12</sub>
 - `Color courseColor(BuildContext context, String? value, [String name = '']) {…}`
-  <sub>function · features/schedule/schedule_style.dart:15</sub>
+  <sub>function · features/schedule/schedule_style.dart:16</sub>
 - `String courseDetail(ScheduleCourse course) {…}`
-  <sub>function · features/schedule/schedule_style.dart:40</sub>
+  <sub>function · features/schedule/schedule_style.dart:41</sub>
 - `String shortDate(String date) {…}`
-  <sub>function · features/schedule/schedule_style.dart:50</sub>
+  <sub>function · features/schedule/schedule_style.dart:51</sub>
 - `int? scheduleTodayColumn(String? weekStart) {…}` — Column of today inside a week that starts on [weekStart], counting from 1.
   <sub>function · features/schedule/schedule_style.dart:61</sub>
 - `String scheduleDayTitle(int day, String? weekStart) {…}` — Title of one weekday inside a week, e.g. `周一 · 10/19 · 今天`.
-  <sub>function · features/schedule/schedule_style.dart:74</sub>
+  <sub>function · features/schedule/schedule_style.dart:71</sub>
 
 ## features/schedule/schedule_views.dart
 
-- `class ScheduleCourseBrowser extends StatelessWidget` — The courses of the confirmed week: a search field plus either the weekly
-  <sub>class · features/schedule/schedule_views.dart:14</sub>
-    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:15</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:40</sub>
-- `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term.
-  <sub>class · features/schedule/schedule_views.dart:123</sub>
-    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:124</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:133</sub>
-- `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term.
-  <sub>class · features/schedule/schedule_views.dart:165</sub>
-    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:166</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:170</sub>
+- `class ScheduleCourseBrowser extends StatelessWidget` — Main schedule viewport: full 7-day iOS week timetable card by default,
+  <sub>class · features/schedule/schedule_views.dart:15</sub>
+    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.searchVisible, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:16</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:43</sub>
+- `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term, presented as an iOS grouped list.
+  <sub>class · features/schedule/schedule_views.dart:151</sub>
+    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:152</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:161</sub>
+- `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term, styled after iOS Academic cards.
+  <sub>class · features/schedule/schedule_views.dart:222</sub>
+    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:223</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:227</sub>
 
 ## features/schedule/schedule_week_strip.dart
 
@@ -117,28 +117,28 @@
 ## features/schedule/schedule_widgets.dart
 
 - `enum ScheduleViewMode` — How the schedule page presents the confirmed snapshot.
-  <sub>enum · features/schedule/schedule_widgets.dart:15</sub>
+  <sub>enum · features/schedule/schedule_widgets.dart:16</sub>
 - `String scheduleViewModeLabel(ScheduleViewMode mode) => …` — Short label of a view mode.
-  <sub>function · features/schedule/schedule_widgets.dart:30</sub>
+  <sub>function · features/schedule/schedule_widgets.dart:31</sub>
 - `String scheduleViewModeDescription(ScheduleViewMode mode) => …` — Label of a view mode in the large-text picker, where the grid hint has to
-  <sub>function · features/schedule/schedule_widgets.dart:39</sub>
-- `class ScheduleCourseRow extends StatelessWidget` — One course in the day list. Large type stacks the time above the content;
+  <sub>function · features/schedule/schedule_widgets.dart:40</sub>
+- `class ScheduleCourseRow extends StatelessWidget` — iOS Calendar-style course row in the daily schedule list.
   <sub>class · features/schedule/schedule_widgets.dart:48</sub>
     - `const ScheduleCourseRow({super.key, required this.course, this.onTap});`  <sub>:49</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:54</sub>
 - `class ScheduleDetailLine extends StatelessWidget` — One label/value line in the pushed course detail page.
-  <sub>class · features/schedule/schedule_widgets.dart:141</sub>
-    - `const ScheduleDetailLine({ super.key, required this.label, required this.value, });`  <sub>:142</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:149</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:212</sub>
+    - `const ScheduleDetailLine({ super.key, required this.label, required this.value, });`  <sub>:213</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:220</sub>
 - `class ScheduleChevronRow extends StatelessWidget` — A tappable row that reveals the next screen, with a trailing chevron.
-  <sub>class · features/schedule/schedule_widgets.dart:154</sub>
-    - `const ScheduleChevronRow({ super.key, required this.child, required this.onTap, });`  <sub>:155</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:164</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:225</sub>
+    - `const ScheduleChevronRow({ super.key, required this.child, required this.onTap, });`  <sub>:226</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:235</sub>
 - `class ScheduleSection extends StatelessWidget` — A group of rows under an optional section title.
-  <sub>class · features/schedule/schedule_widgets.dart:189</sub>
-    - `const ScheduleSection({ super.key, required this.children, this.title, this.footer, });`  <sub>:190</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:201</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:261</sub>
+    - `const ScheduleSection({ super.key, required this.children, this.title, this.footer, });`  <sub>:262</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:273</sub>
 - `class ScheduleLoadingSection extends StatelessWidget` — A section that reports the first load of a snapshot.
-  <sub>class · features/schedule/schedule_widgets.dart:209</sub>
-    - `const ScheduleLoadingSection({super.key, this.label = '正在读取课表…'});`  <sub>:210</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:214</sub>
+  <sub>class · features/schedule/schedule_widgets.dart:281</sub>
+    - `const ScheduleLoadingSection({super.key, this.label = '正在读取课表…'});`  <sub>:282</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:286</sub>

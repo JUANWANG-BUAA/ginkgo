@@ -7,6 +7,7 @@ pub fn official_url(id: &str) -> Option<String> {
         "official-career" => "https://career.buaa.edu.cn/frontpage/buaa/html/index.html",
         "official-lectures" => "https://www.buaa.edu.cn/index/xswh1.htm",
         "official-network-guide" => "https://nic.buaa.edu.cn/fwzn.htm",
+        "official-evaluation" => "https://spoc.buaa.edu.cn/pjxt/",
         _ => return None,
     };
     Some(url.to_owned())
@@ -24,6 +25,7 @@ mod tests {
             "official-career",
             "official-lectures",
             "official-network-guide",
+            "official-evaluation",
         ] {
             let url = official_url(id).expect("known destination");
             assert!(url.starts_with("https://"));

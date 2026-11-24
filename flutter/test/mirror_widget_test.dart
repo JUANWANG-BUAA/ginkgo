@@ -561,7 +561,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('desktop-sidebar-schedule')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('schedule-search')), findsOneWidget);
+    expect(find.byKey(const Key('schedule-search-toggle')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets(
@@ -729,7 +729,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('更新于 10月21日 11:10'), findsOneWidget);
+      expect(find.textContaining('更新于 10月21日 11:10'), findsOneWidget);
       expect(find.textContaining('03:10:33.396'), findsNothing);
       await tester.tap(find.text('每日清单'));
       await tester.pumpAndSettle();
@@ -770,7 +770,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('每日清单'));
+      await tester.tap(find.byKey(const Key('schedule-search-toggle')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('schedule-search')), '张三');
       await tester.pumpAndSettle();

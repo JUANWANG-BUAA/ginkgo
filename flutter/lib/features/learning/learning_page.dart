@@ -8,6 +8,7 @@ import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
+import 'learning_cards.dart';
 import 'learning_course_page.dart';
 import 'learning_widgets.dart';
 
@@ -156,34 +157,20 @@ class _LearningPageState extends State<LearningPage> {
               itemCount: rows.length,
               itemBuilder: (context, i) {
                 final course = rows[i], e = epoch;
-                return AppleSection(
-                  children: [
-                    AppleListTile(
-                      key: ValueKey('learning-course-${course.id}'),
-                      title: Text(course.name),
-                      subtitle: Text(
-                        [
-                          if (presentText(course.teacher)) course.teacher!,
-                          if (presentText(course.term)) course.term!,
-                        ].join(' · '),
-                      ),
-                      trailing: const Icon(
-                        CupertinoIcons.chevron_right,
-                        size: 16,
-                      ),
-                      onTap: () => Navigator.of(context).push(
-                        CupertinoPageRoute<void>(
-                          builder: (_) => LearningCoursePage(
-                            course: course,
-                            service: widget.service,
-                            accountId: widget.accountId,
-                            saveFile: widget.fileActions.learningFileSaver,
-                            isOwnerCurrent: () => mounted && e == epoch,
-                          ),
-                        ),
+                return LearningCourseCard(
+                  key: ValueKey('learning-course-${course.id}'),
+                  course: course,
+                  onTap: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      builder: (_) => LearningCoursePage(
+                        course: course,
+                        service: widget.service,
+                        accountId: widget.accountId,
+                        saveFile: widget.fileActions.learningFileSaver,
+                        isOwnerCurrent: () => mounted && e == epoch,
                       ),
                     ),
-                  ],
+                  ),
                 );
               },
             ),

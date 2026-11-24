@@ -205,7 +205,7 @@ void main() {
     expect(find.text('课表'), findsOneWidget);
     await tester.tap(find.text('课表'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('schedule-search')), findsOneWidget);
+    expect(find.byKey(const Key('schedule-search-toggle')), findsOneWidget);
     await tester.tap(find.text('图书馆'));
     await tester.pumpAndSettle();
     expect(find.text('区域'), findsOneWidget);
@@ -267,7 +267,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('完整课表'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('schedule-search')), findsOneWidget);
+    expect(find.byKey(const Key('schedule-search-toggle')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

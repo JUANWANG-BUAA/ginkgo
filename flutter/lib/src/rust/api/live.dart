@@ -626,6 +626,29 @@ Future<HomeworkCapabilitiesResponse> homeworkCapabilities({
   assignmentId: assignmentId,
 );
 
+/// Explicit on-demand student finance income read. No disk cache or bank numbers.
+Future<FinanceIncomeResponse> loadFinanceIncomes({
+  required String expectedAccount,
+}) => RustLib.instance.api.crateApiLiveLoadFinanceIncomes(
+  expectedAccount: expectedAccount,
+);
+
+/// Explicit on-demand portal metrics & campus network traffic read. No recharge writes.
+Future<NetworkAccountResponse> loadNetworkAccount({
+  required String expectedAccount,
+}) => RustLib.instance.api.crateApiLiveLoadNetworkAccount(
+  expectedAccount: expectedAccount,
+);
+
+/// Read-only teaching evaluation status check. Never submits evaluations.
+Future<TeachingEvaluationResponse> loadTeachingEvaluation({
+  required String expectedAccount,
+  required bool forceRefresh,
+}) => RustLib.instance.api.crateApiLiveLoadTeachingEvaluation(
+  expectedAccount: expectedAccount,
+  forceRefresh: forceRefresh,
+);
+
 class AcademicDataDto {
   final List<GraduateSectionDto> sections;
   final String? notice;
@@ -2116,6 +2139,144 @@ class CourseResourcePageResponse {
           failure == other.failure;
 }
 
+class EvaluationCourseDto {
+  final String id;
+  final String courseName;
+  final String? teacherName;
+  final String? questionnaireName;
+  final String? category;
+  final EvaluationCourseStatusDto status;
+
+  const EvaluationCourseDto({
+    required this.id,
+    required this.courseName,
+    this.teacherName,
+    this.questionnaireName,
+    this.category,
+    required this.status,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      courseName.hashCode ^
+      teacherName.hashCode ^
+      questionnaireName.hashCode ^
+      category.hashCode ^
+      status.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EvaluationCourseDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          courseName == other.courseName &&
+          teacherName == other.teacherName &&
+          questionnaireName == other.questionnaireName &&
+          category == other.category &&
+          status == other.status;
+}
+
+enum EvaluationCourseStatusDto { pending, completed, unknown }
+
+class FinanceIncomeEntryDto {
+  final String id;
+  final String? project;
+  final String? description;
+  final PlatformInt64? grossMinor;
+  final PlatformInt64? taxMinor;
+  final PlatformInt64? netMinor;
+  final String? taxRate;
+  final String? recordedDate;
+  final String? year;
+  final String? month;
+
+  const FinanceIncomeEntryDto({
+    required this.id,
+    this.project,
+    this.description,
+    this.grossMinor,
+    this.taxMinor,
+    this.netMinor,
+    this.taxRate,
+    this.recordedDate,
+    this.year,
+    this.month,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      project.hashCode ^
+      description.hashCode ^
+      grossMinor.hashCode ^
+      taxMinor.hashCode ^
+      netMinor.hashCode ^
+      taxRate.hashCode ^
+      recordedDate.hashCode ^
+      year.hashCode ^
+      month.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FinanceIncomeEntryDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          project == other.project &&
+          description == other.description &&
+          grossMinor == other.grossMinor &&
+          taxMinor == other.taxMinor &&
+          netMinor == other.netMinor &&
+          taxRate == other.taxRate &&
+          recordedDate == other.recordedDate &&
+          year == other.year &&
+          month == other.month;
+}
+
+class FinanceIncomeReportDto {
+  final List<FinanceIncomeEntryDto> entries;
+  final int total;
+  final String fetchedAt;
+
+  const FinanceIncomeReportDto({
+    required this.entries,
+    required this.total,
+    required this.fetchedAt,
+  });
+
+  @override
+  int get hashCode => entries.hashCode ^ total.hashCode ^ fetchedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FinanceIncomeReportDto &&
+          runtimeType == other.runtimeType &&
+          entries == other.entries &&
+          total == other.total &&
+          fetchedAt == other.fetchedAt;
+}
+
+class FinanceIncomeResponse {
+  final FinanceIncomeReportDto? data;
+  final FailureCode? failure;
+
+  const FinanceIncomeResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FinanceIncomeResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
 class GradeTermsResponse {
   final List<ScheduleTerm> terms;
   final FailureCode? failure;
@@ -3274,6 +3435,110 @@ class MutationResponse {
           message == other.message;
 }
 
+class NetworkAccountDto {
+  final PlatformInt64? netFeeMinor;
+  final FailureCode? netFeeFailure;
+  final PortalMetricDto? unreturnedBooks;
+  final PortalMetricDto? unreadMail;
+  final PortalMetricDto? cloudDriveFree;
+  final FailureCode? portalFailure;
+  final List<NetworkTrafficProductDto> trafficProducts;
+  final FailureCode? trafficFailure;
+  final String fetchedAt;
+
+  const NetworkAccountDto({
+    this.netFeeMinor,
+    this.netFeeFailure,
+    this.unreturnedBooks,
+    this.unreadMail,
+    this.cloudDriveFree,
+    this.portalFailure,
+    required this.trafficProducts,
+    this.trafficFailure,
+    required this.fetchedAt,
+  });
+
+  @override
+  int get hashCode =>
+      netFeeMinor.hashCode ^
+      netFeeFailure.hashCode ^
+      unreturnedBooks.hashCode ^
+      unreadMail.hashCode ^
+      cloudDriveFree.hashCode ^
+      portalFailure.hashCode ^
+      trafficProducts.hashCode ^
+      trafficFailure.hashCode ^
+      fetchedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkAccountDto &&
+          runtimeType == other.runtimeType &&
+          netFeeMinor == other.netFeeMinor &&
+          netFeeFailure == other.netFeeFailure &&
+          unreturnedBooks == other.unreturnedBooks &&
+          unreadMail == other.unreadMail &&
+          cloudDriveFree == other.cloudDriveFree &&
+          portalFailure == other.portalFailure &&
+          trafficProducts == other.trafficProducts &&
+          trafficFailure == other.trafficFailure &&
+          fetchedAt == other.fetchedAt;
+}
+
+class NetworkAccountResponse {
+  final NetworkAccountDto? data;
+  final FailureCode? failure;
+
+  const NetworkAccountResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkAccountResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          failure == other.failure;
+}
+
+class NetworkTrafficProductDto {
+  final String? productName;
+  final String usedText;
+  final String freeRemainingText;
+  final String paidRemainingText;
+  final int packageCount;
+
+  const NetworkTrafficProductDto({
+    this.productName,
+    required this.usedText,
+    required this.freeRemainingText,
+    required this.paidRemainingText,
+    required this.packageCount,
+  });
+
+  @override
+  int get hashCode =>
+      productName.hashCode ^
+      usedText.hashCode ^
+      freeRemainingText.hashCode ^
+      paidRemainingText.hashCode ^
+      packageCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkTrafficProductDto &&
+          runtimeType == other.runtimeType &&
+          productName == other.productName &&
+          usedText == other.usedText &&
+          freeRemainingText == other.freeRemainingText &&
+          paidRemainingText == other.paidRemainingText &&
+          packageCount == other.packageCount;
+}
+
 class NoticeDto {
   final String title;
   final String summary;
@@ -3319,6 +3584,24 @@ class NoticesResponse {
           runtimeType == other.runtimeType &&
           data == other.data &&
           failure == other.failure;
+}
+
+class PortalMetricDto {
+  final String value;
+  final String? unit;
+
+  const PortalMetricDto({required this.value, this.unit});
+
+  @override
+  int get hashCode => value.hashCode ^ unit.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PortalMetricDto &&
+          runtimeType == other.runtimeType &&
+          value == other.value &&
+          unit == other.unit;
 }
 
 class ReadingRoomDto {
@@ -3544,6 +3827,67 @@ class SnapshotImportResponse {
       other is SnapshotImportResponse &&
           runtimeType == other.runtimeType &&
           imported == other.imported &&
+          failure == other.failure;
+}
+
+class TeachingEvaluationDto {
+  final String? taskId;
+  final String? taskName;
+  final String? term;
+  final List<EvaluationCourseDto> courses;
+  final String fetchedAt;
+  final bool fromCache;
+  final bool stale;
+
+  const TeachingEvaluationDto({
+    this.taskId,
+    this.taskName,
+    this.term,
+    required this.courses,
+    required this.fetchedAt,
+    required this.fromCache,
+    required this.stale,
+  });
+
+  @override
+  int get hashCode =>
+      taskId.hashCode ^
+      taskName.hashCode ^
+      term.hashCode ^
+      courses.hashCode ^
+      fetchedAt.hashCode ^
+      fromCache.hashCode ^
+      stale.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TeachingEvaluationDto &&
+          runtimeType == other.runtimeType &&
+          taskId == other.taskId &&
+          taskName == other.taskName &&
+          term == other.term &&
+          courses == other.courses &&
+          fetchedAt == other.fetchedAt &&
+          fromCache == other.fromCache &&
+          stale == other.stale;
+}
+
+class TeachingEvaluationResponse {
+  final TeachingEvaluationDto? data;
+  final FailureCode? failure;
+
+  const TeachingEvaluationResponse({this.data, this.failure});
+
+  @override
+  int get hashCode => data.hashCode ^ failure.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TeachingEvaluationResponse &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
           failure == other.failure;
 }
 

@@ -10,6 +10,7 @@ import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 import 'learning_announcement_page.dart';
+import 'learning_cards.dart';
 import 'learning_resource_section.dart';
 import 'learning_widgets.dart';
 
@@ -426,16 +427,12 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 80),
           children: [
-            LearningText(widget.course.name, heading: true),
-            if (httpsUri(widget.course.sourceUrl) != null)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: CupertinoButton(
-                  onPressed: _openSource,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: const Text('前往课程官网'),
-                ),
-              ),
+            LearningCourseHeroCard(
+              course: widget.course,
+              onOpenSource: httpsUri(widget.course.sourceUrl) != null
+                  ? _openSource
+                  : null,
+            ),
             if (linkError != null) LearningText(linkError!, warning: true),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
@@ -487,10 +484,9 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                   if (announcements.value case final read?) ...[
                     if (read.data.isEmpty) const LearningText('暂无公告'),
                     for (final a in read.data)
-                      AppleListTile(
+                      LearningAnnouncementCard(
                         key: ValueKey('learning-announcement-${a.id}'),
-                        title: Text(a.title),
-                        subtitle: Text(a.publishedAt ?? '发布时间未知'),
+                        announcement: a,
                         onTap: () {
                           final e = epoch;
                           Navigator.of(context).push(
@@ -551,9 +547,9 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
                   if (assessments.value case final read?) ...[
                     if (read.data.isEmpty) const LearningText('暂无测验'),
                     for (final item in read.data)
-                      AppleListTile(
-                        title: Text(item.title),
-                        subtitle: Text(_assessmentSummary(item)),
+                      LearningAssessmentCard(
+                        item: item,
+                        fallbackSummary: _assessmentSummary(item),
                       ),
                   ],
                 ],

@@ -71,12 +71,18 @@ void main() {
           .any((destination) => destination.id == 'graduate-credit-map'),
       isFalse,
     );
+    expect(
+      sidebarDestinations(WorkspaceSection.campus)
+          .any((destination) => destination.id == 'network-diagnostics'),
+      isFalse,
+    );
     // Every destination either shows in the sidebar or a mobile tab, so no
     // feature can be registered without a way to reach it.
     for (final destination in workspaceDestinations) {
-      // These are reached through the graduate page or the mobile service
-      // directory rather than a tab or a sidebar row.
-      if (destination.id == 'graduate-credit-map') {
+      // These sub-routes are reached through parent pages (Graduate / Settings)
+      // or the mobile service directory rather than a tab or a sidebar row.
+      if (destination.id == 'graduate-credit-map' ||
+          destination.id == 'network-diagnostics') {
         continue;
       }
       expect(

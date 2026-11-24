@@ -60,6 +60,12 @@ class LiveServiceHealthSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _UptimeMatrixCard(
+              health: health,
+              all: all,
+              authEndpoints: authEndpoints,
+              publicEndpoints: publicEndpoints,
+            ),
             AppleSection(
               header: const Text('实时接口可用性总览'),
               footer: const Text('使用各功能时自动被动记录真实请求状态与耗时，不额外发起后台轮询。'),
@@ -67,7 +73,7 @@ class LiveServiceHealthSection extends StatelessWidget {
                 AppleListTile(
                   key: const Key('live-health-summary'),
                   leading: health.loadingCount > 0
-                      ? const GinkgoActivity(size: 16)
+                      ? const GinkgoActivity(size: GinkgoSpacing.pageInset)
                       : Icon(
                           health.degradedCount > 0
                               ? CupertinoIcons.exclamationmark_circle_fill
@@ -125,6 +131,183 @@ class LiveServiceHealthSection extends StatelessWidget {
   }
 }
 
+/// Statuspage / Cloudflare–style uptime matrix bar for all monitored endpoints.
+class _UptimeMatrixCard extends StatelessWidget {
+  const _UptimeMatrixCard({
+    required this.health,
+    required this.all,
+    required this.authEndpoints,
+    required this.publicEndpoints,
+  });
+
+  final ServiceHealthTracker health;
+  final List<EndpointHealthSnapshot> all;
+  final List<EndpointHealthSnapshot> authEndpoints;
+  final List<EndpointHealthSnapshot> publicEndpoints;
+
+  static const double _hairline = 0.75;
+  static const double _barHeight = 24.0;
+  static const double _barGap = 3.0;
+  static const double _dotSize = 9.0;
+
+  Color _stateColor(BuildContext context, EndpointHealthSnapshot item, bool dark) {
+    if (item.inFlight > 0 || item.state == EndpointHealthState.loading) {
+      return CupertinoTheme.of(context).primaryColor;
+    }
+    return switch (item.state) {
+      EndpointHealthState.healthy || EndpointHealthState.cached =>
+        AppleDesign.statusSuccess.resolveFrom(context),
+      EndpointHealthState.stale || EndpointHealthState.authRequired =>
+        AppleDesign.statusPending.resolveFrom(context),
+      EndpointHealthState.unavailable => AppleDesign.statusDanger.resolveFrom(
+        context,
+      ),
+      EndpointHealthState.loading => CupertinoTheme.of(context).primaryColor,
+      EndpointHealthState.idle => dark
+          ? const Color(0xFF2B3242)
+          : const Color(0xFFE0E5EE),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final surface = CupertinoColors.secondarySystemGroupedBackground
+        .resolveFrom(context);
+    final border = CupertinoColors.separator
+        .resolveFrom(context)
+        .withValues(alpha: dark ? 0.45 : 0.35);
+    final labelColor = CupertinoColors.label.resolveFrom(context);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+
+    final authOk = authEndpoints
+        .where(
+          (i) =>
+              i.state == EndpointHealthState.healthy ||
+              i.state == EndpointHealthState.cached,
+        )
+        .length;
+    final publicOk = publicEndpoints
+        .where(
+          (i) =>
+              i.state == EndpointHealthState.healthy ||
+              i.state == EndpointHealthState.cached,
+        )
+        .length;
+
+    final observed = health.observedCount;
+    final statusColor = health.degradedCount > 0
+        ? AppleDesign.statusPending.resolveFrom(context)
+        : observed > 0
+        ? AppleDesign.statusSuccess.resolveFrom(context)
+        : CupertinoTheme.of(context).primaryColor;
+    final headline = observed == 0
+        ? '服务状态矩阵就绪'
+        : health.degradedCount > 0
+        ? '${health.degradedCount} 项接口存在异常'
+        : '所有已测服务运行正常';
+
+    return Padding(
+      key: const Key('live-health-telemetry-card'),
+      padding: const EdgeInsets.fromLTRB(
+        GinkgoSpacing.pageInset,
+        GinkgoSpacing.md,
+        GinkgoSpacing.pageInset,
+        GinkgoSpacing.xs,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(GinkgoRadii.group),
+          border: Border.all(color: border, width: _hairline),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(GinkgoSpacing.pageInset),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const SizedBox(width: _dotSize, height: _dotSize),
+                  ),
+                  const SizedBox(width: GinkgoSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GinkgoTypography.headline.copyWith(
+                        color: labelColor,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    observed == 0
+                        ? '${all.length} 项监控'
+                        : '${(health.healthyCount * 100 / observed).round()}%',
+                    style: GinkgoTypography.footnote.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: GinkgoTypography.tabularDigits,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: GinkgoSpacing.md),
+              SizedBox(
+                height: _barHeight,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < all.length; i++) ...[
+                      if (i > 0) const SizedBox(width: _barGap),
+                      Expanded(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: _stateColor(context, all[i], dark),
+                            borderRadius: BorderRadius.circular(
+                              GinkgoRadii.badge,
+                            ),
+                          ),
+                          child: const SizedBox.expand(),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: GinkgoSpacing.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '认证通道 $authOk/${authEndpoints.length}',
+                    style: GinkgoTypography.caption2.copyWith(
+                      color: secondary,
+                      fontFeatures: GinkgoTypography.tabularDigits,
+                    ),
+                  ),
+                  Text(
+                    '公开直连 $publicOk/${publicEndpoints.length}',
+                    style: GinkgoTypography.caption2.copyWith(
+                      color: secondary,
+                      fontFeatures: GinkgoTypography.tabularDigits,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _EndpointHealthTile extends StatelessWidget {
   const _EndpointHealthTile({required this.snapshot});
 
@@ -160,8 +343,8 @@ class _EndpointHealthTile extends StatelessWidget {
     return AppleListTile(
       key: ValueKey('live-endpoint-${snapshot.endpoint.name}'),
       leading: loading
-          ? const GinkgoActivity(size: 16)
-          : Icon(icon, color: color, size: 20),
+          ? const GinkgoActivity(size: GinkgoSpacing.pageInset)
+          : Icon(icon, color: color, size: GinkgoSpacing.xl),
       title: Text(snapshot.endpoint.title),
       subtitle: Text(LiveServiceHealthSection._subtitle(snapshot)),
     );

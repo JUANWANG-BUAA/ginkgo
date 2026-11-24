@@ -8,6 +8,6 @@
 ## features/campus_card/campus_card_page.dart
 
 - `class CampusCardPage extends StatefulWidget`
-  <sub>class · features/campus_card/campus_card_page.dart:10</sub>
-    - `const CampusCardPage({super.key, this.gateway});`  <sub>:11</sub>
-    - `State<CampusCardPage> createState() => …`  <sub>:15</sub>
+  <sub>class · features/campus_card/campus_card_page.dart:14</sub>
+    - `const CampusCardPage({super.key, this.gateway});`  <sub>:15</sub>
+    - `State<CampusCardPage> createState() => …`  <sub>:19</sub>

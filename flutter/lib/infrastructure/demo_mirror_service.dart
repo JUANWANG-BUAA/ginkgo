@@ -8,9 +8,12 @@ import '../application/notices.dart';
 import '../application/shuttle.dart';
 import '../application/homework_files.dart';
 
+import 'package:ginkgo_mirror/infrastructure/demo_evaluation.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_finance.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_learning.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/demo_network_account.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/local_tasks_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
@@ -37,6 +40,9 @@ final class DemoMirrorService
         DemoLearning,
         DemoGraduateCreditMap,
         DemoLibraryLoans,
+        DemoFinance,
+        DemoNetworkAccount,
+        DemoEvaluation,
         NativeReminderPlanning
     implements
         MirrorService,

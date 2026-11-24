@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
-
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'schedule_style.dart';
@@ -29,74 +29,89 @@ class ScheduleCourseDetailPage extends StatelessWidget {
   final VoidCallback? onOpenCheckIn;
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
-    backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
-      context,
-    ),
-    navigationBar: const CupertinoNavigationBar(
-      middle: Text('课程详情'),
-      previousPageTitle: '课表',
-    ),
-    child: SafeArea(
-      child: ListView(
-        children: [
-          FeatureIntro(
-            icon: CupertinoIcons.calendar,
-            title: course.name,
-            description: '$dayTitle · 第 $weekNumber 周',
-            color: CupertinoColors.systemBlue,
-            prominent: true,
-          ),
-          ScheduleSection(
-            children: [
-              ScheduleDetailLine(
-                label: '星期',
-                value: weekdayNames[course.day - 1],
-              ),
-              ScheduleDetailLine(
-                label: '节次',
-                value: '第 ${course.startSection}–${course.endSection} 节',
-              ),
-              ScheduleDetailLine(
-                label: '开始时间',
-                value: course.startTime ?? '待定',
-              ),
-              ScheduleDetailLine(label: '结束时间', value: course.endTime ?? '待定'),
-              ScheduleDetailLine(label: '地点', value: course.place ?? '待定'),
-              ScheduleDetailLine(label: '教师', value: course.teacher ?? '待定'),
-            ],
-          ),
-          ScheduleSection(
-            children: [
-              ScheduleDetailLine(label: '学期', value: termName),
-              ScheduleDetailLine(label: '周次', value: '第 $weekNumber 周'),
-              if (week != null)
-                ScheduleDetailLine(
-                  label: '日期范围',
-                  value:
-                      '${shortDate(week!.startDate)}–${shortDate(week!.endDate)}',
-                ),
-              ScheduleDetailLine(label: '上课日期', value: dayTitle),
-            ],
-          ),
-          ScheduleSection(
-            title: '课程签到',
-            footer: const Text('课表与签到来自不同学校服务，当前无法可靠关联到具体场次。'),
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('尚未关联签到记录'),
-              ),
-              if (onOpenCheckIn != null)
-                ScheduleChevronRow(
-                  onTap: onOpenCheckIn!,
-                  child: const Text('打开签到列表'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 96),
-        ],
+  Widget build(BuildContext context) {
+    final accent = courseColor(context, course.color, course.name);
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
+        context,
       ),
-    ),
-  );
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('课程详情'),
+        previousPageTitle: '课表',
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            FeatureIntro(
+              icon: CupertinoIcons.calendar,
+              title: course.name,
+              description: '$dayTitle · 第 $weekNumber 周',
+              color: accent,
+              prominent: true,
+            ),
+            ScheduleSection(
+              title: '时间与地点',
+              children: [
+                ScheduleDetailLine(
+                  label: '星期',
+                  value: weekdayNames[course.day - 1],
+                ),
+                ScheduleDetailLine(
+                  label: '节次',
+                  value: '第 ${course.startSection}–${course.endSection} 节',
+                ),
+                ScheduleDetailLine(
+                  label: '开始时间',
+                  value: course.startTime ?? '待定',
+                ),
+                ScheduleDetailLine(
+                  label: '结束时间',
+                  value: course.endTime ?? '待定',
+                ),
+                ScheduleDetailLine(label: '地点', value: course.place ?? '待定'),
+                ScheduleDetailLine(label: '教师', value: course.teacher ?? '待定'),
+              ],
+            ),
+            ScheduleSection(
+              title: '所属教学周',
+              children: [
+                ScheduleDetailLine(label: '学期', value: termName),
+                ScheduleDetailLine(label: '周次', value: '第 $weekNumber 周'),
+                if (week != null)
+                  ScheduleDetailLine(
+                    label: '日期范围',
+                    value:
+                        '${shortDate(week!.startDate)} – ${shortDate(week!.endDate)}',
+                  ),
+                ScheduleDetailLine(label: '上课日期', value: dayTitle),
+              ],
+            ),
+            ScheduleSection(
+              title: '课程签到',
+              footer: const Text('课表与签到来自不同学校服务，当前无法可靠关联到具体场次。'),
+              children: [
+                Padding(
+                  padding: GinkgoSpacing.edgeInsetsCard,
+                  child: Text(
+                    '尚未关联签到记录',
+                    style: GinkgoTypography.subheadline.copyWith(
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+                if (onOpenCheckIn != null)
+                  ScheduleChevronRow(
+                    onTap: onOpenCheckIn!,
+                    child: const Text('打开签到列表'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: GinkgoSpacing.bottomScrollClearance),
+          ],
+        ),
+      ),
+    );
+  }
 }

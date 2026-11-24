@@ -405,6 +405,8 @@ void main() {
       await tester.pumpAndSettle();
       await tapTab(tester, '课表');
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('schedule-search-toggle')));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('schedule-search')), '合成筛选');
       await tester.pumpAndSettle();
       await tapTab(tester, '作业');
@@ -453,38 +455,24 @@ void main() {
   );
 
   testWidgets(
-    'schedule horizontal drag and both scroll positions survive switching',
+    'schedule vertical scroll position survives tab switching',
     (tester) async {
       phone(tester);
       await tester.pumpWidget(GinkgoApp(service: ControlledService()));
       await tester.pumpAndSettle();
       await tapTab(tester, '课表');
       await tester.pumpAndSettle();
-      await tester.tap(find.text('周课表'));
-      await tester.pumpAndSettle();
-      final horizontal = find.byKey(const Key('schedule-grid-horizontal'));
-      final horizontalState = tester.state<ScrollableState>(
-        find
-            .descendant(of: horizontal, matching: find.byType(Scrollable))
-            .first,
-      );
-      // The grid extends below the viewport; drag its visible upper rows,
-      // not its geometric center (which is behind the bottom tab bar).
-      await tester.dragFrom(
-        tester.getTopLeft(horizontal) + const Offset(280, 100),
-        const Offset(-210, 0),
-      );
-      await tester.pumpAndSettle();
-      expect(horizontalState.position.pixels, greaterThan(0));
-      final x = horizontalState.position.pixels;
       final verticalState = tester.state<ScrollableState>(
         find
-            .descendant(of: transition(1), matching: find.byType(Scrollable))
+            .descendant(
+              of: find.byKey(const Key('schedule-scroll')),
+              matching: find.byType(Scrollable),
+            )
             .first,
       );
-      verticalState.position.jumpTo(120);
+      verticalState.position.jumpTo(80);
       await tester.pump();
-      expect(verticalState.position.pixels, 120);
+      expect(verticalState.position.pixels, 80);
       expect(
         tester
             .widget<WorkspaceTabScaffold>(find.byType(WorkspaceTabScaffold))
@@ -496,10 +484,8 @@ void main() {
       await tester.pump();
       await tapTab(tester, '课表');
       await tester.pumpAndSettle();
-      expect(horizontalState.mounted, isTrue);
       expect(verticalState.mounted, isTrue);
-      expect(horizontalState.position.pixels, x);
-      expect(verticalState.position.pixels, 120);
+      expect(verticalState.position.pixels, 80);
       expect(tester.takeException(), isNull);
     },
   );

@@ -7,6 +7,7 @@ import 'package:ginkgo_mirror/widgets/school_links.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/design/ginkgo_theme.dart';
 import 'package:ginkgo_mirror/application/startup_update_controller.dart';
+import 'package:ginkgo_mirror/widgets/top_bounce_scroll_physics.dart';
 import 'package:ginkgo_mirror/features/settings/startup_update_hint.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
@@ -23,7 +24,7 @@ class GinkgoScrollBehavior extends CupertinoScrollBehavior {
       return const ClampingScrollPhysics();
     }
     return const AlwaysScrollableScrollPhysics(
-      parent: BouncingScrollPhysics(),
+      parent: TopBounceScrollPhysics(),
     );
   }
 }

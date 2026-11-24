@@ -279,12 +279,6 @@ void main() {
         CupertinoIcons.chart_bar_alt_fill,
       ),
       (
-        SchedulePage(service: PendingAcademicService()),
-        '按学期与教学周查看课程和考试',
-        '正在读取课表…',
-        CupertinoIcons.calendar,
-      ),
-      (
         HomeworkPage(
           fileActions: platformActions,
           service: PendingAcademicService(),

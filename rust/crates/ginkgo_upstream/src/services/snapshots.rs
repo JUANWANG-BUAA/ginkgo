@@ -45,6 +45,8 @@ pub(crate) struct ReadSnapshots {
     pub(crate) library_venues: Mutex<LibraryVenueCache>,
     pub(crate) library_bookings: Mutex<LibraryBookingCache>,
     pub(crate) library_history: Mutex<SnapshotCache<i32, LibraryHistoryPage>>,
+    pub(crate) evaluation:
+        Mutex<SnapshotCache<String, ginkgo_domain::features::evaluation::TeachingEvaluationReport>>,
 }
 
 impl ReadSnapshots {
@@ -69,6 +71,7 @@ impl ReadSnapshots {
         self.library_stats.lock().clear();
         self.library_history.lock().clear();
         self.library_bookings.lock().clear();
+        self.evaluation.lock().clear();
     }
 
     /// How often one of the snapshot locks was recovered from a poisoned state.
@@ -95,5 +98,6 @@ impl ReadSnapshots {
             + self.library_venues.poison_count()
             + self.library_bookings.poison_count()
             + self.library_history.poison_count()
+            + self.evaluation.poison_count()
     }
 }

@@ -977,10 +977,13 @@ mod background_reminders;
 mod bykc;
 mod checkin;
 mod classroom;
+mod evaluation;
+mod finance;
 mod graduate;
 mod homework;
 mod library;
 mod mapping;
+mod network_account;
 mod runtime;
 mod session;
 mod utilities;
@@ -1410,4 +1413,106 @@ pub async fn homework_capabilities(
     assignment_id: String,
 ) -> HomeworkCapabilitiesResponse {
     homework::capabilities(expected_account, assignment_id).await
+}
+
+pub struct FinanceIncomeEntryDto {
+    pub id: String,
+    pub project: Option<String>,
+    pub description: Option<String>,
+    pub gross_minor: Option<i64>,
+    pub tax_minor: Option<i64>,
+    pub net_minor: Option<i64>,
+    pub tax_rate: Option<String>,
+    pub recorded_date: Option<String>,
+    pub year: Option<String>,
+    pub month: Option<String>,
+}
+
+pub struct FinanceIncomeReportDto {
+    pub entries: Vec<FinanceIncomeEntryDto>,
+    pub total: u32,
+    pub fetched_at: String,
+}
+
+pub struct FinanceIncomeResponse {
+    pub data: Option<FinanceIncomeReportDto>,
+    pub failure: Option<FailureCode>,
+}
+
+/// Explicit on-demand student finance income read. No disk cache or bank numbers.
+pub async fn load_finance_incomes(expected_account: String) -> FinanceIncomeResponse {
+    finance::load(expected_account).await
+}
+
+pub struct PortalMetricDto {
+    pub value: String,
+    pub unit: Option<String>,
+}
+
+pub struct NetworkTrafficProductDto {
+    pub product_name: Option<String>,
+    pub used_text: String,
+    pub free_remaining_text: String,
+    pub paid_remaining_text: String,
+    pub package_count: u32,
+}
+
+pub struct NetworkAccountDto {
+    pub net_fee_minor: Option<i64>,
+    pub net_fee_failure: Option<FailureCode>,
+    pub unreturned_books: Option<PortalMetricDto>,
+    pub unread_mail: Option<PortalMetricDto>,
+    pub cloud_drive_free: Option<PortalMetricDto>,
+    pub portal_failure: Option<FailureCode>,
+    pub traffic_products: Vec<NetworkTrafficProductDto>,
+    pub traffic_failure: Option<FailureCode>,
+    pub fetched_at: String,
+}
+
+pub struct NetworkAccountResponse {
+    pub data: Option<NetworkAccountDto>,
+    pub failure: Option<FailureCode>,
+}
+
+/// Explicit on-demand portal metrics & campus network traffic read. No recharge writes.
+pub async fn load_network_account(expected_account: String) -> NetworkAccountResponse {
+    network_account::load(expected_account).await
+}
+
+pub enum EvaluationCourseStatusDto {
+    Pending,
+    Completed,
+    Unknown,
+}
+
+pub struct EvaluationCourseDto {
+    pub id: String,
+    pub course_name: String,
+    pub teacher_name: Option<String>,
+    pub questionnaire_name: Option<String>,
+    pub category: Option<String>,
+    pub status: EvaluationCourseStatusDto,
+}
+
+pub struct TeachingEvaluationDto {
+    pub task_id: Option<String>,
+    pub task_name: Option<String>,
+    pub term: Option<String>,
+    pub courses: Vec<EvaluationCourseDto>,
+    pub fetched_at: String,
+    pub from_cache: bool,
+    pub stale: bool,
+}
+
+pub struct TeachingEvaluationResponse {
+    pub data: Option<TeachingEvaluationDto>,
+    pub failure: Option<FailureCode>,
+}
+
+/// Read-only teaching evaluation status check. Never submits evaluations.
+pub async fn load_teaching_evaluation(
+    expected_account: String,
+    force_refresh: bool,
+) -> TeachingEvaluationResponse {
+    evaluation::load(expected_account, force_refresh).await
 }

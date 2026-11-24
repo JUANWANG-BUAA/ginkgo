@@ -88,27 +88,27 @@
 ## features/graduate/graduate_widgets.dart
 
 - `String graduateCreditLabel(num? value) => …` — Credit values the school did not provide stay "未确认"; they never read as
-  <sub>function · features/graduate/graduate_widgets.dart:11</sub>
+  <sub>function · features/graduate/graduate_widgets.dart:13</sub>
 - `class GraduateStat` — One labeled statistic in a quiet row. A value may keep its own weight and
-  <sub>class · features/graduate/graduate_widgets.dart:16</sub>
-    - `const GraduateStat(this.label, this.value, {this.weight, this.color});`  <sub>:17</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:18</sub>
+    - `const GraduateStat(this.label, this.value, {this.weight, this.color});`  <sub>:19</sub>
 - `class GraduateStatRow extends StatelessWidget` — A wrapping row of labeled statistics.
-  <sub>class · features/graduate/graduate_widgets.dart:25</sub>
-    - `const GraduateStatRow( this.stats, { super.key, this.spacing = 12, this.runSpacing = 5, });`  <sub>:26</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:37</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:27</sub>
+    - `const GraduateStatRow( this.stats, { super.key, this.spacing = 12, this.runSpacing = 5, });`  <sub>:28</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:39</sub>
 - `class GraduateCreditBar extends StatelessWidget` — Credit ratio bar: the recognized portion over an optional pending portion,
-  <sub>class · features/graduate/graduate_widgets.dart:56</sub>
-    - `const GraduateCreditBar({ super.key, required this.value, this.pendingValue = 0, this.valueColor, this.pendingColor, this.height = 5, this.borderRadius = 3, this.semanticLabel, });`  <sub>:57</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:78</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:58</sub>
+    - `const GraduateCreditBar({ super.key, required this.value, this.pendingValue = 0, this.valueColor, this.pendingColor, this.height = 5, this.borderRadius = GinkgoRadii.pill, this.semanticLabel, });`  <sub>:59</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:80</sub>
 - `class GraduateCreditProgress extends StatelessWidget` — Numeric fields are projected by Rust; pending credits never reduce the gap.
-  <sub>class · features/graduate/graduate_widgets.dart:125</sub>
-    - `const GraduateCreditProgress({super.key, required this.progress});`  <sub>:126</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:129</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:136</sub>
+    - `const GraduateCreditProgress({super.key, required this.progress});`  <sub>:137</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:143</sub>
 - `class GraduateDisclosure extends StatefulWidget` — A collapsible block. The page owns the expanded state so a reload can
-  <sub>class · features/graduate/graduate_widgets.dart:190</sub>
-    - `const GraduateDisclosure({ super.key, required this.title, this.subtitle, this.summary, this.initiallyExpanded = false, this.onExpanded, required this.children, });`  <sub>:191</sub>
-    - `State<GraduateDisclosure> createState() => …`  <sub>:207</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:363</sub>
+    - `const GraduateDisclosure({ super.key, required this.title, this.subtitle, this.summary, this.initiallyExpanded = false, this.onExpanded, required this.children, });`  <sub>:364</sub>
+    - `State<GraduateDisclosure> createState() => …`  <sub>:380</sub>
 - `class GraduateCategoryRow extends StatelessWidget` — One category of the execution report: its credit position and the way into
-  <sub>class · features/graduate/graduate_widgets.dart:259</sub>
-    - `const GraduateCategoryRow({ super.key, required this.section, required this.onCourses, required this.expanded, required this.onExpanded, });`  <sub>:260</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:272</sub>
+  <sub>class · features/graduate/graduate_widgets.dart:432</sub>
+    - `const GraduateCategoryRow({ super.key, required this.section, required this.onCourses, required this.expanded, required this.onExpanded, });`  <sub>:433</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:445</sub>

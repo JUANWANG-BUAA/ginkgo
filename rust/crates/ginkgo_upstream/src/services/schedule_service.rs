@@ -80,23 +80,35 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         week: Option<i32>,
     ) -> Result<ScheduleData, AppError> {
         let terms = schedule_http::load_terms(&self.session).await?;
+        let preferred = beijing_today()
+            .map(preferred_undergraduate_term_id)
+            .unwrap_or_default();
         let Some(term) = terms
             .iter()
             .find(|term| Some(term.id.as_str()) == term_id)
             .or_else(|| terms.iter().find(|term| term.selected))
+            .or_else(|| {
+                terms
+                    .iter()
+                    .find(|term| !preferred.is_empty() && term.id <= preferred)
+            })
             .or_else(|| terms.first())
             .cloned()
         else {
-            return Ok(ScheduleData {
-                terms,
-                weeks: vec![],
-                term_id: String::new(),
-                week_number: 0,
-                courses: vec![],
-                exams: vec![],
-            });
+            // A signed-in student always has at least one term; an empty list
+            // means the portal did not return data, not "no classes".
+            return Err(AppError::with_detail(
+                ErrorCode::ChangedResponse,
+                "schedule_terms_empty",
+            ));
         };
         let weeks = schedule_http::load_weeks(&self.session, &term.id).await?;
+        if weeks.is_empty() {
+            return Err(AppError::with_detail(
+                ErrorCode::ChangedResponse,
+                "schedule_weeks_empty",
+            ));
+        }
         let week_number = week
             .or_else(|| {
                 weeks
@@ -107,7 +119,16 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             .or_else(|| weeks.first().map(|week| week.number))
             .unwrap_or(0);
         let courses = if weeks.iter().any(|item| item.number == week_number) {
-            schedule_http::load_week_courses(&self.session, &term.id, week_number).await?
+            let mut courses =
+                schedule_http::load_week_courses(&self.session, &term.id, week_number).await?;
+            if courses.is_empty() && schedule_http::activate_portal(&self.session).await.is_ok() {
+                // BYXT can answer an uninitialised student context with an
+                // empty list. One activation plus one repeat of the same read;
+                // a genuinely empty week stays empty.
+                courses =
+                    schedule_http::load_week_courses(&self.session, &term.id, week_number).await?;
+            }
+            courses
         } else {
             vec![]
         };
@@ -133,7 +154,7 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
         term_id: Option<&str>,
         week: Option<i32>,
     ) -> Result<ScheduleData, AppError> {
-        let terms = graduate_schedule_http::load_terms(&self.session)
+        let mut terms = graduate_schedule_http::load_terms(&self.session)
             .await
             .map_err(|error| {
                 if error.detail.is_some() {
@@ -142,31 +163,50 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
                     AppError::with_detail(error.code, "graduate_terms")
                 }
             })?;
-        let Some(term) = terms
-            .iter()
-            .find(|term| Some(term.id.as_str()) == term_id)
-            .or_else(|| terms.iter().find(|term| term.selected))
-            .or_else(|| terms.first())
-            .cloned()
-        else {
-            return Ok(ScheduleData {
-                terms,
-                weeks: vec![],
-                term_id: String::new(),
-                week_number: 0,
-                courses: vec![],
-                exams: vec![],
-            });
-        };
-        let graduate = graduate_schedule_http::load_schedule(&self.session, &term.id)
-            .await
-            .map_err(|error| {
-                if error.detail.is_some() {
-                    error
-                } else {
-                    AppError::with_detail(error.code, "graduate_schedule")
+        if terms.is_empty() {
+            return Err(AppError::with_detail(
+                ErrorCode::ChangedResponse,
+                "graduate_terms_empty",
+            ));
+        }
+        let (term, graduate) = if let Some(requested) = term_id {
+            let term = terms
+                .iter()
+                .find(|term| term.id == requested)
+                .or_else(|| terms.first())
+                .cloned()
+                .expect("non-empty terms");
+            let schedule = self.load_graduate_term_schedule(&term.id).await?;
+            (term, schedule)
+        } else {
+            let preferred = beijing_today()
+                .map(preferred_graduate_term_id)
+                .unwrap_or_default();
+            let primary_idx = terms
+                .iter()
+                .position(|term| !preferred.is_empty() && term.id <= preferred)
+                .unwrap_or(0);
+            let primary_term = terms[primary_idx].clone();
+            let primary_schedule = self.load_graduate_term_schedule(&primary_term.id).await?;
+            if !primary_schedule.weeks.is_empty() {
+                (primary_term, primary_schedule)
+            } else if let Some(fallback_term) = terms.get(primary_idx + 1).cloned() {
+                // GSMIS opens next semester's term entry weeks before publishing
+                // its timetable (and summer terms often have no courses). Probe
+                // the immediately preceding term once before accepting empty.
+                match self.load_graduate_term_schedule(&fallback_term.id).await {
+                    Ok(fallback_schedule) if !fallback_schedule.weeks.is_empty() => {
+                        (fallback_term, fallback_schedule)
+                    }
+                    _ => (primary_term, primary_schedule),
                 }
-            })?;
+            } else {
+                (primary_term, primary_schedule)
+            }
+        };
+        for item in &mut terms {
+            item.selected = item.id == term.id;
+        }
         let week_number = week
             .or_else(|| {
                 graduate
@@ -191,6 +231,21 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> SchoolClient<T, V> {
             // GSMIS exams are not exposed by the documented graduate portal.
             exams: vec![],
         })
+    }
+
+    async fn load_graduate_term_schedule(
+        &self,
+        term_id: &str,
+    ) -> Result<graduate_schedule_http::GraduateSchedule, AppError> {
+        graduate_schedule_http::load_schedule(&self.session, term_id)
+            .await
+            .map_err(|error| {
+                if error.detail.is_some() {
+                    error
+                } else {
+                    AppError::with_detail(error.code, "graduate_schedule")
+                }
+            })
     }
 
     async fn load_today_from_schedule(
@@ -400,10 +455,10 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> TodaySource for SchoolC
             date.clone(),
             force_refresh,
             async {
-                match schedule_http::load_today(&self.session, &date).await {
+                match load_undergraduate_today(&self.session, &date).await {
                     Err(error) if error.code == ErrorCode::SessionExpired => {
                         match self.silent_login().await {
-                            Ok(()) => schedule_http::load_today(&self.session, &date).await,
+                            Ok(()) => load_undergraduate_today(&self.session, &date).await,
                             Err(error) => Err(error),
                         }
                     }
@@ -469,4 +524,43 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> ScheduleSource for Scho
         .await?;
         Ok(snapshot)
     }
+}
+
+fn beijing_today() -> Option<NaiveDate> {
+    let day = school_time::beijing_day(&now_shanghai()).ok()?;
+    NaiveDate::parse_from_str(&day.local_date, "%Y-%m-%d").ok()
+}
+
+/// Active BUAA academic `(start_year, semester_index)` inferred from a Beijing
+/// calendar date so pre-opened future semesters (e.g. `20262` opened in
+/// November 2026) do not override the active autumn semester (`20261`).
+pub(crate) fn preferred_academic_term(today: NaiveDate) -> (i32, u8) {
+    match today.month() {
+        9..=12 => (today.year(), 1),
+        8 if today.day() >= 20 => (today.year(), 1),
+        1 => (today.year() - 1, 1),
+        2..=6 => (today.year() - 1, 2),
+        _ => (today.year() - 1, 3),
+    }
+}
+
+fn preferred_graduate_term_id(today: NaiveDate) -> String {
+    let (year, sem) = preferred_academic_term(today);
+    format!("{year}{sem}")
+}
+
+fn preferred_undergraduate_term_id(today: NaiveDate) -> String {
+    let (year, sem) = preferred_academic_term(today);
+    format!("{year}-{}-{sem}", year + 1)
+}
+
+async fn load_undergraduate_today<T: HttpTransport>(
+    session: &crate::auth::session::Session<T>,
+    date: &str,
+) -> Result<Vec<TodayCourse>, AppError> {
+    let mut courses = schedule_http::load_today(session, date).await?;
+    if courses.is_empty() && schedule_http::activate_portal(session).await.is_ok() {
+        courses = schedule_http::load_today(session, date).await?;
+    }
+    Ok(courses)
 }

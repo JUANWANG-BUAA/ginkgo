@@ -18,7 +18,7 @@
 - [features/today/today_page.dart](#featurestodaytodaypagedart) (1)
 - [features/today/today_page_actions.dart](#featurestodaytodaypageactionsdart) (1)
 - [features/today/today_page_header.dart](#featurestodaytodaypageheaderdart) (1)
-- [features/today/today_presentation.dart](#featurestodaytodaypresentationdart) (4)
+- [features/today/today_presentation.dart](#featurestodaytodaypresentationdart) (1)
 - [features/today/today_status_strip.dart](#featurestodaytodaystatusstripdart) (1)
 - [features/today/today_tasks_section.dart](#featurestodaytodaytaskssectiondart) (2)
 
@@ -102,10 +102,10 @@
 ## features/today/today_page.dart
 
 - `class TodayPage extends StatefulWidget`
-  <sub>class · features/today/today_page.dart:31</sub>
-    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:32</sub>
-    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:54</sub>
-    - `State<TodayPage> createState() => …`  <sub>:56</sub>
+  <sub>class · features/today/today_page.dart:30</sub>
+    - `const TodayPage({ super.key, required this.service, required this.fileActions, this.accountName, this.accountId, this.storageRoot, this.now, this.onOpenFeature, });`  <sub>:31</sub>
+    - `final DateTime Function()? now;` — An instant, converted to Beijing wall time for presentation.  <sub>:53</sub>
+    - `State<TodayPage> createState() => …`  <sub>:55</sub>
 
 ## features/today/today_page_actions.dart
 
@@ -125,19 +125,7 @@
 ## features/today/today_presentation.dart
 
 - `String todayCoursePlaceLabel(String? place) {…}` — Course fields the school left out stay readable: a missing place never
-  <sub>function · features/today/today_presentation.dart:9</sub>
-- `class TodayVisualDivider extends StatelessWidget` — A quiet inset rule for rows nested inside a reveal animation.
-  <sub>class · features/today/today_presentation.dart:15</sub>
-    - `const TodayVisualDivider({super.key});`  <sub>:16</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:19</sub>
-- `class TodayVisualSection extends StatelessWidget` — Today-only typography and spacing; the shared section keeps its behavior.
-  <sub>class · features/today/today_presentation.dart:31</sub>
-    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:32</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:43</sub>
-- `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
-  <sub>class · features/today/today_presentation.dart:71</sub>
-    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:72</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:90</sub>
+  <sub>function · features/today/today_presentation.dart:7</sub>
 
 ## features/today/today_status_strip.dart
 

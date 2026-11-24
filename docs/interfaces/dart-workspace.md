@@ -10,6 +10,7 @@
 - [workspace/desktop_workspace_shell.dart](#workspacedesktopworkspaceshelldart) (1)
 - [workspace/desktop_workspace_sidebar.dart](#workspacedesktopworkspacesidebardart) (3)
 - [workspace/mobile_workspace_shell.dart](#workspacemobileworkspaceshelldart) (1)
+- [workspace/more_hub_cards.dart](#workspacemorehubcardsdart) (1)
 - [workspace/more_page.dart](#workspacemorepagedart) (1)
 - [workspace/service_directory.dart](#workspaceservicedirectorydart) (2)
 - [workspace/service_search.dart](#workspaceservicesearchdart) (5)
@@ -47,6 +48,13 @@
     - `final Future<void> Function()? onSignOut;`  <sub>:34</sub>
     - `State<MobileWorkspaceShell> createState() => …`  <sub>:36</sub>
 
+## workspace/more_hub_cards.dart
+
+- `class MoreControlHub extends StatelessWidget` — Tactile two-card control hub at the top of MorePage:
+  <sub>class · workspace/more_hub_cards.dart:9</sub>
+    - `const MoreControlHub({ super.key, required this.demo, required this.onOpenSettings, required this.onOpenDiagnostics, this.accountName, this.accountId, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:26</sub>
+
 ## workspace/more_page.dart
 
 - `class MorePage extends StatefulWidget` — The "更多" surface: the five primary destinations live in the tab bar,
@@ -81,11 +89,11 @@
 - `List<ServiceDescriptor> searchableServices( List<WorkspaceDestination> destinations, ) => …` — Searches compile-time metadata; it does not request school or personal data.
   <sub>function · workspace/service_search.dart:52</sub>
 - `Future<void> openServiceDescriptor( BuildContext context, WorkspaceContext workspace, ServiceDescriptor entry, ) async {…}`
-  <sub>function · workspace/service_search.dart:156</sub>
+  <sub>function · workspace/service_search.dart:186</sub>
 - `class ServiceSearchContent extends StatelessWidget` — Shared service search field and grouped local results on the More page.
-  <sub>class · workspace/service_search.dart:180</sub>
-    - `const ServiceSearchContent({ super.key, required this.workspace, required this.destinations, required this.controller, required this.query, required this.onChanged, });`  <sub>:181</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:197</sub>
+  <sub>class · workspace/service_search.dart:210</sub>
+    - `const ServiceSearchContent({ super.key, required this.workspace, required this.destinations, required this.controller, required this.query, required this.onChanged, });`  <sub>:211</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:227</sub>
 
 ## workspace/workspace_back_guard.dart
 
@@ -106,9 +114,9 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:251</sub>
+  <sub>function · workspace/workspace_catalog.dart:301</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:269</sub>
+  <sub>function · workspace/workspace_catalog.dart:319</sub>
 
 ## workspace/workspace_shell.dart
 

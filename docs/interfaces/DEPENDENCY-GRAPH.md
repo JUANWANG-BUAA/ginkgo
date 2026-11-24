@@ -4,7 +4,7 @@
 > 修改接口后运行 `python3 scripts/generate-interface-index.py` 重新生成；
 > 手工总览与分层说明见 [INTERFACE-INDEX.md](../INTERFACE-INDEX.md)。
 
-按目录分组统计：31 个分组节点（其中 29 个有出向依赖）、137 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
+按目录分组统计：35 个分组节点（其中 33 个有出向依赖）、156 条跨组依赖。箭头方向为「依赖方 → 被依赖方」。
 
 ## 依赖图
 
@@ -22,11 +22,14 @@ flowchart LR
   n_features_cgyy["features/cgyy"]
   n_features_checkin["features/checkin"]
   n_features_classroom["features/classroom"]
+  n_features_evaluation["features/evaluation"]
+  n_features_finance["features/finance"]
   n_features_grades["features/grades"]
   n_features_graduate["features/graduate"]
   n_features_homework["features/homework"]
   n_features_learning["features/learning"]
   n_features_library["features/library"]
+  n_features_network_account["features/network_account"]
   n_features_notices["features/notices"]
   n_features_reservations["features/reservations"]
   n_features_schedule["features/schedule"]
@@ -34,6 +37,7 @@ flowchart LR
   n_features_shuttle["features/shuttle"]
   n_features_tasks["features/tasks"]
   n_features_today["features/today"]
+  n_features_undergraduate["features/undergraduate"]
   n_infrastructure["infrastructure"]
   n_platform["platform"]
   n_root["root"]
@@ -83,6 +87,14 @@ flowchart LR
   n_features_classroom --> n_features_academic
   n_features_classroom --> n_shared
   n_features_classroom --> n_widgets
+  n_features_evaluation --> n_application
+  n_features_evaluation --> n_design
+  n_features_evaluation --> n_shared
+  n_features_evaluation --> n_widgets
+  n_features_finance --> n_application
+  n_features_finance --> n_design
+  n_features_finance --> n_shared
+  n_features_finance --> n_widgets
   n_features_grades --> n_application
   n_features_grades --> n_design
   n_features_grades --> n_shared
@@ -103,6 +115,10 @@ flowchart LR
   n_features_library --> n_features_reservations
   n_features_library --> n_shared
   n_features_library --> n_widgets
+  n_features_network_account --> n_application
+  n_features_network_account --> n_design
+  n_features_network_account --> n_shared
+  n_features_network_account --> n_widgets
   n_features_notices --> n_application
   n_features_notices --> n_widgets
   n_features_reservations --> n_design
@@ -119,7 +135,6 @@ flowchart LR
   n_features_settings --> n_widgets
   n_features_shuttle --> n_application
   n_features_shuttle --> n_design
-  n_features_shuttle --> n_features_today
   n_features_shuttle --> n_shared
   n_features_shuttle --> n_widgets
   n_features_tasks --> n_application
@@ -134,6 +149,10 @@ flowchart LR
   n_features_today --> n_features_tasks
   n_features_today --> n_shared
   n_features_today --> n_widgets
+  n_features_undergraduate --> n_application
+  n_features_undergraduate --> n_design
+  n_features_undergraduate --> n_shared
+  n_features_undergraduate --> n_widgets
   n_infrastructure --> n_application
   n_infrastructure --> n_shared
   n_infrastructure --> n_src
@@ -163,17 +182,21 @@ flowchart LR
   n_workspace --> n_features_cgyy
   n_workspace --> n_features_checkin
   n_workspace --> n_features_classroom
+  n_workspace --> n_features_evaluation
+  n_workspace --> n_features_finance
   n_workspace --> n_features_grades
   n_workspace --> n_features_graduate
   n_workspace --> n_features_homework
   n_workspace --> n_features_learning
   n_workspace --> n_features_library
+  n_workspace --> n_features_network_account
   n_workspace --> n_features_notices
   n_workspace --> n_features_schedule
   n_workspace --> n_features_settings
   n_workspace --> n_features_shuttle
   n_workspace --> n_features_tasks
   n_workspace --> n_features_today
+  n_workspace --> n_features_undergraduate
   n_workspace --> n_infrastructure
   n_workspace --> n_root
   n_workspace --> n_shared
@@ -207,13 +230,14 @@ flowchart LR
 | --- | --- |
 | `flutter/lib/app/ginkgo_app.dart:4` | `flutter/lib/application/external_links.dart` |
 | `flutter/lib/app/ginkgo_app.dart:9` | `flutter/lib/application/startup_update_controller.dart` |
-| `flutter/lib/app/ginkgo_app.dart:11` | `flutter/lib/application/task_storage_scope.dart` |
+| `flutter/lib/app/ginkgo_app.dart:12` | `flutter/lib/application/task_storage_scope.dart` |
 | `flutter/lib/app/ginkgo_app.dart:8` | `flutter/lib/design/ginkgo_theme.dart` |
-| `flutter/lib/app/ginkgo_app.dart:10` | `flutter/lib/features/settings/startup_update_hint.dart` |
-| `flutter/lib/app/ginkgo_app.dart:12` | `flutter/lib/infrastructure/task_storage.dart` |
+| `flutter/lib/app/ginkgo_app.dart:11` | `flutter/lib/features/settings/startup_update_hint.dart` |
+| `flutter/lib/app/ginkgo_app.dart:13` | `flutter/lib/infrastructure/task_storage.dart` |
 | `flutter/lib/app/ginkgo_app.dart:5` | `flutter/lib/platform/external_links.dart` |
 | `flutter/lib/app/ginkgo_app.dart:7` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/app/ginkgo_app.dart:6` | `flutter/lib/widgets/school_links.dart` |
+| `flutter/lib/app/ginkgo_app.dart:10` | `flutter/lib/widgets/top_bounce_scroll_physics.dart` |
 | `flutter/lib/application/contracts.dart:17` | `flutter/lib/src/rust/api/live.dart` |
 | `flutter/lib/application/contracts.dart:28` | `flutter/lib/src/rust/api/mirror.dart` |
 | `flutter/lib/application/failures.dart:1` | `flutter/lib/src/rust/api/mirror.dart` |
@@ -265,12 +289,15 @@ flowchart LR
 | `flutter/lib/features/campus/campus_activities_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/campus/campus_activities_page.dart:8` | `flutter/lib/widgets/public_information_page.dart` |
 | `flutter/lib/features/campus/campus_activities_page.dart:5` | `flutter/lib/widgets/school_links.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:3` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:5` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:6` | `flutter/lib/shared/school_timestamp.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/campus_card/campus_card_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:3` | `flutter/lib/application/campus_card.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:4` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:7` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:9` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:10` | `flutter/lib/widgets/liquid_vial_gauge.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:11` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/campus_card/campus_card_page.dart:12` | `flutter/lib/widgets/telemetry_instrument_card.dart` |
 | `flutter/lib/features/career/career_events_page.dart:5` | `flutter/lib/application/career.dart` |
 | `flutter/lib/features/career/career_events_page.dart:6` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/career/career_events_page.dart:7` | `flutter/lib/application/refresh_section.dart` |
@@ -376,15 +403,40 @@ flowchart LR
 | `flutter/lib/features/classroom/classroom_widgets.dart:4` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/classroom/classroom_widgets.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/classroom/classroom_widgets.dart:6` | `flutter/lib/widgets/collection_toolbar.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:3` | `flutter/lib/application/evaluation.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:4` | `flutter/lib/application/failure_code.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:5` | `flutter/lib/application/student_service_links.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:7` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:9` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:10` | `flutter/lib/widgets/liquid_vial_gauge.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:11` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:12` | `flutter/lib/widgets/school_links.dart` |
+| `flutter/lib/features/evaluation/evaluation_page.dart:13` | `flutter/lib/widgets/telemetry_instrument_card.dart` |
+| `flutter/lib/features/finance/finance_page.dart:3` | `flutter/lib/application/failure_code.dart` |
+| `flutter/lib/features/finance/finance_page.dart:4` | `flutter/lib/application/finance.dart` |
+| `flutter/lib/features/finance/finance_page.dart:5` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/finance/finance_page.dart:6` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/finance/finance_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/finance/finance_page.dart:8` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/features/finance/finance_page.dart:9` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/finance/finance_visuals.dart:3` | `flutter/lib/application/failure_code.dart` |
+| `flutter/lib/features/finance/finance_visuals.dart:4` | `flutter/lib/application/finance.dart` |
+| `flutter/lib/features/finance/finance_visuals.dart:5` | `flutter/lib/widgets/liquid_vial_gauge.dart` |
+| `flutter/lib/features/finance/finance_visuals.dart:6` | `flutter/lib/widgets/status_chip.dart` |
+| `flutter/lib/features/finance/finance_visuals.dart:7` | `flutter/lib/widgets/telemetry_instrument_card.dart` |
 | `flutter/lib/features/grades/grades_page.dart:10` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/grades/grades_page.dart:9` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/grades/grades_page.dart:5` | `flutter/lib/design/tokens.dart` |
-| `flutter/lib/features/grades/grades_page.dart:11` | `flutter/lib/shared/school_timestamp.dart` |
-| `flutter/lib/features/grades/grades_page.dart:3` | `flutter/lib/widgets/academic_overview.dart` |
 | `flutter/lib/features/grades/grades_page.dart:7` | `flutter/lib/widgets/academic_widgets.dart` |
 | `flutter/lib/features/grades/grades_page.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/grades/grades_page.dart:2` | `flutter/lib/widgets/feature_intro.dart` |
 | `flutter/lib/features/grades/grades_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/grades/grades_visuals.dart:5` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/grades/grades_visuals.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/grades/grades_visuals.dart:7` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/grades/grades_visuals.dart:8` | `flutter/lib/widgets/academic_widgets.dart` |
 | `flutter/lib/features/graduate/graduate_course_controls.dart:5` | `flutter/lib/application/graduate.dart` |
 | `flutter/lib/features/graduate/graduate_course_controls.dart:3` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/graduate/graduate_course_widgets.dart:7` | `flutter/lib/application/graduate.dart` |
@@ -411,10 +463,10 @@ flowchart LR
 | `flutter/lib/features/graduate/graduate_sections.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/graduate/graduate_sections.dart:2` | `flutter/lib/widgets/feature_intro.dart` |
 | `flutter/lib/features/graduate/graduate_sections.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/graduate/graduate_widgets.dart:7` | `flutter/lib/application/graduate.dart` |
-| `flutter/lib/features/graduate/graduate_widgets.dart:4` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/graduate/graduate_widgets.dart:3` | `flutter/lib/widgets/academic_widgets.dart` |
-| `flutter/lib/features/graduate/graduate_widgets.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/graduate/graduate_widgets.dart:9` | `flutter/lib/application/graduate.dart` |
+| `flutter/lib/features/graduate/graduate_widgets.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/graduate/graduate_widgets.dart:5` | `flutter/lib/widgets/academic_widgets.dart` |
+| `flutter/lib/features/graduate/graduate_widgets.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/homework/homework_detail_page.dart:14` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/homework/homework_detail_page.dart:18` | `flutter/lib/application/homework_files.dart` |
 | `flutter/lib/features/homework/homework_detail_page.dart:11` | `flutter/lib/application/mirror_service.dart` |
@@ -433,23 +485,24 @@ flowchart LR
 | `flutter/lib/features/homework/homework_files_panel.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/homework/homework_files_panel.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/homework/homework_files_widgets.dart:3` | `flutter/lib/application/homework_files.dart` |
-| `flutter/lib/features/homework/homework_page.dart:15` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/homework/homework_page.dart:10` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/homework/homework_page.dart:16` | `flutter/lib/application/platform_actions.dart` |
-| `flutter/lib/features/homework/homework_page.dart:11` | `flutter/lib/application/refresh_section.dart` |
-| `flutter/lib/features/homework/homework_page.dart:12` | `flutter/lib/application/school_rules.dart` |
-| `flutter/lib/features/homework/homework_page.dart:8` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/homework/homework_page.dart:18` | `flutter/lib/features/schedule/course_range_page.dart` |
-| `flutter/lib/features/homework/homework_page.dart:17` | `flutter/lib/shared/course_visibility.dart` |
-| `flutter/lib/features/homework/homework_page.dart:5` | `flutter/lib/shared/reminders.dart` |
-| `flutter/lib/features/homework/homework_page.dart:22` | `flutter/lib/shared/today_time.dart` |
-| `flutter/lib/features/homework/homework_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/homework/homework_page.dart:9` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/homework/homework_page.dart:13` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/homework/homework_page.dart:8` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/features/homework/homework_page.dart:14` | `flutter/lib/application/platform_actions.dart` |
+| `flutter/lib/features/homework/homework_page.dart:9` | `flutter/lib/application/refresh_section.dart` |
+| `flutter/lib/features/homework/homework_page.dart:10` | `flutter/lib/application/school_rules.dart` |
+| `flutter/lib/features/homework/homework_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/homework/homework_page.dart:16` | `flutter/lib/features/schedule/course_range_page.dart` |
+| `flutter/lib/features/homework/homework_page.dart:15` | `flutter/lib/shared/course_visibility.dart` |
+| `flutter/lib/features/homework/homework_page.dart:4` | `flutter/lib/shared/reminders.dart` |
+| `flutter/lib/features/homework/homework_page.dart:21` | `flutter/lib/shared/today_time.dart` |
+| `flutter/lib/features/homework/homework_page.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/homework/homework_page.dart:7` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/homework/homework_projection.dart:3` | `flutter/lib/application/school_rules.dart` |
 | `flutter/lib/features/homework/homework_projection.dart:5` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/homework/homework_projection.dart:6` | `flutter/lib/shared/homework_visibility.dart` |
 | `flutter/lib/features/homework/homework_projection.dart:7` | `flutter/lib/shared/school_timestamp.dart` |
 | `flutter/lib/features/homework/homework_projection.dart:8` | `flutter/lib/shared/today_time.dart` |
+| `flutter/lib/features/homework/homework_visuals.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/homework/homework_widgets.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/homework/homework_widgets.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/homework/homework_widgets.dart:5` | `flutter/lib/shared/school_timestamp.dart` |
@@ -460,6 +513,9 @@ flowchart LR
 | `flutter/lib/features/learning/learning_announcement_page.dart:6` | `flutter/lib/application/refresh_section.dart` |
 | `flutter/lib/features/learning/learning_announcement_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/learning/learning_announcement_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/learning/learning_cards.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/learning/learning_cards.dart:4` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/learning/learning_cards.dart:5` | `flutter/lib/widgets/ginkgo_visuals.dart` |
 | `flutter/lib/features/learning/learning_course_page.dart:4` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/learning/learning_course_page.dart:5` | `flutter/lib/application/learning.dart` |
 | `flutter/lib/features/learning/learning_course_page.dart:6` | `flutter/lib/application/learning_context.dart` |
@@ -479,7 +535,9 @@ flowchart LR
 | `flutter/lib/features/learning/learning_resource_section.dart:4` | `flutter/lib/application/learning.dart` |
 | `flutter/lib/features/learning/learning_resource_section.dart:5` | `flutter/lib/application/learning_file_actions.dart` |
 | `flutter/lib/features/learning/learning_resource_section.dart:6` | `flutter/lib/application/refresh_section.dart` |
-| `flutter/lib/features/learning/learning_resource_section.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/learning/learning_resource_section.dart:7` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/learning/learning_resource_section.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/learning/learning_resource_section.dart:9` | `flutter/lib/widgets/ginkgo_visuals.dart` |
 | `flutter/lib/features/learning/learning_snapshots_page.dart:4` | `flutter/lib/application/query_snapshots.dart` |
 | `flutter/lib/features/learning/learning_snapshots_page.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/learning/learning_snapshots_page.dart:1` | `flutter/lib/widgets/maintenance_scaffold.dart` |
@@ -490,6 +548,8 @@ flowchart LR
 | `flutter/lib/features/learning/learning_widgets.dart:7` | `flutter/lib/application/refresh_section.dart` |
 | `flutter/lib/features/learning/learning_widgets.dart:8` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/learning/learning_widgets.dart:9` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/library/library_action_grid.dart:3` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/library/library_action_grid.dart:4` | `flutter/lib/widgets/ginkgo_visuals.dart` |
 | `flutter/lib/features/library/library_area_page.dart:7` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/library/library_area_page.dart:3` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/library/library_area_page.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
@@ -525,15 +585,14 @@ flowchart LR
 | `flutter/lib/features/library/library_loans_page.dart:2` | `flutter/lib/widgets/feature_intro.dart` |
 | `flutter/lib/features/library/library_loans_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/library/library_loans_page.dart:3` | `flutter/lib/widgets/school_links.dart` |
-| `flutter/lib/features/library/library_page.dart:11` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/library/library_page.dart:5` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/library/library_page.dart:6` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/library/library_page.dart:10` | `flutter/lib/features/reservations/reservation_widgets.dart` |
-| `flutter/lib/features/library/library_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/library/library_page.dart:10` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/library/library_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/features/library/library_page.dart:5` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/library/library_page.dart:9` | `flutter/lib/features/reservations/reservation_widgets.dart` |
+| `flutter/lib/features/library/library_page.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/library/library_page.dart:2` | `flutter/lib/widgets/feature_intro.dart` |
-| `flutter/lib/features/library/library_page.dart:3` | `flutter/lib/widgets/ginkgo_visuals.dart` |
-| `flutter/lib/features/library/library_page.dart:8` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/library/library_page.dart:9` | `flutter/lib/widgets/mutation_dialog.dart` |
+| `flutter/lib/features/library/library_page.dart:7` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/library/library_page.dart:8` | `flutter/lib/widgets/mutation_dialog.dart` |
 | `flutter/lib/features/library/library_seat_page.dart:6` | `flutter/lib/application/collection_window.dart` |
 | `flutter/lib/features/library/library_seat_page.dart:11` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/library/library_seat_page.dart:9` | `flutter/lib/application/mirror_service.dart` |
@@ -547,18 +606,35 @@ flowchart LR
 | `flutter/lib/features/library/library_slot_page.dart:3` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/library/library_slot_page.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/library/library_slot_page.dart:5` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:9` | `flutter/lib/application/library_stats.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:5` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:6` | `flutter/lib/application/refresh_section.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:11` | `flutter/lib/shared/today_time.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:3` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:4` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/library/library_stats_page.dart:7` | `flutter/lib/widgets/resource_meter.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:3` | `flutter/lib/application/library_stats.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:5` | `flutter/lib/application/refresh_section.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:7` | `flutter/lib/shared/today_time.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:9` | `flutter/lib/widgets/liquid_vial_gauge.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:10` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:11` | `flutter/lib/widgets/resource_meter.dart` |
+| `flutter/lib/features/library/library_stats_page.dart:12` | `flutter/lib/widgets/telemetry_instrument_card.dart` |
 | `flutter/lib/features/library/library_venue_selection_page.dart:5` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/library/library_venue_selection_page.dart:6` | `flutter/lib/design/tokens/spacing.dart` |
 | `flutter/lib/features/library/library_venue_selection_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/library/library_widgets.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/library/library_widgets.dart:4` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:3` | `flutter/lib/application/failure_code.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:4` | `flutter/lib/application/network_account.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:5` | `flutter/lib/application/student_service_links.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:7` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:9` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:10` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/network_account/network_account_page.dart:11` | `flutter/lib/widgets/school_links.dart` |
+| `flutter/lib/features/network_account/network_account_visuals.dart:3` | `flutter/lib/application/failure_code.dart` |
+| `flutter/lib/features/network_account/network_account_visuals.dart:4` | `flutter/lib/application/network_account.dart` |
+| `flutter/lib/features/network_account/network_account_visuals.dart:5` | `flutter/lib/widgets/liquid_vial_gauge.dart` |
+| `flutter/lib/features/network_account/network_account_visuals.dart:6` | `flutter/lib/widgets/status_chip.dart` |
+| `flutter/lib/features/network_account/network_account_visuals.dart:7` | `flutter/lib/widgets/telemetry_instrument_card.dart` |
 | `flutter/lib/features/notices/notices_page.dart:8` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/notices/notices_page.dart:10` | `flutter/lib/application/notices.dart` |
 | `flutter/lib/features/notices/notices_page.dart:9` | `flutter/lib/application/refresh_section.dart` |
@@ -574,33 +650,39 @@ flowchart LR
 | `flutter/lib/features/schedule/schedule_controls.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/schedule/schedule_controls.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/schedule/schedule_controls.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_controls.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/schedule/schedule_course_detail.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/schedule/schedule_course_detail.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/schedule/schedule_course_detail.dart:5` | `flutter/lib/widgets/feature_intro.dart` |
-| `flutter/lib/features/schedule/schedule_day_strip.dart:5` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/schedule/schedule_day_strip.dart:5` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/schedule/schedule_day_strip.dart:6` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/schedule/schedule_grid.dart:5` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/schedule/schedule_grid.dart:6` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/schedule/schedule_grid.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/schedule/schedule_grid.dart:8` | `flutter/lib/widgets/day_scroll_physics.dart` |
+| `flutter/lib/features/schedule/schedule_grid.dart:7` | `flutter/lib/widgets/day_scroll_physics.dart` |
 | `flutter/lib/features/schedule/schedule_grid_course_block.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/schedule/schedule_grid_course_block.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/schedule/schedule_grid_layout.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/schedule/schedule_page.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/schedule/schedule_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/schedule/schedule_page.dart:5` | `flutter/lib/shared/school_timestamp.dart` |
-| `flutter/lib/features/schedule/schedule_page.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/schedule/schedule_page.dart:7` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_page.dart:5` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/schedule/schedule_page.dart:6` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/schedule/schedule_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/schedule/schedule_page.dart:8` | `flutter/lib/widgets/long_page_scroll.dart` |
 | `flutter/lib/features/schedule/schedule_style.dart:3` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/schedule/schedule_style.dart:4` | `flutter/lib/shared/school_timestamp.dart` |
-| `flutter/lib/features/schedule/schedule_style.dart:5` | `flutter/lib/shared/today_time.dart` |
-| `flutter/lib/features/schedule/schedule_views.dart:4` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/schedule/schedule_views.dart:3` | `flutter/lib/design/tokens.dart` |
+| `flutter/lib/features/schedule/schedule_style.dart:4` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/schedule/schedule_style.dart:5` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/schedule/schedule_style.dart:6` | `flutter/lib/shared/today_time.dart` |
+| `flutter/lib/features/schedule/schedule_views.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/schedule/schedule_views.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/schedule/schedule_views.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_views.dart:6` | `flutter/lib/widgets/ginkgo_visuals.dart` |
 | `flutter/lib/features/schedule/schedule_week_strip.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/schedule/schedule_week_strip.dart:4` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/schedule/schedule_widgets.dart:4` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/features/schedule/schedule_widgets.dart:1` | `flutter/lib/widgets/academic_widgets.dart` |
-| `flutter/lib/features/schedule/schedule_widgets.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
-| `flutter/lib/features/schedule/schedule_widgets.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_widgets.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/schedule/schedule_widgets.dart:4` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/schedule/schedule_widgets.dart:5` | `flutter/lib/widgets/academic_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_widgets.dart:6` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/schedule/schedule_widgets.dart:7` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/features/settings/accent_theme_preview.dart:3` | `flutter/lib/shared/app_preferences.dart` |
 | `flutter/lib/features/settings/gateway_challenge_page.dart:5` | `flutter/lib/application/auth_challenge.dart` |
 | `flutter/lib/features/settings/gateway_challenge_page.dart:2` | `flutter/lib/application/gateway_verification_failure.dart` |
@@ -661,8 +743,8 @@ flowchart LR
 | `flutter/lib/features/shuttle/shuttle_page.dart:6` | `flutter/lib/widgets/school_links.dart` |
 | `flutter/lib/features/shuttle/shuttle_widgets.dart:7` | `flutter/lib/application/shuttle.dart` |
 | `flutter/lib/features/shuttle/shuttle_widgets.dart:3` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/shuttle/shuttle_widgets.dart:4` | `flutter/lib/features/today/today_presentation.dart` |
 | `flutter/lib/features/shuttle/shuttle_widgets.dart:5` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/shuttle/shuttle_widgets.dart:4` | `flutter/lib/widgets/visual_section.dart` |
 | `flutter/lib/features/tasks/task_editor.dart:7` | `flutter/lib/application/local_tasks.dart` |
 | `flutter/lib/features/tasks/task_editor.dart:4` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/features/tasks/task_editor.dart:9` | `flutter/lib/shared/school_timestamp.dart` |
@@ -718,18 +800,18 @@ flowchart LR
 | `flutter/lib/features/today/today_page.dart:5` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/today/today_page.dart:6` | `flutter/lib/application/local_tasks.dart` |
 | `flutter/lib/features/today/today_page.dart:14` | `flutter/lib/application/mirror_service.dart` |
-| `flutter/lib/features/today/today_page.dart:7` | `flutter/lib/application/notices.dart` |
 | `flutter/lib/features/today/today_page.dart:15` | `flutter/lib/application/platform_actions.dart` |
-| `flutter/lib/features/today/today_page.dart:9` | `flutter/lib/application/refresh_section.dart` |
-| `flutter/lib/features/today/today_page.dart:10` | `flutter/lib/application/service_capabilities.dart` |
-| `flutter/lib/features/today/today_page.dart:8` | `flutter/lib/application/task_storage_scope.dart` |
-| `flutter/lib/features/today/today_page.dart:11` | `flutter/lib/design/tokens/spacing.dart` |
+| `flutter/lib/features/today/today_page.dart:8` | `flutter/lib/application/refresh_section.dart` |
+| `flutter/lib/features/today/today_page.dart:9` | `flutter/lib/application/service_capabilities.dart` |
+| `flutter/lib/features/today/today_page.dart:7` | `flutter/lib/application/task_storage_scope.dart` |
+| `flutter/lib/features/today/today_page.dart:10` | `flutter/lib/design/tokens/spacing.dart` |
 | `flutter/lib/features/today/today_page.dart:12` | `flutter/lib/features/settings/network_diagnostics_page.dart` |
 | `flutter/lib/features/today/today_page.dart:13` | `flutter/lib/shared/course_visibility.dart` |
 | `flutter/lib/features/today/today_page.dart:16` | `flutter/lib/shared/reminders.dart` |
 | `flutter/lib/features/today/today_page.dart:17` | `flutter/lib/shared/today_time.dart` |
 | `flutter/lib/features/today/today_page.dart:18` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/today/today_page.dart:19` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/today/today_page.dart:11` | `flutter/lib/widgets/top_bounce_scroll_physics.dart` |
 | `flutter/lib/features/today/today_page_actions.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/features/today/today_page_actions.dart:6` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/today/today_page_actions.dart:7` | `flutter/lib/application/platform_actions.dart` |
@@ -737,8 +819,7 @@ flowchart LR
 | `flutter/lib/features/today/today_page_actions.dart:5` | `flutter/lib/features/tasks/tasks_page.dart` |
 | `flutter/lib/features/today/today_page_header.dart:3` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/features/today/today_page_header.dart:4` | `flutter/lib/widgets/loading_widgets.dart` |
-| `flutter/lib/features/today/today_presentation.dart:3` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/features/today/today_presentation.dart:4` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/today/today_presentation.dart:1` | `flutter/lib/widgets/visual_section.dart` |
 | `flutter/lib/features/today/today_status_strip.dart:3` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/features/today/today_status_strip.dart:4` | `flutter/lib/application/service_health.dart` |
 | `flutter/lib/features/today/today_status_strip.dart:5` | `flutter/lib/application/session_reauth.dart` |
@@ -750,6 +831,15 @@ flowchart LR
 | `flutter/lib/features/today/today_tasks_section.dart:5` | `flutter/lib/features/homework/homework_projection.dart` |
 | `flutter/lib/features/today/today_tasks_section.dart:10` | `flutter/lib/shared/today_time.dart` |
 | `flutter/lib/features/today/today_tasks_section.dart:6` | `flutter/lib/widgets/loading_widgets.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:3` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:5` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:6` | `flutter/lib/shared/school_timestamp.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:7` | `flutter/lib/widgets/academic_widgets.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:9` | `flutter/lib/widgets/feature_intro.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:10` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/features/undergraduate/undergraduate_page.dart:11` | `flutter/lib/widgets/loading_widgets.dart` |
 | `flutter/lib/infrastructure/background_reminders.dart:3` | `flutter/lib/application/background_reminders.dart` |
 | `flutter/lib/infrastructure/background_reminders.dart:4` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/infrastructure/background_reminders.dart:5` | `flutter/lib/shared/app_preferences.dart` |
@@ -763,6 +853,8 @@ flowchart LR
 | `flutter/lib/infrastructure/checkin_qr_saver.dart:5` | `flutter/lib/application/file_actions.dart` |
 | `flutter/lib/infrastructure/checkin_qr_saver.dart:6` | `flutter/lib/application/homework_files.dart` |
 | `flutter/lib/infrastructure/course_visibility_file_store.dart:7` | `flutter/lib/shared/course_visibility.dart` |
+| `flutter/lib/infrastructure/demo_evaluation.dart:1` | `flutter/lib/application/evaluation.dart` |
+| `flutter/lib/infrastructure/demo_finance.dart:1` | `flutter/lib/application/finance.dart` |
 | `flutter/lib/infrastructure/demo_graduate_credit_map.dart:1` | `flutter/lib/application/graduate_credit_map.dart` |
 | `flutter/lib/infrastructure/demo_homework_files.dart:4` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/infrastructure/demo_homework_files.dart:3` | `flutter/lib/application/homework_files.dart` |
@@ -770,23 +862,24 @@ flowchart LR
 | `flutter/lib/infrastructure/demo_learning.dart:5` | `flutter/lib/application/learning.dart` |
 | `flutter/lib/infrastructure/demo_learning.dart:6` | `flutter/lib/application/learning_context.dart` |
 | `flutter/lib/infrastructure/demo_library_loans.dart:1` | `flutter/lib/application/library_loans.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:24` | `flutter/lib/application/bykc.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:27` | `flutter/lib/application/bykc.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:6` | `flutter/lib/application/campus_activities.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:2` | `flutter/lib/application/career.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:23` | `flutter/lib/application/cgyy_models.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:26` | `flutter/lib/application/cgyy_models.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:3` | `flutter/lib/application/checkin_progress.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:1` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:25` | `flutter/lib/application/graduate.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:28` | `flutter/lib/application/graduate.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:9` | `flutter/lib/application/homework_files.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:26` | `flutter/lib/application/library_books.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:29` | `flutter/lib/application/library_books.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:4` | `flutter/lib/application/library_holdings.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:27` | `flutter/lib/application/library_stats.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:30` | `flutter/lib/application/library_stats.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:5` | `flutter/lib/application/local_tasks_read.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:31` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:34` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:7` | `flutter/lib/application/notices.dart` |
 | `flutter/lib/infrastructure/demo_mirror_service.dart:8` | `flutter/lib/application/shuttle.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:32` | `flutter/lib/src/rust/api/live.dart` |
-| `flutter/lib/infrastructure/demo_mirror_service.dart:33` | `flutter/lib/src/rust/api/mirror.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:35` | `flutter/lib/src/rust/api/live.dart` |
+| `flutter/lib/infrastructure/demo_mirror_service.dart:36` | `flutter/lib/src/rust/api/mirror.dart` |
+| `flutter/lib/infrastructure/demo_network_account.dart:1` | `flutter/lib/application/network_account.dart` |
 | `flutter/lib/infrastructure/graduate_credit_map_payload.dart:1` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/infrastructure/graduate_credit_map_payload.dart:2` | `flutter/lib/application/graduate_credit_map.dart` |
 | `flutter/lib/infrastructure/graduate_credit_map_payload.dart:3` | `flutter/lib/src/rust/api/live.dart` |
@@ -831,6 +924,14 @@ flowchart LR
 | `flutter/lib/infrastructure/native_career.dart:2` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/infrastructure/native_career.dart:4` | `flutter/lib/application/service_health.dart` |
 | `flutter/lib/infrastructure/native_career.dart:5` | `flutter/lib/src/rust/api/live.dart` |
+| `flutter/lib/infrastructure/native_evaluation.dart:1` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/infrastructure/native_evaluation.dart:2` | `flutter/lib/application/evaluation.dart` |
+| `flutter/lib/infrastructure/native_evaluation.dart:3` | `flutter/lib/application/service_health.dart` |
+| `flutter/lib/infrastructure/native_evaluation.dart:5` | `flutter/lib/src/rust/api/live.dart` |
+| `flutter/lib/infrastructure/native_finance.dart:1` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/infrastructure/native_finance.dart:2` | `flutter/lib/application/finance.dart` |
+| `flutter/lib/infrastructure/native_finance.dart:3` | `flutter/lib/application/service_health.dart` |
+| `flutter/lib/infrastructure/native_finance.dart:5` | `flutter/lib/src/rust/api/live.dart` |
 | `flutter/lib/infrastructure/native_homework_files.dart:5` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/infrastructure/native_homework_files.dart:6` | `flutter/lib/application/homework_files.dart` |
 | `flutter/lib/infrastructure/native_homework_files.dart:7` | `flutter/lib/application/service_health.dart` |
@@ -843,17 +944,17 @@ flowchart LR
 | `flutter/lib/infrastructure/native_library_loans.dart:2` | `flutter/lib/application/library_loans.dart` |
 | `flutter/lib/infrastructure/native_library_loans.dart:3` | `flutter/lib/application/service_health.dart` |
 | `flutter/lib/infrastructure/native_library_loans.dart:4` | `flutter/lib/src/rust/api/live.dart` |
-| `flutter/lib/infrastructure/native_mirror_service.dart:44` | `flutter/lib/application/bykc.dart` |
+| `flutter/lib/infrastructure/native_mirror_service.dart:47` | `flutter/lib/application/bykc.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:10` | `flutter/lib/application/campus_activities.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:11` | `flutter/lib/application/cgyy_commands.dart` |
-| `flutter/lib/infrastructure/native_mirror_service.dart:43` | `flutter/lib/application/cgyy_models.dart` |
+| `flutter/lib/infrastructure/native_mirror_service.dart:46` | `flutter/lib/application/cgyy_models.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:12` | `flutter/lib/application/checkin_progress.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:9` | `flutter/lib/application/contracts.dart` |
-| `flutter/lib/infrastructure/native_mirror_service.dart:45` | `flutter/lib/application/graduate.dart` |
+| `flutter/lib/infrastructure/native_mirror_service.dart:48` | `flutter/lib/application/graduate.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:5` | `flutter/lib/application/homework_files.dart` |
-| `flutter/lib/infrastructure/native_mirror_service.dart:46` | `flutter/lib/application/library_books.dart` |
+| `flutter/lib/infrastructure/native_mirror_service.dart:49` | `flutter/lib/application/library_books.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:13` | `flutter/lib/application/library_holdings.dart` |
-| `flutter/lib/infrastructure/native_mirror_service.dart:47` | `flutter/lib/application/library_stats.dart` |
+| `flutter/lib/infrastructure/native_mirror_service.dart:50` | `flutter/lib/application/library_stats.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:14` | `flutter/lib/application/local_tasks_read.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:19` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:15` | `flutter/lib/application/notices.dart` |
@@ -862,6 +963,10 @@ flowchart LR
 | `flutter/lib/infrastructure/native_mirror_service.dart:18` | `flutter/lib/application/shuttle.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:20` | `flutter/lib/src/rust/api/live.dart` |
 | `flutter/lib/infrastructure/native_mirror_service.dart:21` | `flutter/lib/src/rust/api/mirror.dart` |
+| `flutter/lib/infrastructure/native_network_account.dart:1` | `flutter/lib/application/contracts.dart` |
+| `flutter/lib/infrastructure/native_network_account.dart:2` | `flutter/lib/application/network_account.dart` |
+| `flutter/lib/infrastructure/native_network_account.dart:3` | `flutter/lib/application/service_health.dart` |
+| `flutter/lib/infrastructure/native_network_account.dart:5` | `flutter/lib/src/rust/api/live.dart` |
 | `flutter/lib/infrastructure/native_reminder_planning.dart:1` | `flutter/lib/application/reminder_planning.dart` |
 | `flutter/lib/infrastructure/native_reminder_planning.dart:3` | `flutter/lib/src/rust/api/reminder_planning.dart` |
 | `flutter/lib/infrastructure/native_reminder_platform.dart:4` | `flutter/lib/application/reminder_platform.dart` |
@@ -949,6 +1054,7 @@ flowchart LR
 | `flutter/lib/widgets/ginkgo_dialog_widgets.dart:3` | `flutter/lib/design/tokens.dart` |
 | `flutter/lib/widgets/ginkgo_polished_widgets.dart:3` | `flutter/lib/design/tokens.dart` |
 | `flutter/lib/widgets/ginkgo_visuals.dart:3` | `flutter/lib/design/tokens.dart` |
+| `flutter/lib/widgets/liquid_vial_gauge.dart:6` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/widgets/loading_widgets.dart:6` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/widgets/long_page_scroll.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/widgets/press_feedback.dart:3` | `flutter/lib/design/tokens.dart` |
@@ -961,8 +1067,10 @@ flowchart LR
 | `flutter/lib/widgets/school_links.dart:5` | `flutter/lib/shared/school_links.dart` |
 | `flutter/lib/widgets/status_chip.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/widgets/summary_strip.dart:3` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/widgets/telemetry_instrument_card.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/widgets/verified_route_label.dart:4` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/widgets/verified_route_label.dart:5` | `flutter/lib/application/mirror_service.dart` |
+| `flutter/lib/widgets/visual_section.dart:3` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/workspace/desktop_workspace_shell.dart:5` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/workspace/desktop_workspace_shell.dart:6` | `flutter/lib/application/platform_actions.dart` |
 | `flutter/lib/workspace/desktop_workspace_shell.dart:3` | `flutter/lib/design/apple_design.dart` |
@@ -975,12 +1083,14 @@ flowchart LR
 | `flutter/lib/workspace/mobile_workspace_shell.dart:5` | `flutter/lib/mirror_service.dart` |
 | `flutter/lib/workspace/mobile_workspace_shell.dart:8` | `flutter/lib/shared/reminders.dart` |
 | `flutter/lib/workspace/mobile_workspace_shell.dart:7` | `flutter/lib/widgets/reminder_badge.dart` |
+| `flutter/lib/workspace/more_hub_cards.dart:3` | `flutter/lib/application/service_health.dart` |
+| `flutter/lib/workspace/more_hub_cards.dart:4` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/workspace/more_hub_cards.dart:5` | `flutter/lib/widgets/ginkgo_visuals.dart` |
 | `flutter/lib/workspace/more_page.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/workspace/more_page.dart:4` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/workspace/more_page.dart:5` | `flutter/lib/application/platform_actions.dart` |
-| `flutter/lib/workspace/more_page.dart:6` | `flutter/lib/design/tokens/spacing.dart` |
-| `flutter/lib/workspace/more_page.dart:7` | `flutter/lib/features/settings/network_diagnostics_page.dart` |
-| `flutter/lib/workspace/more_page.dart:8` | `flutter/lib/widgets/apple_widgets.dart` |
+| `flutter/lib/workspace/more_page.dart:6` | `flutter/lib/design/apple_design.dart` |
+| `flutter/lib/workspace/more_page.dart:7` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/workspace/service_directory.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/workspace/service_directory.dart:5` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/workspace/service_directory.dart:4` | `flutter/lib/application/platform_actions.dart` |
@@ -991,7 +1101,7 @@ flowchart LR
 | `flutter/lib/workspace/service_search.dart:2` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/workspace/service_search.dart:3` | `flutter/lib/widgets/apple_widgets.dart` |
 | `flutter/lib/workspace/service_search.dart:5` | `flutter/lib/widgets/school_links.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:11` | `flutter/lib/application/graduate.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:13` | `flutter/lib/application/graduate.dart` |
 | `flutter/lib/workspace/workspace_catalog.dart:3` | `flutter/lib/features/bykc/bykc_page.dart` |
 | `flutter/lib/workspace/workspace_catalog.dart:5` | `flutter/lib/features/campus/campus_activities_page.dart` |
 | `flutter/lib/workspace/workspace_catalog.dart:4` | `flutter/lib/features/campus_card/campus_card_page.dart` |
@@ -999,18 +1109,23 @@ flowchart LR
 | `flutter/lib/workspace/workspace_catalog.dart:9` | `flutter/lib/features/cgyy/cgyy_page.dart` |
 | `flutter/lib/workspace/workspace_catalog.dart:6` | `flutter/lib/features/checkin/checkin_page.dart` |
 | `flutter/lib/workspace/workspace_catalog.dart:7` | `flutter/lib/features/classroom/classroom_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:13` | `flutter/lib/features/grades/grades_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:10` | `flutter/lib/features/graduate/graduate_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:14` | `flutter/lib/features/homework/homework_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:16` | `flutter/lib/features/learning/learning_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:12` | `flutter/lib/features/library/library_loans_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:15` | `flutter/lib/features/library/library_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:17` | `flutter/lib/features/notices/notices_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:18` | `flutter/lib/features/schedule/schedule_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:21` | `flutter/lib/features/settings/settings_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:19` | `flutter/lib/features/shuttle/shuttle_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:22` | `flutter/lib/features/tasks/tasks_page.dart` |
-| `flutter/lib/workspace/workspace_catalog.dart:23` | `flutter/lib/features/today/today_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:10` | `flutter/lib/features/evaluation/evaluation_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:11` | `flutter/lib/features/finance/finance_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:15` | `flutter/lib/features/grades/grades_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:12` | `flutter/lib/features/graduate/graduate_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:16` | `flutter/lib/features/homework/homework_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:18` | `flutter/lib/features/learning/learning_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:14` | `flutter/lib/features/library/library_loans_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:17` | `flutter/lib/features/library/library_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:19` | `flutter/lib/features/network_account/network_account_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:20` | `flutter/lib/features/notices/notices_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:21` | `flutter/lib/features/schedule/schedule_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:24` | `flutter/lib/features/settings/network_diagnostics_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:25` | `flutter/lib/features/settings/settings_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:22` | `flutter/lib/features/shuttle/shuttle_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:26` | `flutter/lib/features/tasks/tasks_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:27` | `flutter/lib/features/today/today_page.dart` |
+| `flutter/lib/workspace/workspace_catalog.dart:28` | `flutter/lib/features/undergraduate/undergraduate_page.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:10` | `flutter/lib/app/ginkgo_app.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:27` | `flutter/lib/app/ginkgo_app.dart` |
 | `flutter/lib/workspace/workspace_shell.dart:3` | `flutter/lib/application/contracts.dart` |
@@ -1035,8 +1150,8 @@ flowchart LR
 | `flutter/lib/workspace/workspace_shell_controller.dart:6` | `flutter/lib/design/apple_design.dart` |
 | `flutter/lib/workspace/workspace_shell_controller.dart:7` | `flutter/lib/shared/reminders.dart` |
 | `flutter/lib/workspace/workspace_shortcuts.dart:3` | `flutter/lib/design/apple_design.dart` |
-| `flutter/lib/workspace/workspace_shortcuts.dart:5` | `flutter/lib/features/today/today_presentation.dart` |
 | `flutter/lib/workspace/workspace_shortcuts.dart:4` | `flutter/lib/widgets/ginkgo_visuals.dart` |
+| `flutter/lib/workspace/workspace_shortcuts.dart:5` | `flutter/lib/widgets/visual_section.dart` |
 | `flutter/lib/workspace/workspace_types.dart:3` | `flutter/lib/application/contracts.dart` |
 | `flutter/lib/workspace/workspace_types.dart:4` | `flutter/lib/application/mirror_service.dart` |
 | `flutter/lib/workspace/workspace_types.dart:5` | `flutter/lib/application/platform_actions.dart` |

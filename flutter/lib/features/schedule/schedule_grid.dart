@@ -4,15 +4,18 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
-import 'package:ginkgo_mirror/widgets/apple_widgets.dart' show choose;
 import 'package:ginkgo_mirror/widgets/day_scroll_physics.dart';
 
 import 'schedule_grid_course_block.dart';
 import 'schedule_grid_layout.dart';
 import 'schedule_style.dart';
 
-/// Seven-day timetable grid. Course blocks span their section range and open
-/// a course detail page on tap.
+/// Full-week 7-column iOS timetable card.
+///
+/// Fits all seven days cleanly onto a single screen on standard phones
+/// (`>= 340dp` card width) with circular Apple Calendar date headers and
+/// morning / afternoon / evening grouping dividers; falls back to smooth
+/// horizontal scrolling only on ultra-narrow `< 340dp` viewports.
 class ScheduleGrid extends StatefulWidget {
   const ScheduleGrid({
     super.key,
@@ -55,150 +58,177 @@ class _ScheduleGridState extends State<ScheduleGrid> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
-      final columnWidth = math.max(
-        106.0,
-        (constraints.maxWidth - scheduleGridAxisWidth) / 7,
-      );
+      final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+      final cardBg = CupertinoColors.secondarySystemGroupedBackground
+          .resolveFrom(context);
+      final headerBg = CupertinoColors.tertiarySystemGroupedBackground
+          .resolveFrom(context);
+      final separator = CupertinoColors.separator.resolveFrom(context);
+      final primary = CupertinoTheme.of(context).primaryColor;
+      final todayDay = scheduleTodayColumn(widget.weekStart);
+      final start = DateTime.tryParse(widget.weekStart ?? '');
+      final monthLabel = start == null ? '节次' : '${start.month}月';
+
+      final rawColumn = (constraints.maxWidth - scheduleGridAxisWidth) / 7;
+      final columnWidth = math.max(44.0, rawColumn);
       final totalWidth = scheduleGridAxisWidth + columnWidth * 7;
+      final sectionCount = layout.sectionCount;
+      final gridHeight =
+          scheduleGridHeaderHeight + sectionCount * scheduleGridCellHeight;
+
       final grid = SizedBox(
         width: totalWidth,
-        height:
-            scheduleGridHeaderHeight +
-            scheduleGridSectionCount * scheduleGridCellHeight,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: _GridPainter(
-                  columnWidth,
-                  CupertinoColors.separator.resolveFrom(context),
-                ),
-              ),
-            ),
-            if (scheduleTodayColumn(widget.weekStart) case final int day)
+        height: gridHeight,
+        child: ColoredBox(
+          color: cardBg,
+          child: Stack(
+            children: [
               Positioned(
-                left: scheduleGridAxisWidth + (day - 1) * columnWidth,
+                left: 0,
+                right: 0,
                 top: 0,
-                width: columnWidth,
-                height:
-                    scheduleGridHeaderHeight +
-                    scheduleGridSectionCount * scheduleGridCellHeight,
-                child: ColoredBox(
-                  color: CupertinoTheme.of(context).primaryColor
-                      .withValues(alpha: 0.06),
-                ),
-              ),
-            for (var day = 1; day <= 7; day++)
-              Positioned(
-                left: scheduleGridAxisWidth + (day - 1) * columnWidth,
-                top: 0,
-                width: columnWidth,
                 height: scheduleGridHeaderHeight,
-                child: Center(
-                  child: Text(
-                    '${weekdayNames[day - 1]}${widget.weekStart == null ? '' : '\n${shortDate(DateTime.parse(widget.weekStart!).add(Duration(days: day - 1)).toIso8601String())}'}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
+                child: ColoredBox(color: headerBg),
+              ),
+              if (todayDay != null)
+                Positioned(
+                  left: scheduleGridAxisWidth + (todayDay - 1) * columnWidth,
+                  top: 0,
+                  width: columnWidth,
+                  height: gridHeight,
+                  child: ColoredBox(
+                    color: primary.withValues(alpha: dark ? 0.10 : 0.05),
+                  ),
+                ),
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _GridPainter(
+                    columnWidth: columnWidth,
+                    sectionCount: sectionCount,
+                    lineColor: separator,
+                    accentColor: primary,
                   ),
                 ),
               ),
-            for (final course in widget.courses)
-              Positioned(
-                left:
-                    scheduleGridAxisWidth +
-                    (course.day - 1) * columnWidth +
-                    (layout.placements[course.id]?.lane ?? 0) *
-                        columnWidth /
-                        (layout.placements[course.id]?.count ?? 1) +
-                    3,
-                top:
-                    scheduleGridHeaderHeight +
-                    (course.startSection - 1) * scheduleGridCellHeight +
-                    2,
-                width:
-                    columnWidth / (layout.placements[course.id]?.count ?? 1) -
-                    6,
-                height:
-                    (course.endSection - course.startSection + 1) *
-                        scheduleGridCellHeight -
-                    4,
-                child: ScheduleGridCourseBlock(
-                  course: course,
-                  onTap: () => widget.onCourseTap(course),
+              for (var day = 1; day <= 7; day++)
+                Positioned(
+                  left: scheduleGridAxisWidth + (day - 1) * columnWidth,
+                  top: 0,
+                  width: columnWidth,
+                  height: scheduleGridHeaderHeight,
+                  child: _DayHeaderCell(
+                    day: day,
+                    date: start?.add(Duration(days: day - 1)),
+                    isToday: todayDay == day,
+                    primary: primary,
+                    dark: dark,
+                  ),
                 ),
-              ),
-          ],
+              for (final course in widget.courses)
+                Positioned(
+                  left:
+                      scheduleGridAxisWidth +
+                      (course.day - 1) * columnWidth +
+                      (layout.placements[course.id]?.lane ?? 0) *
+                          columnWidth /
+                          (layout.placements[course.id]?.count ?? 1) +
+                      1.5,
+                  top:
+                      scheduleGridHeaderHeight +
+                      (course.startSection - 1) * scheduleGridCellHeight +
+                      1.5,
+                  width:
+                      columnWidth / (layout.placements[course.id]?.count ?? 1) -
+                      3,
+                  height:
+                      (course.endSection - course.startSection + 1) *
+                          scheduleGridCellHeight -
+                      3,
+                  child: ScheduleGridCourseBlock(
+                    course: course,
+                    onTap: () => widget.onCourseTap(course),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
-      return totalWidth <= constraints.maxWidth
-          ? Stack(children: [grid, _timeAxis()])
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _horizontalControls(columnWidth, constraints.maxWidth),
-                CupertinoScrollbar(
-                  key: const Key('schedule-grid-top-scrollbar'),
-                  controller: horizontalScroll,
-                  thumbVisibility: true,
-                  thickness: 5,
-                  thicknessWhileDragging: 10,
-                  scrollbarOrientation: ScrollbarOrientation.top,
-                  notificationPredicate: (notification) =>
-                      notification.metrics.axis == Axis.horizontal,
-                  child: Stack(
-                    children: [
-                      SingleChildScrollView(
-                        key: const Key('schedule-grid-horizontal'),
-                        controller: horizontalScroll,
-                        physics: DayScrollPhysics(dayWidth: columnWidth),
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.only(top: 12),
-                        child: grid,
-                      ),
-                      Positioned(
-                        left: 0,
-                        top: 12,
-                        bottom: 0,
-                        child: _timeAxis(),
-                      ),
-                    ],
-                  ),
+
+      final axis = _timeAxis(cardBg, headerBg, monthLabel, sectionCount);
+
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(GinkgoRadii.group),
+          border: Border.all(
+            color: separator.withValues(alpha: 0.38),
+            width: GinkgoSpacing.hairline,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(GinkgoRadii.group),
+          child: totalWidth <= constraints.maxWidth + 0.5
+              ? Stack(children: [grid, axis])
+              : Stack(
+                  children: [
+                    SingleChildScrollView(
+                      key: const Key('schedule-grid-horizontal'),
+                      controller: horizontalScroll,
+                      physics: DayScrollPhysics(dayWidth: columnWidth),
+                      scrollDirection: Axis.horizontal,
+                      child: grid,
+                    ),
+                    Positioned(left: 0, top: 0, bottom: 0, child: axis),
+                  ],
                 ),
-              ],
-            );
+        ),
+      );
     },
   );
 
-  Widget _timeAxis() => AbsorbPointer(
+  Widget _timeAxis(
+    Color cardBg,
+    Color headerBg,
+    String monthLabel,
+    int sectionCount,
+  ) => AbsorbPointer(
     child: Container(
       key: const Key('schedule-fixed-time-axis'),
       width: scheduleGridAxisWidth,
-      height:
-          scheduleGridHeaderHeight +
-          scheduleGridSectionCount * scheduleGridCellHeight,
+      height: scheduleGridHeaderHeight + sectionCount * scheduleGridCellHeight,
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        color: cardBg,
         border: Border(
           right: BorderSide(
-            color: CupertinoColors.separator.resolveFrom(context),
-            width: 0.5,
+            color: CupertinoColors.separator
+                .resolveFrom(context)
+                .withValues(alpha: 0.45),
+            width: GinkgoSpacing.hairline,
           ),
         ),
       ),
       child: Stack(
         children: [
-          const Positioned(
-            top: 20,
-            left: 15,
-            child: Text('节次', style: TextStyle(fontSize: 12)),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: scheduleGridHeaderHeight,
+            child: ColoredBox(
+              color: headerBg,
+              child: Center(
+                child: Text(
+                  monthLabel,
+                  style: GinkgoTypography.caption2.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: GinkgoTypography.tabularDigits,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+              ),
+            ),
           ),
-          for (var section = 1; section <= scheduleGridSectionCount; section++)
+          for (var section = 1; section <= sectionCount; section++)
             Positioned(
               left: 0,
               top:
@@ -206,20 +236,31 @@ class _ScheduleGridState extends State<ScheduleGrid> {
                   (section - 1) * scheduleGridCellHeight,
               width: scheduleGridAxisWidth,
               height: scheduleGridCellHeight,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    '${layout.times[section] ?? '第$section节'}${layout.times[section] == null ? '' : '\n第$section节'}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$section',
+                      style: GinkgoTypography.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                        fontFeatures: GinkgoTypography.tabularDigits,
+                        color: CupertinoColors.label.resolveFrom(context),
                       ),
                     ),
-                  ),
+                    if (layout.times[section] != null)
+                      Text(
+                        layout.times[section]!,
+                        style: GinkgoTypography.caption2.copyWith(
+                          height: 1.1,
+                          fontFeatures: GinkgoTypography.tabularDigits,
+                          color: CupertinoColors.tertiaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -227,126 +268,114 @@ class _ScheduleGridState extends State<ScheduleGrid> {
       ),
     ),
   );
+}
 
-  Widget _horizontalControls(
-    double columnWidth,
-    double viewportWidth,
-  ) => AnimatedBuilder(
-    animation: horizontalScroll,
-    builder: (context, _) {
-      final offset = horizontalScroll.hasClients
-          ? horizontalScroll.offset
-          : 0.0;
-      final maxExtent = horizontalScroll.hasClients
-          ? horizontalScroll.position.maxScrollExtent
-          : scheduleGridAxisWidth + columnWidth * 7 - viewportWidth;
-      final first = (offset / columnWidth).floor().clamp(0, 6);
-      final last =
-          ((offset + viewportWidth - scheduleGridAxisWidth) / columnWidth)
-              .ceil()
-              .clamp(1, 7) -
-          1;
-      void move(double delta) {
-        if (!horizontalScroll.hasClients) return;
-        final target = (horizontalScroll.offset + delta).clamp(0.0, maxExtent);
-        if (MediaQuery.disableAnimationsOf(context)) {
-          horizontalScroll.jumpTo(target);
-        } else {
-          horizontalScroll.animateTo(
-            target,
-            duration: AppleDesign.duration(context, 180),
-            curve: Curves.easeOut,
-          );
-        }
-      }
+class _DayHeaderCell extends StatelessWidget {
+  const _DayHeaderCell({
+    required this.day,
+    required this.date,
+    required this.isToday,
+    required this.primary,
+    required this.dark,
+  });
 
-      Widget arrow({required bool next}) => CupertinoButton(
-        key: Key(
-          next ? 'schedule-grid-next-days' : 'schedule-grid-previous-days',
-        ),
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(48, 48),
-        onPressed: next
-            ? (offset < maxExtent - 1 ? () => move(columnWidth * 2) : null)
-            : (offset > 1 ? () => move(-columnWidth * 2) : null),
-        child: Semantics(
-          label: next ? '查看后面的日期' : '查看前面的日期',
-          child: Icon(
-            next ? CupertinoIcons.chevron_right : CupertinoIcons.chevron_left,
-            size: 17,
-          ),
-        ),
-      );
-      return Row(
+  final int day;
+  final DateTime? date;
+  final bool isToday;
+  final Color primary;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final dayLabel = shortWeekdayLetters[day - 1];
+    final dateNumber = date == null ? '' : '${date!.day}';
+    return Semantics(
+      label: '${weekdayNames[day - 1]}${date == null ? '' : ' ${date!.month}/${date!.day}'}${isToday ? ' 今天' : ''}',
+      excludeSemantics: true,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          arrow(next: false),
-          Expanded(
-            child: Builder(
-              builder: (anchor) => CupertinoButton(
-                key: const Key('schedule-day-jump'),
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                onPressed: () async {
-                  final day = await choose<int>(
-                    anchor,
-                    '跳转到星期',
-                    [1, 2, 3, 4, 5, 6, 7],
-                    (day) => weekdayNames[day - 1],
-                    selected: first + 1,
-                  );
-                  if (!mounted || day == null || !horizontalScroll.hasClients) {
-                    return;
-                  }
-                  move((day - 1) * columnWidth - horizontalScroll.offset);
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(CupertinoIcons.arrow_left_right, size: 15),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        '${weekdayNames[first]}–${weekdayNames[last]}',
-                        key: const Key('schedule-grid-visible-days'),
-                        style: const TextStyle(fontSize: 13),
+          Text(
+            dayLabel,
+            style: GinkgoTypography.caption2.copyWith(
+              height: 1.1,
+              fontWeight: isToday ? FontWeight.w700 : FontWeight.w600,
+              color: isToday ? primary : secondary,
+            ),
+          ),
+          if (dateNumber.isNotEmpty) ...[
+            const SizedBox(height: GinkgoSpacing.opticalIconInset),
+            Container(
+              width: 24,
+              height: 24,
+              alignment: Alignment.center,
+              decoration: isToday
+                  ? BoxDecoration(
+                      color: primary.withValues(alpha: dark ? 0.28 : 0.18),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: primary.withValues(alpha: 0.55),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(CupertinoIcons.chevron_down, size: 11),
-                  ],
+                    )
+                  : null,
+              child: Text(
+                dateNumber,
+                style: GinkgoTypography.caption.copyWith(
+                  height: 1.0,
+                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w600,
+                  fontFeatures: GinkgoTypography.tabularDigits,
+                  color: isToday
+                      ? primary
+                      : CupertinoColors.label.resolveFrom(context),
                 ),
               ),
             ),
-          ),
-          arrow(next: true),
+          ],
         ],
-      );
-    },
-  );
+      ),
+    );
+  }
 }
 
 class _GridPainter extends CustomPainter {
-  const _GridPainter(this.columnWidth, this.lineColor);
-  final Color lineColor;
+  const _GridPainter({
+    required this.columnWidth,
+    required this.sectionCount,
+    required this.lineColor,
+    required this.accentColor,
+  });
   final double columnWidth;
+  final int sectionCount;
+  final Color lineColor;
+  final Color accentColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final line = Paint()
-      ..color = lineColor.withValues(alpha: 0.45)
-      ..strokeWidth = 0.5;
+    final hairline = Paint()
+      ..color = lineColor.withValues(alpha: 0.25)
+      ..strokeWidth = GinkgoSpacing.hairline;
+    final groupLine = Paint()
+      ..color = accentColor.withValues(alpha: 0.22)
+      ..strokeWidth = 1.0;
+
     final header = scheduleGridHeaderHeight;
-    for (var row = 0; row <= scheduleGridSectionCount; row++) {
+    for (var row = 0; row <= sectionCount; row++) {
       final y = header + row * scheduleGridCellHeight;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
+      // Emphasize morning/afternoon (after section 5) and afternoon/evening
+      // (after section 9) boundaries just like iOS campus timetables.
+      final paint = (row == 0 || row == 5 || row == 9) ? groupLine : hairline;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
     for (var column = 0; column <= 7; column++) {
       final x = scheduleGridAxisWidth + column * columnWidth;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), line);
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), hairline);
     }
   }
 
   @override
   bool shouldRepaint(_GridPainter oldDelegate) =>
       oldDelegate.columnWidth != columnWidth ||
+      oldDelegate.sectionCount != sectionCount ||
       oldDelegate.lineColor != lineColor;
 }

@@ -67,7 +67,8 @@ async fn schedule_requested_term_controls_courses_and_cache_key() {
         let mut courses: serde_json::Value =
             serde_json::from_str(&schedule_body("courses-normal-v1.json")).expect("fixture");
         // Use distinct valid course payloads to catch reuse across terms.
-        if name == "requested term" {
+        let empty = name == "requested term";
+        if empty {
             courses["datas"]["arrangedList"] = serde_json::json!([]);
         }
         responses.extend([
@@ -75,8 +76,23 @@ async fn schedule_requested_term_controls_courses_and_cache_key() {
             HttpResponse::new(200, "terms", schedule_body("terms-normal-v1.json")),
             HttpResponse::new(200, "weeks", schedule_body("weeks-normal-v1.json")),
             HttpResponse::new(200, "courses", courses.to_string()),
-            HttpResponse::new(200, "exams", schedule_body("exams-normal-v1.json")),
         ]);
+        if empty {
+            // A genuinely empty week costs one activation and one repeat read.
+            responses.extend([
+                HttpResponse::new(
+                    200,
+                    "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.do?contextPath=/jwapp",
+                    "<html></html>",
+                ),
+                HttpResponse::new(200, "courses", courses.to_string()),
+            ]);
+        }
+        responses.push(HttpResponse::new(
+            200,
+            "exams",
+            schedule_body("exams-normal-v1.json"),
+        ));
     }
     let (service, transport) = build_service(responses, MemoryVault::default());
     service
@@ -539,5 +555,169 @@ async fn confirmed_undergraduate_portal_propagates_byxt_failure_without_hitting_
         transport.request_count(),
         count_after_login + 2,
         "must not fall through to graduate GSMIS after confirming undergraduate portal"
+    );
+}
+
+#[tokio::test]
+async fn schedule_with_no_terms_is_reported_instead_of_an_empty_timetable() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend(vec![
+        HttpResponse::new(200, "portal", r#"{"code":"0"}"#),
+        HttpResponse::new(200, "terms", r#"{"code":"0","datas":[]}"#),
+    ]);
+    let (service, _) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let outcome = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: false,
+        })
+        .await;
+    let failure = match outcome {
+        Err(error) => error.detail,
+        Ok(value) => value.failure.and_then(|error| error.detail),
+    };
+    assert_eq!(failure.as_deref(), Some("schedule_terms_empty"));
+}
+
+#[tokio::test]
+async fn empty_week_activates_the_portal_once_and_repeats_the_read() {
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend(vec![
+        HttpResponse::new(200, "portal", r#"{"code":"0"}"#),
+        HttpResponse::new(200, "terms", schedule_body("terms-normal-v1.json")),
+        HttpResponse::new(200, "weeks", schedule_body("weeks-normal-v1.json")),
+        HttpResponse::new(
+            200,
+            "courses",
+            r#"{"code":"0","datas":{"arrangedList":[]}}"#,
+        ),
+        HttpResponse::new(
+            200,
+            "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.do?contextPath=/jwapp",
+            "<html></html>",
+        ),
+        HttpResponse::new(200, "courses", schedule_body("courses-normal-v1.json")),
+        HttpResponse::new(200, "exams", schedule_body("exams-normal-v1.json")),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let result = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: false,
+        })
+        .await
+        .expect("schedule");
+    assert_eq!(result.data.courses.len(), 2);
+    let urls: Vec<String> = transport.requests().iter().map(|r| r.url.clone()).collect();
+    assert_eq!(
+        urls.iter()
+            .filter(|url| url.contains("sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt"))
+            .count(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn graduate_schedule_skips_preopened_future_term_and_selects_active_term() {
+    let mut responses = login_chain("grad2501001", "fixture");
+    responses.push(HttpResponse::new(
+        200,
+        "https://byxt.buaa.edu.cn/jwapp/sys/byrhmhsy/index.html",
+        "<html>graduate</html>",
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::ENTRY_URL,
+        "<html>app</html>",
+    ));
+    // Simulate GSMIS opening future term 99992 ahead of active term 20261.
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::TERMS_URL,
+        r#"{"code":"0","datas":{"kfdxnxqcx":{"rows":[
+            {"XNXQDM":"99992","XNXQDM_DISPLAY":"9999-10000学年 第二学期"},
+            {"XNXQDM":"20261","XNXQDM_DISPLAY":"2026-2027学年 第一学期"},
+            {"XNXQDM":"20252","XNXQDM_DISPLAY":"2025-2026学年 第二学期"}
+        ]}}}"#,
+    ));
+    responses.push(HttpResponse::new(
+        200,
+        crate::adapters::graduate_schedule_http::SCHEDULE_URL,
+        fixture("schedule", "graduate-schedule-v1.json")["input"]["body"].to_string(),
+    ));
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("grad2501001", "pa+ss/word", None, true)
+        .await
+        .expect("signed in");
+    let result = service
+        .load_schedule(&ScheduleQueryInput {
+            term_id: None,
+            week: None,
+            force_refresh: false,
+        })
+        .await
+        .expect("schedule");
+    assert_eq!(result.data.term_id, "20261");
+    assert!(
+        result
+            .data
+            .terms
+            .iter()
+            .find(|term| term.id == "20261")
+            .expect("20261")
+            .selected
+    );
+    assert!(
+        !result
+            .data
+            .terms
+            .iter()
+            .find(|term| term.id == "99992")
+            .expect("99992")
+            .selected
+    );
+    let post_bodies: Vec<String> = transport
+        .requests()
+        .into_iter()
+        .filter(|req| req.url == crate::adapters::graduate_schedule_http::SCHEDULE_URL)
+        .filter_map(|req| req.body)
+        .collect();
+    assert_eq!(post_bodies, vec!["ZC=&XNXQDM=20261&XH=&XQDM="]);
+}
+
+#[test]
+fn preferred_academic_term_maps_beijing_months_to_active_semester() {
+    use crate::services::schedule_service::preferred_academic_term;
+    use chrono::NaiveDate;
+    assert_eq!(
+        preferred_academic_term(NaiveDate::from_ymd_opt(2026, 11, 23).unwrap()),
+        (2026, 1)
+    );
+    assert_eq!(
+        preferred_academic_term(NaiveDate::from_ymd_opt(2027, 1, 18).unwrap()),
+        (2026, 1)
+    );
+    assert_eq!(
+        preferred_academic_term(NaiveDate::from_ymd_opt(2027, 3, 2).unwrap()),
+        (2026, 2)
+    );
+    assert_eq!(
+        preferred_academic_term(NaiveDate::from_ymd_opt(2026, 7, 15).unwrap()),
+        (2025, 3)
+    );
+    assert_eq!(
+        preferred_academic_term(NaiveDate::from_ymd_opt(2026, 8, 25).unwrap()),
+        (2026, 1)
     );
 }

@@ -15,6 +15,8 @@
 - [cgyy](#cgyy) (3)
 - [checkin](#checkin) (4)
 - [classroom](#classroom) (1)
+- [evaluation](#evaluation) (1)
+- [finance](#finance) (1)
 - [graduate](#graduate) (2)
 - [graduate_credit_map](#graduatecreditmap) (7)
 - [homework](#homework) (10)
@@ -24,6 +26,7 @@
 - [library_loans](#libraryloans) (1)
 - [library_stats](#librarystats) (1)
 - [mod](#mod) (2)
+- [network_account](#networkaccount) (1)
 - [notices](#notices) (1)
 - [query_snapshots](#querysnapshots) (2)
 - [session](#session) (13)
@@ -97,6 +100,16 @@
 
 - `pub async fn load_classrooms( &self, input: &ClassroomQueryInput, ) -> Result<ClassroomOutcome, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/classroom.rs:5</sub>
+
+## evaluation
+
+- `pub async fn load_teaching_evaluation( &self, force_refresh: bool, ) -> Result<TeachingEvaluationOutcome, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/evaluation.rs:9</sub>
+
+## finance
+
+- `pub async fn load_finance_incomes(&self) -> Result<FinanceIncomeReport, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/finance.rs:6</sub>
 
 ## graduate
 
@@ -235,6 +248,11 @@
   <sub>struct · rust/crates/ginkgo_core/src/application/mod.rs:15</sub>
 - `pub fn new(upstream: U) -> Self {…}`
   <sub>fn · rust/crates/ginkgo_core/src/application/mod.rs:19</sub>
+
+## network_account
+
+- `pub async fn load_network_account(&self) -> Result<NetworkAccountReport, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_core/src/application/network_account.rs:8</sub>
 
 ## notices
 

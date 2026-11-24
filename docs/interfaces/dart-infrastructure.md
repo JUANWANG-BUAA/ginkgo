@@ -12,11 +12,14 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/cgyy_decode.dart](#infrastructurecgyydecodedart) (2)
 - [infrastructure/checkin_qr_saver.dart](#infrastructurecheckinqrsaverdart) (1)
 - [infrastructure/course_visibility_file_store.dart](#infrastructurecoursevisibilityfilestoredart) (1)
+- [infrastructure/demo_evaluation.dart](#infrastructuredemoevaluationdart) (1)
+- [infrastructure/demo_finance.dart](#infrastructuredemofinancedart) (1)
 - [infrastructure/demo_graduate_credit_map.dart](#infrastructuredemograduatecreditmapdart) (1)
 - [infrastructure/demo_homework_files.dart](#infrastructuredemohomeworkfilesdart) (1)
 - [infrastructure/demo_learning.dart](#infrastructuredemolearningdart) (1)
 - [infrastructure/demo_library_loans.dart](#infrastructuredemolibraryloansdart) (1)
 - [infrastructure/demo_mirror_service.dart](#infrastructuredemomirrorservicedart) (1)
+- [infrastructure/demo_network_account.dart](#infrastructuredemonetworkaccountdart) (1)
 - [infrastructure/display_preferences_file_store.dart](#infrastructuredisplaypreferencesfilestoredart) (1)
 - [infrastructure/graduate_credit_map_payload.dart](#infrastructuregraduatecreditmappayloaddart) (1)
 - [infrastructure/graduate_decode.dart](#infrastructuregraduatedecodedart) (1)
@@ -33,10 +36,13 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_campus_activities.dart](#infrastructurenativecampusactivitiesdart) (2)
 - [infrastructure/native_career.dart](#infrastructurenativecareerdart) (2)
 - [infrastructure/native_command.dart](#infrastructurenativecommanddart) (1)
+- [infrastructure/native_evaluation.dart](#infrastructurenativeevaluationdart) (2)
+- [infrastructure/native_finance.dart](#infrastructurenativefinancedart) (2)
 - [infrastructure/native_homework_files.dart](#infrastructurenativehomeworkfilesdart) (1)
 - [infrastructure/native_learning.dart](#infrastructurenativelearningdart) (1)
 - [infrastructure/native_library_loans.dart](#infrastructurenativelibraryloansdart) (2)
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
+- [infrastructure/native_network_account.dart](#infrastructurenativenetworkaccountdart) (2)
 - [infrastructure/native_reminder_planning.dart](#infrastructurenativereminderplanningdart) (1)
 - [infrastructure/native_reminder_platform.dart](#infrastructurenativereminderplatformdart) (1)
 - [infrastructure/native_saved_credential.dart](#infrastructurenativesavedcredentialdart) (1)
@@ -82,6 +88,18 @@ native/demo 适配器、运行时与持久化实现。
     - `Future<void> write(Set<String> value) async {…}`  <sub>:38</sub>
     - `CourseVisibility createController() => …`  <sub>:46</sub>
 
+## infrastructure/demo_evaluation.dart
+
+- `mixin DemoEvaluation implements TeachingEvaluationGateway`
+  <sub>mixin · infrastructure/demo_evaluation.dart:3</sub>
+    - `Future<TeachingEvaluationRead> loadTeachingEvaluation({ bool forceRefresh = false, }) async => …`  <sub>:5</sub>
+
+## infrastructure/demo_finance.dart
+
+- `mixin DemoFinance implements FinanceIncomeGateway`
+  <sub>mixin · infrastructure/demo_finance.dart:3</sub>
+    - `Future<FinanceIncomeRead> loadFinanceIncomes() async => …`  <sub>:5</sub>
+
 ## infrastructure/demo_graduate_credit_map.dart
 
 - `mixin DemoGraduateCreditMap implements GraduateCreditMapGateway` — Synthetic presentation fixture. Values are explicit, never calculated from
@@ -114,7 +132,13 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/demo_mirror_service.dart
 
 - `final class DemoMirrorService`
-  <sub>class · infrastructure/demo_mirror_service.dart:35</sub>
+  <sub>class · infrastructure/demo_mirror_service.dart:38</sub>
+
+## infrastructure/demo_network_account.dart
+
+- `mixin DemoNetworkAccount implements NetworkAccountGateway`
+  <sub>mixin · infrastructure/demo_network_account.dart:3</sub>
+    - `Future<NetworkAccountRead> loadNetworkAccount() async => …`  <sub>:5</sub>
 
 ## infrastructure/display_preferences_file_store.dart
 
@@ -264,6 +288,22 @@ native/demo 适配器、运行时与持久化实现。
 - `void clearInFlightNativeReads() => …`
   <sub>function · infrastructure/native_command.dart:61</sub>
 
+## infrastructure/native_evaluation.dart
+
+- `TeachingEvaluationRead decodeTeachingEvaluation( live.TeachingEvaluationResponse response, ) {…}`
+  <sub>function · infrastructure/native_evaluation.dart:15</sub>
+- `mixin NativeEvaluation implements TeachingEvaluationGateway`
+  <sub>mixin · infrastructure/native_evaluation.dart:49</sub>
+    - `Future<TeachingEvaluationRead> loadTeachingEvaluation({ bool forceRefresh = false, }) async {…}`  <sub>:53</sub>
+
+## infrastructure/native_finance.dart
+
+- `FinanceIncomeRead decodeFinanceIncomes(live.FinanceIncomeResponse response) {…}`
+  <sub>function · infrastructure/native_finance.dart:7</sub>
+- `mixin NativeFinance implements FinanceIncomeGateway`
+  <sub>mixin · infrastructure/native_finance.dart:39</sub>
+    - `Future<FinanceIncomeRead> loadFinanceIncomes() async {…}`  <sub>:43</sub>
+
 ## infrastructure/native_homework_files.dart
 
 - `mixin NativeHomeworkFiles implements HomeworkFilesGateway`
@@ -295,7 +335,15 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:49</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:52</sub>
+
+## infrastructure/native_network_account.dart
+
+- `NetworkAccountRead decodeNetworkAccount(live.NetworkAccountResponse response) {…}`
+  <sub>function · infrastructure/native_network_account.dart:10</sub>
+- `mixin NativeNetworkAccount implements NetworkAccountGateway`
+  <sub>mixin · infrastructure/native_network_account.dart:43</sub>
+    - `Future<NetworkAccountRead> loadNetworkAccount() async {…}`  <sub>:47</sub>
 
 ## infrastructure/native_reminder_planning.dart
 

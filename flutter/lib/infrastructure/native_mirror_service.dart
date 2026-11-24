@@ -29,7 +29,10 @@ import 'package:ginkgo_mirror/infrastructure/notices_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/shuttle_decode.dart';
 import 'package:ginkgo_mirror/infrastructure/native_campus_activities.dart';
 import 'package:ginkgo_mirror/infrastructure/native_career.dart';
+import 'package:ginkgo_mirror/infrastructure/native_evaluation.dart';
+import 'package:ginkgo_mirror/infrastructure/native_finance.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
+import 'package:ginkgo_mirror/infrastructure/native_network_account.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
@@ -55,6 +58,9 @@ final class NativeMirrorService
         NativeCampusActivities,
         NativeReminderPlanning,
         NativeLibraryLoans,
+        NativeFinance,
+        NativeNetworkAccount,
+        NativeEvaluation,
         NativeLearningSnapshots,
         NativeGatewayVerification
     implements

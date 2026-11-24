@@ -43,17 +43,18 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
 
   @override
   Widget build(BuildContext context) {
-    const gap = 8.0;
-    const padding = 16.0;
-    final labelStyle = CupertinoTheme.of(context).textTheme.actionTextStyle
-        .copyWith(fontSize: 15);
+    const gap = GinkgoSpacing.small;
+    const padding = GinkgoSpacing.base;
+    final labelStyle = GinkgoTypography.subheadline.copyWith(
+      fontFeatures: GinkgoTypography.tabularDigits,
+    );
     final painter = TextPainter(
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     );
     var labelWidth = 0.0, labelHeight = 0.0;
     for (final week in widget.weeks) {
-      for (final weight in [FontWeight.w400, FontWeight.w600]) {
+      for (final weight in [FontWeight.w500, FontWeight.w700]) {
         painter.text = TextSpan(
           text: '第 ${week.number} 周',
           style: labelStyle.copyWith(fontWeight: weight),
@@ -64,13 +65,13 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
       }
     }
     painter.dispose();
-    final chipWidth = (labelWidth.ceilToDouble() + 26).clamp(
-      76.0,
+    final chipWidth = (labelWidth.ceilToDouble() + 24).clamp(
+      72.0,
       double.infinity,
     );
     final extent = chipWidth + gap;
     return SizedBox(
-      height: (labelHeight + 24).clamp(60.0, double.infinity),
+      height: (labelHeight + 30).clamp(60.0, double.infinity),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final index = widget.weeks.indexWhere(
@@ -114,9 +115,9 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
           }
           return CupertinoScrollbar(
             controller: weekScroll,
-            thumbVisibility: true,
+            thumbVisibility: false,
             thickness: 3,
-            thicknessWhileDragging: 8,
+            thicknessWhileDragging: 6,
             scrollbarOrientation: ScrollbarOrientation.bottom,
             notificationPredicate: (notification) =>
                 notification.metrics.axis == Axis.horizontal,
@@ -125,7 +126,12 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
               controller: weekScroll,
               itemExtent: extent,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(padding, 4, padding, 8),
+              padding: const EdgeInsets.fromLTRB(
+                padding,
+                GinkgoSpacing.xs,
+                padding,
+                GinkgoSpacing.sm,
+              ),
               itemCount: widget.weeks.length,
               itemBuilder: (context, index) {
                 final week = widget.weeks[index];
@@ -135,16 +141,8 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
                   padding: const EdgeInsets.only(right: gap),
                   child: CupertinoButton(
                     key: Key('schedule-week-${week.number}'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    minimumSize: const Size(76, 48),
-                    color: active
-                        ? color.withValues(alpha: 0.14)
-                        : CupertinoColors.tertiarySystemFill.resolveFrom(
-                            context,
-                          ),
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(72, 48),
                     onPressed: () => widget.onSelected(week.number),
                     child: Semantics(
                       selected: active,
@@ -152,23 +150,46 @@ class _ScheduleWeekStripState extends State<ScheduleWeekStrip> {
                           ? '第 ${week.number} 周，本周'
                           : '第 ${week.number} 周',
                       excludeSemantics: true,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '第 ${week.number} 周',
-                            maxLines: 1,
-                            softWrap: false,
-                            style: labelStyle.copyWith(
-                              fontWeight: active
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: active
-                                  ? color
-                                  : CupertinoColors.label.resolveFrom(context),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: active
+                              ? color.withValues(alpha: 0.16)
+                              : CupertinoColors.tertiarySystemFill.resolveFrom(
+                                  context,
+                                ),
+                          borderRadius: BorderRadius.circular(
+                            GinkgoRadii.panel,
+                          ),
+                          border: active
+                              ? Border.all(
+                                  color: color.withValues(alpha: 0.42),
+                                )
+                              : null,
+                        ),
+                        child: SizedBox.expand(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: GinkgoSpacing.sm,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '第 ${week.number} 周',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: labelStyle.copyWith(
+                                  fontWeight: active || week.current
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: active || week.current
+                                      ? color
+                                      : CupertinoColors.label.resolveFrom(
+                                          context,
+                                        ),
+                                ),
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),

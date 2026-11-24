@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 
 import 'schedule_style.dart';
 
-/// One course block inside the timetable grid.
-///
-/// The block spans its section range and opens the course detail page on tap.
+/// Pastel iOS timetable block with a saturated top accent bar and room tag.
 class ScheduleGridCourseBlock extends StatelessWidget {
   const ScheduleGridCourseBlock({
     super.key,
@@ -18,7 +17,10 @@ class ScheduleGridCourseBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final color = courseColor(context, course.color, course.name);
+    final span = course.endSection - course.startSection + 1;
+    final place = course.place?.trim() ?? '';
     return Semantics(
       button: true,
       label:
@@ -29,53 +31,63 @@ class ScheduleGridCourseBlock extends StatelessWidget {
         minimumSize: Size.zero,
         onPressed: onTap,
         child: SizedBox.expand(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(8, 8, 6, 6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(12),
-              border: Border(left: BorderSide(color: color, width: 3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Flexible(
-                  child: Text(
-                    course.name,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.25,
-                      fontWeight: FontWeight.w600,
-                      color: CupertinoColors.label.resolveFrom(context),
-                    ),
-                  ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(GinkgoRadii.button),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: dark ? 0.26 : 0.14),
+                borderRadius: BorderRadius.circular(GinkgoRadii.button),
+                border: Border.all(
+                  color: color.withValues(alpha: dark ? 0.42 : 0.25),
+                  width: GinkgoSpacing.hairline,
                 ),
-                if (course.startTime != null)
-                  Text(
-                    course.startTime!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: color,
-                    ),
-                  ),
-                if (course.place != null)
-                  Text(
-                    course.place!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(height: 3, color: color),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        GinkgoSpacing.xs,
+                        GinkgoSpacing.xs,
+                        GinkgoSpacing.xs,
+                        GinkgoSpacing.xs,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              course.name,
+                              maxLines: span >= 3 ? 5 : (span == 2 ? 3 : 2),
+                              overflow: TextOverflow.ellipsis,
+                              style: GinkgoTypography.caption.copyWith(
+                                height: 1.18,
+                                fontWeight: FontWeight.w700,
+                                color: CupertinoColors.label.resolveFrom(
+                                  context,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (place.isNotEmpty)
+                            Text(
+                              '@$place',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GinkgoTypography.caption2.copyWith(
+                                height: 1.12,
+                                fontWeight: FontWeight.w600,
+                                color: color,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

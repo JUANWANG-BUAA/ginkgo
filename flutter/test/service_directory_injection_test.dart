@@ -35,7 +35,7 @@ void main() {
   testWidgets('feature navigation preserves the injected provider', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -60,7 +60,7 @@ void main() {
   testWidgets('More shows each pinned service as one navigable row', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -110,7 +110,7 @@ void main() {
   testWidgets('workspace More tab renders the grouped feature rows', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -155,7 +155,7 @@ void main() {
   });
 
   testWidgets('mobile directory has one graduate destination', (tester) async {
-    tester.view.physicalSize = const Size(430, 1200);
+    tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);

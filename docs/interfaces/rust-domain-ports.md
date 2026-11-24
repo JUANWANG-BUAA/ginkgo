@@ -15,6 +15,8 @@
 - [cgyy](#cgyy) (5)
 - [checkin](#checkin) (5)
 - [classroom](#classroom) (3)
+- [evaluation](#evaluation) (2)
+- [finance](#finance) (1)
 - [graduate](#graduate) (3)
 - [homework](#homework) (3)
 - [homework_submission](#homeworksubmission) (10)
@@ -23,6 +25,7 @@
 - [library_books](#librarybooks) (7)
 - [library_loans](#libraryloans) (1)
 - [library_stats](#librarystats) (2)
+- [network_account](#networkaccount) (1)
 - [notices](#notices) (2)
 - [outcome](#outcome) (2)
 - [query_snapshots](#querysnapshots) (1)
@@ -180,6 +183,20 @@
 - `pub trait ClassroomSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/classroom.rs:28</sub>
     - `fn load_classrooms( &self, input: &ClassroomQueryInput, ) -> Future<Result<ClassroomOutcome, AppError>>;`  <sub>:29</sub>
+
+## evaluation
+
+- `pub type TeachingEvaluationOutcome = ReadSnapshot<TeachingEvaluationReport>;`
+  <sub>type · rust/crates/ginkgo_domain/src/ports/evaluation.rs:3</sub>
+- `pub trait TeachingEvaluationSource: Send + Sync`
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/evaluation.rs:5</sub>
+    - `fn load_teaching_evaluation( &self, force_refresh: bool, ) -> Future<Result<TeachingEvaluationOutcome, AppError>>;`  <sub>:6</sub>
+
+## finance
+
+- `pub trait FinanceIncomeSource: Send + Sync`
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/finance.rs:3</sub>
+    - `fn finance_incomes( &self, ) -> Future<Result<FinanceIncomeReport, AppError>>;`  <sub>:4</sub>
 
 ## graduate
 
@@ -422,6 +439,12 @@
 - `pub trait LibraryStatsSource: Send + Sync`
   <sub>trait · rust/crates/ginkgo_domain/src/ports/library_stats.rs:11</sub>
     - `fn load_library_stats( &self, force: bool, ) -> Future<Result<LibraryStatsOutcome, AppError>>;`  <sub>:12</sub>
+
+## network_account
+
+- `pub trait NetworkAccountSource: Send + Sync`
+  <sub>trait · rust/crates/ginkgo_domain/src/ports/network_account.rs:3</sub>
+    - `fn network_account( &self, ) -> Future<Result<NetworkAccountReport, AppError>>;`  <sub>:4</sub>
 
 ## notices
 

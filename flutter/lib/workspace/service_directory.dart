@@ -91,12 +91,25 @@ class ServiceDirectory extends StatelessWidget {
       _section(
         context,
         header: '学业',
-        destinationIds: const ['grades', 'bykc', 'graduate', 'learning'],
+        destinationIds: const [
+          'grades',
+          'bykc',
+          'undergraduate',
+          'graduate',
+          'learning',
+          'teaching-evaluation',
+        ],
         children: [
           _destination(context, 'grades', GinkgoColors.resourcePurple),
           _destination(context, 'bykc', GinkgoColors.resourceTeal),
+          _destination(context, 'undergraduate', GinkgoColors.resourceBlue),
           _destination(context, 'graduate', GinkgoColors.accent),
           _destination(context, 'learning', GinkgoColors.resourceBlue),
+          _destination(
+            context,
+            'teaching-evaluation',
+            GinkgoColors.resourceTeal,
+          ),
         ],
       ),
       _section(
@@ -121,6 +134,8 @@ class ServiceDirectory extends StatelessWidget {
         header: '校园',
         destinationIds: const [
           'campus-card',
+          'network-account',
+          'finance-incomes',
           'notices',
           'career-events',
           'campus-activities',
@@ -128,6 +143,8 @@ class ServiceDirectory extends StatelessWidget {
         ],
         children: [
           _destination(context, 'campus-card', GinkgoColors.accent),
+          _destination(context, 'network-account', GinkgoColors.resourceBlue),
+          _destination(context, 'finance-incomes', GinkgoColors.resourceTeal),
           _destination(context, 'notices', GinkgoColors.resourceBlue),
           _destination(context, 'career-events', GinkgoColors.resourcePurple),
           _destination(context, 'campus-activities', GinkgoColors.resourceTeal),

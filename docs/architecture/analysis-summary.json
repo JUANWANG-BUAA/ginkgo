@@ -1,14 +1,14 @@
 {
-  "revision": "c81379a58d1cc8915fc138116a2ea3fe1a22cdb2",
-  "sourceFingerprint": "cc1c47bd934674ac012f7c84db6340fcb72caa70c4a6dd1125ddf44a8899dd33",
+  "revision": "9c994e920a83093522552b7efe18f08ee96a406e",
+  "sourceFingerprint": "acefed15394af67d5a51c466e3e049c8ee7618a42aa65879ccd62902afffe78c",
   "tools": {
     "dart": "Dart analyzer 10.2.0 resolved AST",
     "rust": "rust-analyzer 1.99.1 (58cf8f9c 2026-10-13)",
     "kotlin": "ast-grep 0.51.2"
   },
   "files": {
-    "dart": 295,
-    "rust": 229,
+    "dart": 322,
+    "rust": 250,
     "kotlin": 13
   },
   "rustConfiguration": {
@@ -129,17 +129,17 @@
     ],
     "ffiUnpaired": []
   },
-  "ffiPairs": 102,
+  "ffiPairs": 105,
   "counts": {
     "syntax-call": 717,
-    "contains": 2245,
-    "reference": 16381,
-    "call": 18137,
-    "construct": 6516,
-    "implementation": 321,
-    "await": 498,
-    "invoke": 221,
-    "ffi-pair": 102
+    "contains": 2325,
+    "reference": 18732,
+    "call": 20370,
+    "construct": 7575,
+    "implementation": 324,
+    "await": 507,
+    "invoke": 229,
+    "ffi-pair": 105
   },
   "fileCycles": [],
   "directoryCycles": [

@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/campus_card.dart';
+import 'package:ginkgo_mirror/application/contracts.dart'
+    show CampusCardBalanceResponse, FailureCode;
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
+import 'package:ginkgo_mirror/widgets/liquid_vial_gauge.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/telemetry_instrument_card.dart';
 
 class CampusCardPage extends StatefulWidget {
   const CampusCardPage({super.key, this.gateway});
@@ -99,53 +103,108 @@ class _CampusCardPageState extends State<CampusCardPage>
     return '${minor < 0 ? '-' : ''}¥ $whole.$fraction';
   }
 
+  Widget _buildInstrument(CampusCardBalanceResponse? data, FailureCode? failure) {
+    final supported = widget.gateway != null;
+    final (statusLabel, statusTone) = !supported
+        ? ('暂不支持', StatusTone.uncertain)
+        : _busy
+        ? ('查询中', StatusTone.pending)
+        : failure != null
+        ? ('读取失败', StatusTone.danger)
+        : data != null
+        ? ('已读取', StatusTone.success)
+        : ('尚未查询', StatusTone.uncertain);
+
+    final minor = data?.balanceMinor;
+    // Reference ¥200 comfort gauge when unmasked; frosted when masked.
+    const refMinor = 20000.0;
+    final unmaskedRatio = (minor != null && _showBalance)
+        ? (minor / refMinor).clamp(0.0, 1.0)
+        : null;
+    final lowBalance = minor != null && _showBalance && minor < 3000;
+
+    final vial = LiquidVialWell(
+      code: 'CARD',
+      readout: data == null
+          ? '--'
+          : !_showBalance
+          ? '••'
+          : '${((unmaskedRatio ?? 0) * 100).round()}%',
+      fillRatio: data == null ? null : (_showBalance ? unmaskedRatio : 0.62),
+      frosted: data != null && !_showBalance,
+      palette: data == null
+          ? LiquidPalette.cobalt
+          : !_showBalance
+          ? LiquidPalette.violet
+          : lowBalance
+          ? LiquidPalette.amber
+          : LiquidPalette.emerald,
+      scaleTicks: _showBalance && data != null
+          ? const ['- ¥150', '- ¥100', '- ¥50']
+          : const ['- 高位', '- 常规', '- 预警'],
+      footer: data == null
+          ? '按需只读'
+          : _showBalance
+          ? (lowBalance ? '建议留意余额' : '日常充裕')
+          : '隐私锁定',
+      semanticLabel: '校园卡日常水位参考',
+    );
+
+    return TelemetryInstrumentCard(
+      vial: vial,
+      title: '北航校园一卡通',
+      statusLabel: statusLabel,
+      statusTone: statusTone,
+      headline: data == null
+          ? (_busy ? '正在查询航财通余额…' : '待读取校园卡实时余额')
+          : _showBalance
+          ? (lowBalance ? '当前水位偏低' : '当前日常消费充裕')
+          : '余额已读取（默认遮挡）',
+      subheadline: data == null
+          ? '仅内存按需查询 · 离开页面自动清除'
+          : '以 ¥200 日常参考线映射试管液位',
+      segments: _showBalance && unmaskedRatio != null
+          ? [
+              BarSegment(
+                fraction: unmaskedRatio,
+                startColor: lowBalance
+                    ? const Color(0xFFD97706)
+                    : const Color(0xFF059669),
+                endColor: lowBalance
+                    ? const Color(0xFFFBBF24)
+                    : const Color(0xFF34D399),
+              ),
+            ]
+          : const [],
+      barLeadingCaption: _showBalance && unmaskedRatio != null
+          ? '日常参考水位（满格 ¥200）'
+          : null,
+      meters: const [
+        TelemetryMeterData(label: '数据留存', trailing: '仅内存 · 不落盘'),
+        TelemetryMeterData(label: '安全边界', trailing: '纯只读 · 无写操作'),
+      ],
+    );
+  }
+
+  static const Size _toolbarTapSize = Size(48, 48);
+
   @override
   Widget build(BuildContext context) {
     final data = _data;
     final failure = _failure;
-    final summary = widget.gateway == null
-        ? const SummaryItem('余额状态', '暂不支持', icon: CupertinoIcons.info_circle)
-        : _busy
-        ? const SummaryItem(
-            '余额状态',
-            '查询中',
-            icon: CupertinoIcons.clock,
-            tone: StatusTone.pending,
-          )
-        : failure != null
-        ? const SummaryItem(
-            '余额状态',
-            '读取失败',
-            icon: CupertinoIcons.exclamationmark_triangle,
-            tone: StatusTone.danger,
-          )
-        : data != null
-        ? const SummaryItem(
-            '余额状态',
-            '已读取',
-            icon: CupertinoIcons.checkmark_circle,
-            tone: StatusTone.success,
-          )
-        : const SummaryItem(
-            '余额状态',
-            '尚未查询',
-            icon: CupertinoIcons.question_circle,
-            tone: StatusTone.uncertain,
-          );
+
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
         context,
       ),
       navigationBar: CupertinoNavigationBar(
         middle: const Text('校园卡'),
-        // The read action lives in the navigation bar, next to the page it
-        // refreshes. It is disabled while a read is in flight.
         trailing: widget.gateway == null
             ? null
             : CupertinoButton(
                 key: const Key('campus-card-read'),
                 padding: EdgeInsets.zero,
-                minimumSize: const Size(48, 48),
+                minimumSize: _toolbarTapSize,
                 onPressed: _busy ? null : _read,
                 child: _busy
                     ? const CupertinoActivityIndicator(radius: 9)
@@ -155,19 +214,25 @@ class _CampusCardPageState extends State<CampusCardPage>
       child: SafeArea(
         child: ListView(
           children: [
-            SummaryStrip(items: [summary]),
+            _buildInstrument(data, failure),
             AppleSection(
               header: const Text('校园卡余额'),
               footer: Text(
                 data == null
-                    ? '按需读取；不会保存到磁盘，也不提供充值、挂失或消费明细。'
+                    ? '按需只读查询；不写入磁盘，不接入资金卡务写操作。'
                     : failure != null
                     ? '上次成功读取 ${schoolClockLabel(data.fetchedAt)}；当前余额可能过期。'
                     : '最近成功读取 ${schoolClockLabel(data.fetchedAt)}。',
               ),
               children: [
                 AppleListTile(
-                  leading: const Icon(CupertinoIcons.lock_shield),
+                  leading: const GinkgoIconTile(
+                    icon: CupertinoIcons.lock_shield,
+                    size: 34,
+                    iconSize: 18,
+                    color: GinkgoColors.accent,
+                  ),
+                  leadingSize: 34,
                   title: Text(_showBalance ? '余额当前已显示' : '金额默认遮挡'),
                   subtitle: const Text('离开页面或进入后台后清除'),
                   trailing: data == null
@@ -175,7 +240,7 @@ class _CampusCardPageState extends State<CampusCardPage>
                       : CupertinoButton(
                           key: const Key('campus-card-toggle'),
                           padding: EdgeInsets.zero,
-                          minimumSize: const Size(48, 48),
+                          minimumSize: _toolbarTapSize,
                           onPressed: () =>
                               setState(() => _showBalance = !_showBalance),
                           child: Text(
@@ -205,37 +270,53 @@ class _CampusCardPageState extends State<CampusCardPage>
                 if (widget.gateway == null)
                   const AppleEmptyState(
                     title: '暂不支持查询',
-                    description: '当前服务未提供校园卡余额查询能力。',
+                    description: '当前模式未提供校园卡余额查询。',
                     icon: CupertinoIcons.creditcard,
                   )
                 else if (data == null && !_busy && failure == null)
-                  const AppleEmptyState(
-                    key: Key('campus-card-empty'),
+                  AppleEmptyState(
+                    key: const Key('campus-card-unqueried'),
                     title: '查询后在此显示',
-                    description: '点按右上角查询；金额只在本页临时显示。',
+                    description: '点击右上角读取当前登录账号的校园卡余额。',
                     icon: CupertinoIcons.creditcard,
+                    action: '读取当前余额',
+                    onAction: _read,
                   )
                 else if (data != null)
                   Semantics(
                     container: true,
                     excludeSemantics: true,
-                    label: _showBalance ? '当前余额 $_amount' : '当前余额已遮挡',
+                    label: _showBalance ? '当前校园卡余额 $_amount' : '当前校园卡余额已遮挡',
                     child: Padding(
                       padding: GinkgoSpacing.edgeInsetsBalanceHero,
-                      child: Text(
-                        _showBalance ? _amount : '¥ ••••',
-                        key: const Key('campus-card-balance'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: GinkgoTypography.metricProminentSize,
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: GinkgoTypography.tabularDigits,
-                        ),
+                      child: Column(
+                        children: [
+                          Text(
+                            _showBalance ? _amount : '¥ ••••',
+                            key: const Key('campus-card-balance'),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: GinkgoTypography.metricProminentSize,
+                              fontWeight: FontWeight.w700,
+                              fontFeatures: GinkgoTypography.tabularDigits,
+                            ),
+                          ),
+                          const SizedBox(height: GinkgoSpacing.xs),
+                          Text(
+                            _showBalance ? '航财通实时账户余额' : '点击上方「显示」查看具体余额',
+                            style: GinkgoTypography.caption.copyWith(
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
               ],
             ),
+            const SizedBox(height: GinkgoSpacing.xxl),
           ],
         ),
       ),

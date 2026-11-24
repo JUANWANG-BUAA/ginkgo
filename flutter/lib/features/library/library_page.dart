@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/widgets/feature_intro.dart';
-import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -10,6 +9,7 @@ import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
+import 'library_action_grid.dart';
 import 'library_area_page.dart';
 import 'library_books_page.dart';
 import 'library_controller.dart';
@@ -157,47 +157,13 @@ class _LibraryPageState extends State<LibraryPage> {
                 description: '找一处座位，查一本书，或查看当前借阅。',
                 color: GinkgoColors.resourceTeal,
               ),
-              AppleSection(
-                children: [
-                  AppleListTile(
-                    key: const Key('library-find-seats'),
-                    title: const Text('预约座位'),
-                    subtitle: const Text('选择场馆、区域与可预约时段'),
-                    leading: const GinkgoIconTile(
-                      icon: CupertinoIcons.rectangle_grid_2x2,
-                      size: 30,
-                      color: GinkgoColors.resourceBlue,
-                    ),
-                    trailing: const CupertinoListTileChevron(),
-                    onTap: _openVenueSelection,
-                  ),
-                  AppleListTile(
-                    key: const Key('library-books'),
-                    title: const Text('查书目与馆藏'),
-                    subtitle: const Text('公开目录检索 · 复本状态'),
-                    leading: const GinkgoIconTile(
-                      icon: CupertinoIcons.book,
-                      size: 30,
-                      color: GinkgoColors.resourceTeal,
-                    ),
-                    trailing: const CupertinoListTileChevron(),
-                    onTap: () =>
-                        _push(LibraryBooksPage(service: widget.service)),
-                  ),
-                  if (widget.onOpenLoans != null)
-                    AppleListTile(
-                      key: const Key('library-loans-entry'),
-                      title: const Text('本人借阅'),
-                      subtitle: const Text('按需读取当前账号借阅记录'),
-                      leading: const GinkgoIconTile(
-                        icon: CupertinoIcons.bookmark,
-                        size: 30,
-                        color: GinkgoColors.resourcePurple,
-                      ),
-                      trailing: const CupertinoListTileChevron(),
-                      onTap: widget.onOpenLoans,
-                    ),
-                ],
+              LibraryBentoGrid(
+                onFindSeats: _openVenueSelection,
+                onOpenBooks: () =>
+                    _push(LibraryBooksPage(service: widget.service)),
+                onOpenStats: () =>
+                    _push(LibraryStatsPage(service: widget.service)),
+                onOpenLoans: widget.onOpenLoans,
               ),
               if (_firstLoad)
                 const AppleSection(

@@ -12,6 +12,7 @@
 - [application/busy_gate.dart](#applicationbusygatedart) (1)
 - [application/bykc.dart](#applicationbykcdart) (12)
 - [application/campus_activities.dart](#applicationcampusactivitiesdart) (4)
+- [application/campus_card.dart](#applicationcampuscarddart) (1)
 - [application/career.dart](#applicationcareerdart) (3)
 - [application/cgyy_commands.dart](#applicationcgyycommandsdart) (9)
 - [application/cgyy_models.dart](#applicationcgyymodelsdart) (14)
@@ -22,9 +23,11 @@
 - [application/demo_mode.dart](#applicationdemomodedart) (2)
 - [application/diagnostic_log.dart](#applicationdiagnosticlogdart) (2)
 - [application/environment.dart](#applicationenvironmentdart) (1)
+- [application/evaluation.dart](#applicationevaluationdart) (5)
 - [application/external_links.dart](#applicationexternallinksdart) (1)
 - [application/failure_message.dart](#applicationfailuremessagedart) (2)
 - [application/file_actions.dart](#applicationfileactionsdart) (5)
+- [application/finance.dart](#applicationfinancedart) (4)
 - [application/gateway_verification_failure.dart](#applicationgatewayverificationfailuredart) (1)
 - [application/graduate.dart](#applicationgraduatedart) (8)
 - [application/graduate_credit_map.dart](#applicationgraduatecreditmapdart) (9)
@@ -40,8 +43,9 @@
 - [application/library_stats.dart](#applicationlibrarystatsdart) (6)
 - [application/local_tasks.dart](#applicationlocaltasksdart) (7)
 - [application/maintenance.dart](#applicationmaintenancedart) (4)
-- [application/mirror_service.dart](#applicationmirrorservicedart) (18)
+- [application/mirror_service.dart](#applicationmirrorservicedart) (16)
 - [application/mutation_result.dart](#applicationmutationresultdart) (9)
+- [application/network_account.dart](#applicationnetworkaccountdart) (5)
 - [application/notices.dart](#applicationnoticesdart) (2)
 - [application/platform_actions.dart](#applicationplatformactionsdart) (1)
 - [application/query_snapshots.dart](#applicationquerysnapshotsdart) (2)
@@ -58,6 +62,7 @@
 - [application/session_reauth.dart](#applicationsessionreauthdart) (2)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/startup_update_controller.dart](#applicationstartupupdatecontrollerdart) (1)
+- [application/student_service_links.dart](#applicationstudentservicelinksdart) (1)
 - [application/task_storage_scope.dart](#applicationtaskstoragescopedart) (2)
 - [application/view_models.dart](#applicationviewmodelsdart) (1)
 
@@ -148,6 +153,12 @@
 - `abstract interface class CampusActivitiesGateway implements MirrorEnvironment` — Public campus activities; no login, no writes and no background polling.
   <sub>class · application/campus_activities.dart:36</sub>
     - `Future<CampusActivitiesRead> campusActivities({int page, bool forceRefresh});`  <sub>:37</sub>
+
+## application/campus_card.dart
+
+- `abstract interface class CampusCardGateway implements MirrorEnvironment`
+  <sub>class · application/campus_card.dart:4</sub>
+    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:5</sub>
 
 ## application/career.dart
 
@@ -331,6 +342,26 @@
 - `abstract interface class MirrorEnvironment` — Which backing environment a gateway is running against.
   <sub>class · application/environment.dart:5</sub>
 
+## application/evaluation.dart
+
+- `enum EvaluationCourseStatus { pending, completed, unknown }`
+  <sub>enum · application/evaluation.dart:3</sub>
+- `class EvaluationCourseItem`
+  <sub>class · application/evaluation.dart:5</sub>
+    - `const EvaluationCourseItem({ required this.id, required this.courseName, this.teacherName, this.questionnaireName, this.category, required this.status, });`  <sub>:6</sub>
+- `class TeachingEvaluationReport`
+  <sub>class · application/evaluation.dart:23</sub>
+    - `const TeachingEvaluationReport({ this.taskId, this.taskName, this.term, required this.courses, required this.fetchedAt, this.fromCache = false, this.stale = false, });`  <sub>:24</sub>
+    - `int get completedCount => …`  <sub>:42</sub>
+    - `int get pendingCount => …`  <sub>:46</sub>
+    - `int get unknownCount => …`  <sub>:49</sub>
+- `class TeachingEvaluationRead`
+  <sub>class · application/evaluation.dart:53</sub>
+    - `const TeachingEvaluationRead({this.data, this.failure});`  <sub>:54</sub>
+- `abstract interface class TeachingEvaluationGateway`
+  <sub>class · application/evaluation.dart:60</sub>
+    - `Future<TeachingEvaluationRead> loadTeachingEvaluation({ bool forceRefresh = false, });`  <sub>:61</sub>
+
 ## application/external_links.dart
 
 - `typedef ExternalLinkLauncher = Future<bool> Function(Uri url);` — Opens a validated URL using the host platform.
@@ -358,6 +389,21 @@
     - `final Future<FileOpenStatus> Function()? _opener;`  <sub>:36</sub>
     - `bool get canOpen => …`  <sub>:37</sub>
     - `Future<FileOpenStatus> open() async => …`  <sub>:38</sub>
+
+## application/finance.dart
+
+- `class FinanceIncomeEntry` — Whitelisted student finance income entry. Never retains ID-card or bank numbers.
+  <sub>class · application/finance.dart:4</sub>
+    - `const FinanceIncomeEntry({ required this.id, this.project, this.description, this.grossMinor, this.taxMinor, this.netMinor, this.taxRate, this.recordedDate, this.year, this.month, });`  <sub>:5</sub>
+- `class FinanceIncomeReport`
+  <sub>class · application/finance.dart:30</sub>
+    - `const FinanceIncomeReport({ required this.entries, required this.total, required this.fetchedAt, });`  <sub>:31</sub>
+- `class FinanceIncomeRead`
+  <sub>class · application/finance.dart:42</sub>
+    - `const FinanceIncomeRead({this.data, this.failure});`  <sub>:43</sub>
+- `abstract interface class FinanceIncomeGateway`
+  <sub>class · application/finance.dart:49</sub>
+    - `Future<FinanceIncomeRead> loadFinanceIncomes();`  <sub>:50</sub>
 
 ## application/gateway_verification_failure.dart
 
@@ -644,80 +690,74 @@
 ## application/mirror_service.dart
 
 - `abstract interface class MirrorService` — Page-facing capabilities. Tests and alternative adapters need no native runtime.
-  <sub>class · application/mirror_service.dart:21</sub>
+  <sub>class · application/mirror_service.dart:25</sub>
 - `abstract interface class VerifiedRouteGateway`
-  <sub>class · application/mirror_service.dart:31</sub>
-    - `Future<RouteChoice?> lastVerifiedRoute();`  <sub>:32</sub>
-    - `Future<FailureCode?> switchVerifiedRoute(RouteChoice route);`  <sub>:33</sub>
-- `abstract interface class CampusCardGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:36</sub>
-    - `Future<CampusCardBalanceResponse> campusCardBalance();`  <sub>:37</sub>
-- `abstract interface class StudentServiceLinksGateway` — Public official destinations only; does not read or transmit account data.
-  <sub>class · application/mirror_service.dart:41</sub>
-    - `String? studentServiceUrl(String id);`  <sub>:42</sub>
+  <sub>class · application/mirror_service.dart:35</sub>
+    - `Future<RouteChoice?> lastVerifiedRoute();`  <sub>:36</sub>
+    - `Future<FailureCode?> switchVerifiedRoute(RouteChoice route);`  <sub>:37</sub>
 - `abstract interface class CareerEventsGateway implements MirrorEnvironment` — Public career-calendar reads; no login and no background refresh.
-  <sub>class · application/mirror_service.dart:46</sub>
-    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:47</sub>
+  <sub>class · application/mirror_service.dart:41</sub>
+    - `Future<CareerEventsRead> careerEvents({ required String month, bool forceRefresh = false, });`  <sub>:42</sub>
 - `abstract interface class SessionGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:53</sub>
-    - `Future<SessionResponse> restoreSession();`  <sub>:54</sub>
-    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:56</sub>
-    - `Future<SessionResponse> signOut();`  <sub>:63</sub>
-    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:65</sub>
-    - `Future<bool> clearCache();`  <sub>:67</sub>
-    - `Future<bool> verifyBridgeContract();`  <sub>:69</sub>
+  <sub>class · application/mirror_service.dart:48</sub>
+    - `Future<SessionResponse> restoreSession();`  <sub>:49</sub>
+    - `Future<SessionResponse> login({ required String account, required String password, String? captcha, required bool remember, });`  <sub>:51</sub>
+    - `Future<SessionResponse> signOut();`  <sub>:58</sub>
+    - `Future<SessionResponse> setRoute(RouteChoice route);`  <sub>:60</sub>
+    - `Future<bool> clearCache();`  <sub>:62</sub>
+    - `Future<bool> verifyBridgeContract();`  <sub>:64</sub>
 - `abstract interface class AcademicGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:72</sub>
-    - `Future<QueryDates> dates(String instant);`  <sub>:73</sub>
-    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:75</sub>
-    - `Future<RuleExamples> rules();`  <sub>:77</sub>
-    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:79</sub>
-    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:85</sub>
-    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:87</sub>
-    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:89</sub>
-    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:91</sub>
-    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:93</sub>
+  <sub>class · application/mirror_service.dart:67</sub>
+    - `Future<QueryDates> dates(String instant);`  <sub>:68</sub>
+    - `Future<ClassroomResponse> classrooms(DemoScope scope, ClassroomQuery query);`  <sub>:70</sub>
+    - `Future<RuleExamples> rules();`  <sub>:72</sub>
+    - `Future<ScheduleResponse> schedule({ String? termId, int? week, bool forceRefresh = false, });`  <sub>:74</sub>
+    - `Future<GradeTermsResponse> gradeTerms();`  <sub>:80</sub>
+    - `Future<GradeResponse> grades({String? termCode, bool forceRefresh = false});`  <sub>:82</sub>
+    - `Future<TodayResponse> today({bool forceRefresh = false});`  <sub>:84</sub>
+    - `Future<HomeworkResponse> homework({bool forceRefresh = false});`  <sub>:86</sub>
+    - `Future<HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, });`  <sub>:88</sub>
 - `abstract interface class CheckInGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:99</sub>
-    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:100</sub>
-    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:102</sub>
-    - `Future<CheckInQrResponse> prepareCheckinQr( String courseId, { bool revalidateCourse = true, });`  <sub>:107</sub>
-    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:112</sub>
+  <sub>class · application/mirror_service.dart:94</sub>
+    - `Future<CheckInResponse> checkin({bool forceRefresh = false});`  <sub>:95</sub>
+    - `Future<CheckInResponse> checkinOnDate( String date, { bool forceRefresh = false, });`  <sub>:97</sub>
+    - `Future<CheckInQrResponse> prepareCheckinQr( String courseId, { bool revalidateCourse = true, });`  <sub>:102</sub>
+    - `Future<CheckinProgressRead> checkinProgress();`  <sub>:107</sub>
 - `abstract interface class LibrarySeatingGateway implements LibraryStatsGateway`
-  <sub>class · application/mirror_service.dart:115</sub>
-    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:116</sub>
-    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:122</sub>
-    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:127</sub>
-    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:129</sub>
-    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:131</sub>
-    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:133</sub>
-    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:138</sub>
-    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:140</sub>
+  <sub>class · application/mirror_service.dart:110</sub>
+    - `Future<MutationResponse> reserveLibrarySeat({ required String areaId, required String seatId, required LibrarySlot slot, });`  <sub>:111</sub>
+    - `Future<MutationResponse> performLibraryAction( String bookingId, String action, );`  <sub>:117</sub>
+    - `Future<LibraryVenuesResponse> libraryVenues({bool forceRefresh = false});`  <sub>:122</sub>
+    - `Future<LibraryAreasResponse> libraryAreas(String libraryId);`  <sub>:124</sub>
+    - `Future<LibrarySlotsResponse> librarySlots(String areaId);`  <sub>:126</sub>
+    - `Future<LibrarySeatsResponse> librarySeats({ required String areaId, required LibrarySlot slot, });`  <sub>:128</sub>
+    - `Future<LibraryBookingsResponse> libraryBookings({bool forceRefresh = false});`  <sub>:133</sub>
+    - `Future<LibraryHistoryResponse> libraryHistory( int page, { bool forceRefresh = false, });`  <sub>:135</sub>
 - `abstract interface class LibraryCatalogGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:146</sub>
-    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:149</sub>
-    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:157</sub>
+  <sub>class · application/mirror_service.dart:141</sub>
+    - `Future<BookPageRead> libraryBooks({ required String query, required int page, String sort, bool descending, });` — Public OPAC search. Anonymous and read-only; never personal records.  <sub>:144</sub>
+    - `Future<BookHoldingsRead> libraryHoldings(String bibId);` — Public holdings for one bib id; the school's nested JSON stays in Rust.  <sub>:152</sub>
 - `abstract interface class LibraryGateway`
-  <sub>class · application/mirror_service.dart:160</sub>
+  <sub>class · application/mirror_service.dart:155</sub>
 - `abstract interface class BykcGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:163</sub>
-    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:164</sub>
+  <sub>class · application/mirror_service.dart:158</sub>
+    - `Future<BykcPartRead> bykcPart(BykcPart part, {bool forceRefresh = false});`  <sub>:159</sub>
 - `abstract interface class GraduateGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:167</sub>
-    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:168</sub>
+  <sub>class · application/mirror_service.dart:162</sub>
+    - `Future<GraduateRead> graduatePart({ required bool report, required bool forceRefresh, });`  <sub>:163</sub>
 - `abstract interface class NoticeGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:174</sub>
-    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:175</sub>
+  <sub>class · application/mirror_service.dart:169</sub>
+    - `Future<NoticesRead> notices({bool forceRefresh = false});`  <sub>:170</sub>
 - `abstract interface class CgyyGateway implements MirrorEnvironment`
-  <sub>class · application/mirror_service.dart:178</sub>
-    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:179</sub>
+  <sub>class · application/mirror_service.dart:173</sub>
+    - `Future<CgyyLoadRead> cgyy({ required String kind, required int siteId, required String date, required bool forceRefresh, });`  <sub>:174</sub>
 - `abstract interface class CampusGateway`
-  <sub>class · application/mirror_service.dart:187</sub>
+  <sub>class · application/mirror_service.dart:182</sub>
 - `abstract interface class CgyyBookingGateway` — Separate capability: read-only adapters never gain writes implicitly.
-  <sub>class · application/mirror_service.dart:191</sub>
-    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:192</sub>
+  <sub>class · application/mirror_service.dart:186</sub>
+    - `Future<CgyyActionResult> executeCgyy(CgyyCommand command);`  <sub>:187</sub>
 - `enum BykcPart { catalog, chosen, statistics }`
-  <sub>enum · application/mirror_service.dart:195</sub>
+  <sub>enum · application/mirror_service.dart:190</sub>
 
 ## application/mutation_result.dart
 
@@ -753,6 +793,25 @@
     - `void showVerificationDialog(String image, String id) {…}`  <sub>:229</sub>
     - `void showLoginScreen() {…}`  <sub>:230</sub>
     - `void showRetryButton() {…}`  <sub>:231</sub>
+
+## application/network_account.dart
+
+- `class PortalMetric`
+  <sub>class · application/network_account.dart:3</sub>
+    - `const PortalMetric({required this.value, this.unit});`  <sub>:4</sub>
+    - `String get displayText => …`  <sub>:9</sub>
+- `class NetworkTrafficProduct`
+  <sub>class · application/network_account.dart:13</sub>
+    - `const NetworkTrafficProduct({ this.productName, required this.usedText, required this.freeRemainingText, required this.paidRemainingText, required this.packageCount, });`  <sub>:14</sub>
+- `class NetworkAccountReport`
+  <sub>class · application/network_account.dart:29</sub>
+    - `const NetworkAccountReport({ this.netFeeMinor, this.netFeeFailure, this.unreturnedBooks, this.unreadMail, this.cloudDriveFree, this.portalFailure, required this.trafficProducts, this.trafficFailure, required this.fetchedAt, });`  <sub>:30</sub>
+- `class NetworkAccountRead`
+  <sub>class · application/network_account.dart:53</sub>
+    - `const NetworkAccountRead({this.data, this.failure});`  <sub>:54</sub>
+- `abstract interface class NetworkAccountGateway`
+  <sub>class · application/network_account.dart:60</sub>
+    - `Future<NetworkAccountRead> loadNetworkAccount();`  <sub>:61</sub>
 
 ## application/notices.dart
 
@@ -872,36 +931,36 @@
 ## application/service_capabilities.dart
 
 - `class ServiceCapabilities` — Optional capabilities of the injected service, resolved once.
-  <sub>class · application/service_capabilities.dart:17</sub>
-    - `const ServiceCapabilities({ this.academic, this.gatewayVerification, this.verifiedRoute, this.savedCredential, this.careerEvents, this.campusActivities, this.courseAnnouncement, this.courseAssessment, this.courseLearningContext, this.courseResource, this.cgyyBooking, this.graduateCreditMap, this.learningCourse, this.learningSnapshots, this.libraryLoans, this.libraryLoansOfficial, this.campusCard, this.reminderPlanning, this.studentServiceLinks, });`  <sub>:18</sub>
-    - `static ServiceCapabilities resolve(MirrorService service) => …` — The composition root resolves every optional capability exactly once, so  <sub>:100</sub>
+  <sub>class · application/service_capabilities.dart:20</sub>
+    - `const ServiceCapabilities({ this.academic, this.gatewayVerification, this.verifiedRoute, this.savedCredential, this.careerEvents, this.campusActivities, this.courseAnnouncement, this.courseAssessment, this.courseLearningContext, this.courseResource, this.cgyyBooking, this.graduateCreditMap, this.learningCourse, this.learningSnapshots, this.libraryLoans, this.libraryLoansOfficial, this.campusCard, this.financeIncome, this.networkAccount, this.teachingEvaluation, this.reminderPlanning, this.studentServiceLinks, });`  <sub>:21</sub>
+    - `static ServiceCapabilities resolve(MirrorService service) => …` — The composition root resolves every optional capability exactly once, so  <sub>:115</sub>
 
 ## application/service_health.dart
 
 - `enum ServiceEndpointId`
   <sub>enum · application/service_health.dart:5</sub>
-    - `const ServiceEndpointId(this.title, this.system, {this.isPublic = false});`  <sub>:26</sub>
+    - `const ServiceEndpointId(this.title, this.system, {this.isPublic = false});`  <sub>:29</sub>
 - `enum EndpointHealthState`
-  <sub>enum · application/service_health.dart:33</sub>
+  <sub>enum · application/service_health.dart:36</sub>
 - `class EndpointHealthSnapshot`
-  <sub>class · application/service_health.dart:43</sub>
-    - `const EndpointHealthSnapshot({ required this.endpoint, this.state = EndpointHealthState.idle, this.latencyMs, this.failure, this.updatedAt, this.inFlight = 0, });`  <sub>:44</sub>
-    - `bool get isHealthy => …`  <sub>:60</sub>
-    - `bool get hasIssue => …`  <sub>:64</sub>
+  <sub>class · application/service_health.dart:46</sub>
+    - `const EndpointHealthSnapshot({ required this.endpoint, this.state = EndpointHealthState.idle, this.latencyMs, this.failure, this.updatedAt, this.inFlight = 0, });`  <sub>:47</sub>
+    - `bool get isHealthy => …`  <sub>:63</sub>
+    - `bool get hasIssue => …`  <sub>:67</sub>
 - `class ServiceHealthTracker extends ChangeNotifier` — Passive, privacy-preserving in-memory telemetry of upstream endpoint status.
-  <sub>class · application/service_health.dart:74</sub>
-    - `static final shared = ServiceHealthTracker();`  <sub>:78</sub>
-    - `final DateTime Function() _clock;`  <sub>:80</sub>
-    - `EndpointHealthSnapshot snapshotOf(ServiceEndpointId id) => …`  <sub>:87</sub>
-    - `List<EndpointHealthSnapshot> get snapshots => …`  <sub>:90</sub>
-    - `List<EndpointHealthSnapshot> get loadingSnapshots => …`  <sub>:94</sub>
-    - `int get loadingCount => …`  <sub>:100</sub>
-    - `int get healthyCount => …`  <sub>:102</sub>
-    - `int get degradedCount => …`  <sub>:104</sub>
-    - `bool get hasSessionExpired => …`  <sub>:106</sub>
-    - `int get observedCount => …`  <sub>:109</sub>
-    - `DateTime? get lastUpdatedAt {…}`  <sub>:113</sub>
-    - `void clear() {…}`  <sub>:124</sub>
+  <sub>class · application/service_health.dart:77</sub>
+    - `static final shared = ServiceHealthTracker();`  <sub>:81</sub>
+    - `final DateTime Function() _clock;`  <sub>:83</sub>
+    - `EndpointHealthSnapshot snapshotOf(ServiceEndpointId id) => …`  <sub>:90</sub>
+    - `List<EndpointHealthSnapshot> get snapshots => …`  <sub>:93</sub>
+    - `List<EndpointHealthSnapshot> get loadingSnapshots => …`  <sub>:97</sub>
+    - `int get loadingCount => …`  <sub>:103</sub>
+    - `int get healthyCount => …`  <sub>:105</sub>
+    - `int get degradedCount => …`  <sub>:107</sub>
+    - `bool get hasSessionExpired => …`  <sub>:109</sub>
+    - `int get observedCount => …`  <sub>:112</sub>
+    - `DateTime? get lastUpdatedAt {…}`  <sub>:116</sub>
+    - `void clear() {…}`  <sub>:127</sub>
 
 ## application/session_reauth.dart
 
@@ -948,6 +1007,12 @@
     - `Future<void> checkOnce() async {…}`  <sub>:23</sub>
     - `void dismiss() {…}`  <sub>:60</sub>
     - `void dispose() {…}`  <sub>:67</sub>
+
+## application/student_service_links.dart
+
+- `abstract interface class StudentServiceLinksGateway` — Public official destinations only; does not read or transmit account data.
+  <sub>class · application/student_service_links.dart:2</sub>
+    - `String? studentServiceUrl(String id);`  <sub>:3</sub>
 
 ## application/task_storage_scope.dart
 

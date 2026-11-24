@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
-import 'package:ginkgo_mirror/features/today/today_presentation.dart';
+import 'package:ginkgo_mirror/widgets/visual_section.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shortcut_preferences.dart';
 
 @immutable
@@ -120,7 +120,17 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
     final saved = await owner.save(draft);
     // An earlier account's I/O may complete after a switch or unmount.
     if (!mounted || !identical(owner, _preferences)) return;
-    if (saved) setState(() => _draft = null);
+    if (saved) {
+      setState(() => _draft = null);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Scrollable.ensureVisible(
+            context,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+          );
+        }
+      });
+    }
   }
 
   Widget _button(String label, String key, VoidCallback? action) =>
@@ -254,22 +264,43 @@ class _WorkspaceShortcutsState extends State<WorkspaceShortcuts>
             _message('部分已选服务暂不可用，原偏好已保留。'),
         ] else ...[
           _message('已选 ${draft.length}/4 项 · 最多选择 4 项，也可全部取消。'),
-          for (final id in {...choices.keys, ...draft})
-            _entry(
-              id: id,
-              title: choices[id]?.title ?? '暂不可用的服务（$id）',
-              icon: choices[id]?.icon ?? CupertinoIcons.question_circle,
-              selected: draft.contains(id),
-              action: !editable || (!draft.contains(id) && draft.length >= 4)
-                  ? null
-                  : () => setState(() {
-                      if (draft.contains(id)) {
-                        draft.remove(id);
-                      } else {
-                        draft.add(id);
-                      }
-                    }),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final allIds = {...choices.keys, ...draft}.toList();
+              final columns =
+                  allIds.length > 1 &&
+                      constraints.maxWidth >= 340 &&
+                      MediaQuery.textScalerOf(context).scale(17) <= 20
+                  ? 2
+                  : 1;
+              return Wrap(
+                children: [
+                  for (final id in allIds)
+                    SizedBox(
+                      width: constraints.maxWidth / columns,
+                      child: _entry(
+                        id: id,
+                        title: choices[id]?.title ?? '暂不可用的服务（$id）',
+                        icon:
+                            choices[id]?.icon ?? CupertinoIcons.question_circle,
+                        selected: draft.contains(id),
+                        action:
+                            !editable ||
+                                (!draft.contains(id) && draft.length >= 4)
+                            ? null
+                            : () => setState(() {
+                                if (draft.contains(id)) {
+                                  draft.remove(id);
+                                } else {
+                                  draft.add(id);
+                                }
+                              }),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           Wrap(
             children: [
               _button(

@@ -17,6 +17,9 @@ import 'package:ginkgo_mirror/features/graduate/graduate_credit_map_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_files_panel.dart';
 import 'package:ginkgo_mirror/infrastructure/demo_homework_files.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
+import 'package:ginkgo_mirror/features/finance/finance_page.dart';
+import 'package:ginkgo_mirror/features/network_account/network_account_page.dart';
+import 'package:ginkgo_mirror/features/evaluation/evaluation_page.dart';
 import 'package:ginkgo_mirror/features/grades/grades_page.dart';
 import 'package:ginkgo_mirror/features/library/library_books_page.dart';
 import 'package:ginkgo_mirror/features/shuttle/shuttle_page.dart';
@@ -280,6 +283,24 @@ void main() {
       await tester.tap(find.byKey(const Key('library-loans-first-read')));
       await settle(tester);
       await capture('loans-$mode');
+      await show(FinancePage(gateway: demo), dark);
+      await capture('finance-unqueried-$mode');
+      await tester.tap(find.text('读取收入记录'));
+      await settle(tester);
+      await capture('finance-masked-$mode');
+      await tester.tap(find.byKey(const Key('finance-toggle')));
+      await settle(tester);
+      await capture('finance-visible-$mode');
+      await show(
+        NetworkAccountPage(gateway: demo, officialLinks: demo),
+        dark,
+      );
+      await capture('network-unqueried-$mode');
+      await tester.tap(find.text('读取账户与流量'));
+      await settle(tester);
+      await capture('network-account-$mode');
+      await show(EvaluationPage(gateway: demo, officialLinks: demo), dark);
+      await capture('evaluation-$mode');
       await show(LibraryBooksPage(service: PublicBooks()), dark);
       await capture('books-$mode');
       await tester.enterText(
@@ -370,6 +391,11 @@ void main() {
       );
       await settle(tester, frames: 40);
       await capture('shell-more-$mode');
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('directory-finance-incomes')),
+      );
+      await settle(tester, frames: 20);
+      await capture('shell-more-campus-$mode');
       await tester.tap(
         find.descendant(
           of: find.byType(CupertinoTabBar),

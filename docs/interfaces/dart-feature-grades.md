@@ -8,6 +8,13 @@
 ## features/grades/grades_page.dart
 
 - `class GradesPage extends StatefulWidget`
-  <sub>class · features/grades/grades_page.dart:13</sub>
-    - `const GradesPage({super.key, required this.service});`  <sub>:14</sub>
-    - `State<GradesPage> createState() => …`  <sub>:17</sub>
+  <sub>class · features/grades/grades_page.dart:12</sub>
+    - `const GradesPage({super.key, required this.service});`  <sub>:13</sub>
+    - `State<GradesPage> createState() => …`  <sub>:16</sub>
+
+## features/grades/grades_visuals.dart
+
+- `class GradesInstrumentCard extends StatelessWidget` — Apple Health–inspired Hero Score + 4-band vertical distribution column chart.
+  <sub>class · features/grades/grades_visuals.dart:11</sub>
+    - `const GradesInstrumentCard({ super.key, required this.data, required this.demo, });`  <sub>:12</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:27</sub>

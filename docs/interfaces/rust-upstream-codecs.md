@@ -12,6 +12,8 @@
 - [cgyy](#cgyy) (10)
 - [checkin](#checkin) (6)
 - [classroom](#classroom) (1)
+- [evaluation](#evaluation) (5)
+- [finance](#finance) (4)
 - [grades](#grades) (1)
 - [graduate](#graduate) (3)
 - [homework](#homework) (5)
@@ -24,6 +26,7 @@
 - [library_loans](#libraryloans) (2)
 - [library_mutation](#librarymutation) (2)
 - [library_stats](#librarystats) (1)
+- [network_account](#networkaccount) (11)
 - [notices](#notices) (1)
 - [graduate](#graduate) (4)
 - [schedule](#schedule) (4)
@@ -92,6 +95,35 @@
 
 - `pub fn parse_upstream_response(value: Value) -> Result<BTreeMap<String, Vec<Room>>, AppError> {…}` — Decode the documented `buaafreeclass/search1` envelope without treating a
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/classroom.rs:20</sub>
+
+## evaluation
+
+- `pub struct EvaluationTaskMeta`
+  <sub>struct · rust/crates/ginkgo_upstream/src/codecs/evaluation.rs:8</sub>
+    - `task_id: String`  <sub>:9</sub>
+    - `task_name: Option<String>`  <sub>:10</sub>
+    - `term: Option<String>`  <sub>:11</sub>
+- `pub struct EvaluationQuestionnaire`
+  <sub>struct · rust/crates/ginkgo_upstream/src/codecs/evaluation.rs:15</sub>
+    - `id: String`  <sub>:16</sub>
+    - `name: Option<String>`  <sub>:17</sub>
+- `pub fn parse_tasks(value: &Value) -> Result<Option<EvaluationTaskMeta>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/evaluation.rs:66</sub>
+- `pub fn parse_questionnaires(value: &Value) -> Result<Vec<EvaluationQuestionnaire>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/evaluation.rs:89</sub>
+- `pub fn parse_required_reviews( value: &Value, questionnaire_id: &str, questionnaire_name: Option<&str>, ) -> Result<Vec<EvaluationCourseItem>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/evaluation.rs:113</sub>
+
+## finance
+
+- `pub fn parse_login_token(value: &Value) -> Result<String, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/finance.rs:7</sub>
+- `pub fn parse_page(value: &Value) -> Result<(Vec<FinanceIncomeEntry>, usize), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/finance.rs:15</sub>
+- `pub fn optional_minor(value: Option<&Value>) -> Result<Option<i64>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/finance.rs:179</sub>
+- `pub fn parse_decimal_minor(raw: &str) -> Result<i64, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/finance.rs:189</sub>
 
 ## grades
 
@@ -204,6 +236,31 @@
 
 - `pub fn parse(html: &str) -> Result<Vec<CampusStats>, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/library_stats.rs:33</sub>
+
+## network_account
+
+- `pub const KEY_NET_FEE: &str = "net.netFee";`
+  <sub>const · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:8</sub>
+- `pub const KEY_BOOK_NUM: &str = "book.bookNum";`
+  <sub>const · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:9</sub>
+- `pub const KEY_MAIL_UNREAD: &str = "mail.unread";`
+  <sub>const · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:10</sub>
+- `pub const KEY_CLOUD_DRIVE: &str = "wangPan.wangPan";`
+  <sub>const · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:11</sub>
+- `pub const TARGET_PORTAL_KEYS: [&str; 4] =`
+  <sub>const · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:13</sub>
+- `pub fn parse_portal_info(value: &Value) -> Result<(), AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:35</sub>
+- `pub fn parse_portal_items( value: &Value, ) -> Result<BTreeMap<String, Result<String, AppError>>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:43</sub>
+- `pub fn parse_portal_detail(value: &Value) -> Result<PortalMetricValue, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:91</sub>
+- `pub fn parse_net_fee_minor(metric: &PortalMetricValue) -> Result<i64, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:119</sub>
+- `pub fn parse_non_negative_count(metric: &PortalMetricValue) -> Result<u64, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:127</sub>
+- `pub fn parse_traffic_html(html: &str) -> Result<Vec<NetworkTrafficProduct>, AppError> {…}`
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/network_account.rs:210</sub>
 
 ## notices
 

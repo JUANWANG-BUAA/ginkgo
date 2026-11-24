@@ -97,12 +97,16 @@ ServiceDescriptor _destinationDescriptor(WorkspaceDestination destination) {
   final id = destination.id;
   return ServiceDescriptor(
     destination: destination,
-    area: id == 'settings'
+    area: id == 'settings' || id == 'network-diagnostics'
         ? ServiceArea.support
         : switch (id) {
             'library-loans' => ServiceArea.books,
             'library' || 'cgyy' || 'classroom' => ServiceArea.spaces,
-            'campus-card' || 'shuttle' || 'tasks' => ServiceArea.campus,
+            'campus-card' ||
+            'finance-incomes' ||
+            'shuttle' ||
+            'tasks' => ServiceArea.campus,
+            'network-account' => ServiceArea.support,
             'notices' ||
             'career-events' ||
             'campus-activities' => ServiceArea.information,
@@ -113,31 +117,54 @@ ServiceDescriptor _destinationDescriptor(WorkspaceDestination destination) {
         : switch (id) {
             'schedule' => const ['查课表', '考试', '上课'],
             'homework' => const ['作业', '截止'],
+            'undergraduate' => const [
+              '本科',
+              '本科教务',
+              '本研一体',
+              'byxt',
+              '考试安排',
+              '考场',
+              '选课',
+              '培养方案',
+            ],
+            'teaching-evaluation' => const ['评教', '学评教', '问卷'],
             'library' => const ['查书', '书目', '馆藏', '座位', '选座'],
             'library-loans' => const ['借书', '借阅', '还书'],
             'shuttle' => const ['校车', '班车', '摆渡车'],
             'classroom' => const ['空教室', '自习'],
             'cgyy' => const ['研讨室', '场馆'],
             'campus-card' => const ['校园卡', '余额'],
+            'network-account' => const ['网费', '流量', '校园网', '云盘', '未读邮件'],
+            'finance-incomes' => const ['财务', '助研', '津贴', '助学金', '劳务费'],
             'notices' => const ['通知', '公告'],
             'career-events' => const ['就业', '宣讲', '双选会', '招聘'],
             'campus-activities' => const ['讲座', '学术', '演出', '学术文化'],
             'checkin' => const ['签到', '打卡'],
             'tasks' => const ['本机待办', '提醒'],
+            'network-diagnostics' => const ['接口状态', '诊断', '耗时', '连通性'],
             _ => const [],
           },
     description: id == 'settings'
         ? '账号、外观、通知与本机隐私管理'
         : switch (id) {
+            'network-diagnostics' => '查看各模块实时可用性、缓存与响应耗时',
             'library' => '图书馆座位及公开书目入口',
             'library-loans' => '按需读取本人借阅',
             'shuttle' => '学校公布的计划时刻',
             'campus-card' => '按需查看校园卡余额',
+            'network-account' => '按需查看网费余额、校园网流量与门户指标',
+            'finance-incomes' => '按需查看助研津贴、助学金与劳务费记录',
+            'teaching-evaluation' => '只读检查本学期课程评教完成状态',
+            'undergraduate' => '本科课表、考试安排、绩点总览与 BYXT 官网入口',
             'campus-activities' => '学校官网讲座与演出，含活动时间和地点',
             _ => '打开${destination.title}',
           },
     sensitivity: switch (id) {
-      'campus-card' || 'library-loans' || 'grades' => '个人敏感信息',
+      'campus-card' ||
+      'finance-incomes' ||
+      'network-account' ||
+      'library-loans' ||
+      'grades' => '个人敏感信息',
       'settings' => '本机设置',
       'notices' ||
       'shuttle' ||
@@ -147,7 +174,10 @@ ServiceDescriptor _destinationDescriptor(WorkspaceDestination destination) {
     },
     cachePolicy: id == 'settings'
         ? '本机数据'
-        : id == 'campus-card' || id == 'library-loans'
+        : id == 'campus-card' ||
+              id == 'finance-incomes' ||
+              id == 'network-account' ||
+              id == 'library-loans'
         ? '按需读取'
         : '遵循该功能的缓存策略',
   );
@@ -211,9 +241,14 @@ class ServiceSearchContent extends StatelessWidget {
             onChanged: onChanged,
           ),
         ),
-        const Padding(
+        Padding(
           padding: GinkgoSpacing.edgeInsetsPage,
-          child: Text('搜索服务，不检索个人记录；未收录的服务不会出现在结果中。'),
+          child: Text(
+            '搜索服务，不检索个人记录；未收录的服务不会出现在结果中。',
+            style: GinkgoTypography.footnote.copyWith(
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
         ),
         if (showResults && matches.isEmpty)
           const AppleSection(

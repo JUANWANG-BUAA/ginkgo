@@ -115,4 +115,7 @@ pub mod demo_campus;
 
 mod homework_submission_service;
 
+mod evaluation_service;
+mod finance_service;
 mod learning_service;
+mod network_account_service;

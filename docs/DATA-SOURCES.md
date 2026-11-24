@@ -16,7 +16,7 @@
 | ✅ 允许 | **余额查询（只读）**：校园卡余额、网费余额。不改变上游状态、不涉及资金变动；必须由用户主动触发、仅内存展示、不落盘、不写日志、金额默认遮挡 |
 | ❌ 禁止 | **缴费/充值/挂失/转账等资金写操作**；预约、签到、续借提交、评教提交、请假/审批提交等写操作仍按 COLLABORATION §3.5 人工确认、不自动重试 |
 | ❌ 默认不做 | 他人名单/公示正文、通讯录、成绩单/在读证明下载（含完整个人信息）、后台批量抓取、验证码绕过 |
-| ⚠️ 部分已取证 | 校园卡使用航财通 `pass.cc-pay.cn`：`channel=BUAASSO` 跳北航统一认证，`GET /api/campus_cards` 与 `GET /api/campus_card/balance` 只读；详见 [API](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) §6E。网费余额仍待取证；两类均不接入资金写操作 |
+| ⚠️ 部分已取证 | 校园卡使用航财通 `pass.cc-pay.cn`：`channel=BUAASSO` 跳北航统一认证，`GET /api/campus_cards` 与 `GET /api/campus_card/balance` 只读；详见 [API](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) §6E。财务收入（`icw.buaa.edu.cn` → `chaxun.icw.buaa.edu.cn`，[API](API.md#6h-财务收入查询网上财务综合信息系统工作树只读待真机验收) §6H）与门户指标 / 网费流量（`it.buaa.edu.cn` + `zfw.buaa.edu.cn`，[API](API.md#6i-门户个人指标与网费流量统一门户与网络自助工作树只读待真机验收) §6I）已在工作树按独立窄接口只读接入，待真机实网验收；均不接入任何资金写操作 |
 
 ---
 
@@ -55,13 +55,14 @@
 | 我的借阅列表/到期日/可续借状态 | `space.lib.buaa.edu.cn/space/reader/readerHome`；`GET /meta-local/opac/users/loans`（未登录 401）、`/loan_hists`、`/circrules` | 读 | 中：借阅历史属个人数据 | **P1** |
 | 续借 | `POST /opac/users/renew`、`POST /opac/users/batch_renew` | **写** | 高：改上游状态 | 暂不做；如做须人工确认 |
 | 座位/研讨室预约记录 | `booking.lib.buaa.edu.cn/v4/index/subscribe`（登录后） | 读 | 中 | 已接入，补展示 |
-| 评教状态 | `app.buaa.edu.cn/buaapj/wap/default/index`（302→登录） | 读 | 低：只看是否已评 | P2 |
+| 评教状态 | `https://spoc.buaa.edu.cn/pjxt/`（CAS 激活 `/pjxt/cas`，`listObtainPersonnelEvaluationTasks` → `getQuestionnaireListToTask` → `getRequiredReviewsData?wjid=...&xnxq=...`；旧候选 `app.buaa.edu.cn/buaapj` 已过期弃用，见 [API](API.md#6j-课程评教状态查询spoc-评教系统工作树只读不接提交待真机验收) §6J） | 读 | 低：只看本学期未评/已评，不接提交 | **P1（工作树只读，待真机验收）** |
 | 离校/请假状态 | `app.buaa.edu.cn/buaaleave/wap/default/index` | 读 | 中 | P2 |
 | iHome/一网通办待办与进度 | `n.buaa.edu.cn`（个人事项需 CAS）、`i.buaa.edu.cn`（外网需 WebVPN） | 读 | 中：可能含他人信息 | P2 |
 | 阳光打卡 | `ygdk.buaa.edu.cn`（官方静态链已定位，完整最终 URL／线缆未验） | 手动填写后单次提交＋照片上传；仅静态研究 | 高：公开范围、照片与多段业务写 | **P1 写门禁**（用户明确需求；未实现、未真实写） |
 | 研究生学籍/培养/学位进度 | `gsmis.buaa.edu.cn`（已接入部分） | 读 | 中 | 已有基础上补字段 |
-| 校园卡余额 | `card.buaa.edu.cn`（校外 403）或 i北航/一网通办入口 | 读 | **允许（只读）** | **P1** |
-| 网费余额 | `zfw.buaa.edu.cn`（登录页；校外需 VPN） | 读 | **允许（只读）** | **P1** |
+| 校园卡余额 | `pass.cc-pay.cn`（已接工作树）或 `it.buaa.edu.cn/buaa/frontend/card/balance`（校内门户备选） | 读 | **允许（只读）** | **P1** |
+| 财务收入明细（助研/助学/劳务） | `icw.buaa.edu.cn/jump.aspx?sysid=wscx` → `chaxun.icw.buaa.edu.cn/api-zhcx/getStudentSRCX`（见 [API](API.md#6h-财务收入查询网上财务综合信息系统工作树只读待真机验收) §6H） | 读 | **允许（只读，默认遮挡、白名单剔除证件/银行卡）** | **P1（工作树只读，待真机验收）** |
+| 网费余额与流量明细 | `it.buaa.edu.cn/personal/frontend/data/{items,detail}`（网费余额/待还书/未读邮件/云盘余量）+ `zfw.buaa.edu.cn/home`（经 `/sso/cas/index` 激活，流量与套餐只读，见 [API](API.md#6i-门户个人指标与网费流量统一门户与网络自助工作树只读待真机验收) §6I） | 读 | **允许（只读）** | **P1（工作树只读，待真机验收）** |
 | 校园卡消费明细 | 同上 | 读 | 高：可推断消费行为；默认不展示 | P3 / 默认关闭 |
 | 四六级 | `cet-bm.neea.edu.cn` / `cet.neea.edu.cn` | 读 | 低（非校内） | 仅入口提醒 |
 

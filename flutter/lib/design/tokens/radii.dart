@@ -11,6 +11,7 @@ abstract final class GinkgoRadii {
   /// Inset list groups stay softly rounded without making each section read as
   /// a floating card. The native iOS academic surfaces use a 12pt radius.
   static const double group = 16.0;
+  static const double pill = 999.0;
 
   static final borderRadiusDialog = BorderRadius.circular(dialog);
 }

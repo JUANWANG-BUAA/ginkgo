@@ -16,6 +16,8 @@
 - [checkin](#checkin) (4)
 - [checkin_qr](#checkinqr) (2)
 - [classroom](#classroom) (11)
+- [evaluation](#evaluation) (3)
+- [finance](#finance) (2)
 - [grades](#grades) (4)
 - [graduate](#graduate) (4)
 - [homework](#homework) (9)
@@ -24,6 +26,7 @@
 - [library_loans](#libraryloans) (2)
 - [library_stats](#librarystats) (3)
 - [mutation](#mutation) (5)
+- [network_account](#networkaccount) (3)
 - [notices](#notices) (1)
 - [reminders](#reminders) (8)
 - [schedule](#schedule) (9)
@@ -336,6 +339,45 @@
 - `pub fn filter(request: FilterRequest) -> Result<FilterResult, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_domain/src/features/classroom.rs:140</sub>
 
+## evaluation
+
+- `pub enum EvaluationCourseStatus`
+  <sub>enum · rust/crates/ginkgo_domain/src/features/evaluation.rs:2</sub>
+- `pub struct EvaluationCourseItem`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/evaluation.rs:9</sub>
+    - `id: String`  <sub>:10</sub>
+    - `course_name: String`  <sub>:11</sub>
+    - `teacher_name: Option<String>`  <sub>:12</sub>
+    - `questionnaire_name: Option<String>`  <sub>:13</sub>
+    - `category: Option<String>`  <sub>:14</sub>
+    - `status: EvaluationCourseStatus`  <sub>:15</sub>
+- `pub struct TeachingEvaluationReport`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/evaluation.rs:19</sub>
+    - `task_id: Option<String>`  <sub>:20</sub>
+    - `task_name: Option<String>`  <sub>:21</sub>
+    - `term: Option<String>`  <sub>:22</sub>
+    - `courses: Vec<EvaluationCourseItem>`  <sub>:23</sub>
+
+## finance
+
+- `pub struct FinanceIncomeEntry`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/finance.rs:2</sub>
+    - `id: String`  <sub>:3</sub>
+    - `project: Option<String>`  <sub>:4</sub>
+    - `description: Option<String>`  <sub>:5</sub>
+    - `gross_minor: Option<i64>`  <sub>:6</sub>
+    - `tax_minor: Option<i64>`  <sub>:7</sub>
+    - `net_minor: Option<i64>`  <sub>:8</sub>
+    - `tax_rate: Option<String>`  <sub>:9</sub>
+    - `recorded_date: Option<String>`  <sub>:10</sub>
+    - `year: Option<String>`  <sub>:11</sub>
+    - `month: Option<String>`  <sub>:12</sub>
+- `pub struct FinanceIncomeReport`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/finance.rs:16</sub>
+    - `entries: Vec<FinanceIncomeEntry>`  <sub>:17</sub>
+    - `total: u32`  <sub>:18</sub>
+    - `fetched_at: String`  <sub>:19</sub>
+
 ## grades
 
 - `pub struct GradeCourse`
@@ -568,6 +610,31 @@
   <sub>fn · rust/crates/ginkgo_domain/src/features/mutation.rs:25</sub>
 - `pub fn not_submitted(message: &str) -> Self {…}`
   <sub>fn · rust/crates/ginkgo_domain/src/features/mutation.rs:31</sub>
+
+## network_account
+
+- `pub struct PortalMetricValue`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/network_account.rs:4</sub>
+    - `value: String`  <sub>:5</sub>
+    - `unit: Option<String>`  <sub>:6</sub>
+- `pub struct NetworkTrafficProduct`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/network_account.rs:10</sub>
+    - `product_name: Option<String>`  <sub>:11</sub>
+    - `used_text: String`  <sub>:12</sub>
+    - `free_remaining_text: String`  <sub>:13</sub>
+    - `paid_remaining_text: String`  <sub>:14</sub>
+    - `package_count: u32`  <sub>:15</sub>
+- `pub struct NetworkAccountReport`
+  <sub>struct · rust/crates/ginkgo_domain/src/features/network_account.rs:19</sub>
+    - `net_fee_minor: Option<i64>`  <sub>:20</sub>
+    - `net_fee_failure: Option<ErrorCode>`  <sub>:21</sub>
+    - `unreturned_books: Option<PortalMetricValue>`  <sub>:22</sub>
+    - `unread_mail: Option<PortalMetricValue>`  <sub>:23</sub>
+    - `cloud_drive_free: Option<PortalMetricValue>`  <sub>:24</sub>
+    - `portal_failure: Option<ErrorCode>`  <sub>:25</sub>
+    - `traffic_products: Vec<NetworkTrafficProduct>`  <sub>:26</sub>
+    - `traffic_failure: Option<ErrorCode>`  <sub>:27</sub>
+    - `fetched_at: String`  <sub>:28</sub>
 
 ## notices
 

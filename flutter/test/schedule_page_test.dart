@@ -51,7 +51,7 @@ class DayScheduleService extends ControlledService {
 
 void main() {
   testWidgets(
-    'narrow schedule defaults to a selected day and searches all week',
+    'phone schedule opens full 7-day week grid, switches to agenda day strip, and toggles search',
     (tester) async {
       tester.view.physicalSize = const Size(430, 1100);
       tester.view.devicePixelRatio = 1;
@@ -61,7 +61,14 @@ void main() {
         ginkgoApp(home: SchedulePage(service: DayScheduleService())),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(ScheduleGrid), findsNothing);
+      // Opens directly to the full-week iOS timetable grid showing all courses.
+      expect(find.byType(ScheduleGrid), findsOneWidget);
+      expect(find.text('算法设计与分析'), findsOneWidget);
+      expect(find.text('操作系统'), findsOneWidget);
+
+      // Switch to Apple Calendar agenda mode (每日清单).
+      await tester.tap(find.text('每日清单'));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('schedule-day-strip')), findsOneWidget);
       expect(find.text('算法设计与分析'), findsOneWidget);
       expect(find.text('操作系统'), findsNothing);
@@ -71,6 +78,9 @@ void main() {
       expect(find.text('算法设计与分析'), findsNothing);
       expect(find.text('操作系统'), findsOneWidget);
 
+      // Expand search via the compact iOS toolbar icon and search all week.
+      await tester.tap(find.byKey(const Key('schedule-search-toggle')));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('schedule-search')), '算法');
       await tester.pumpAndSettle();
       expect(find.text('算法设计与分析'), findsOneWidget);

@@ -1,3 +1,5 @@
+export 'package:ginkgo_mirror/application/campus_card.dart'
+    show CampusCardGateway;
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/career.dart';
 import 'package:ginkgo_mirror/application/cgyy_commands.dart';
@@ -12,6 +14,8 @@ export 'package:ginkgo_mirror/application/local_tasks.dart'
     show LocalTaskGateway;
 import 'package:ginkgo_mirror/application/notices.dart';
 import 'package:ginkgo_mirror/application/shuttle.dart';
+export 'package:ginkgo_mirror/application/student_service_links.dart'
+    show StudentServiceLinksGateway;
 import 'package:ginkgo_mirror/application/library_books.dart';
 import 'package:ginkgo_mirror/application/graduate.dart';
 import 'package:ginkgo_mirror/application/bykc.dart';
@@ -31,15 +35,6 @@ abstract interface class MirrorService
 abstract interface class VerifiedRouteGateway {
   Future<RouteChoice?> lastVerifiedRoute();
   Future<FailureCode?> switchVerifiedRoute(RouteChoice route);
-}
-
-abstract interface class CampusCardGateway implements MirrorEnvironment {
-  Future<CampusCardBalanceResponse> campusCardBalance();
-}
-
-/// Public official destinations only; does not read or transmit account data.
-abstract interface class StudentServiceLinksGateway {
-  String? studentServiceUrl(String id);
 }
 
 /// Public career-calendar reads; no login and no background refresh.

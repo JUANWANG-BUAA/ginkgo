@@ -128,6 +128,9 @@ Flutter 页面
 | 研究生教务 | `graduate` | 读 | GSMIS | `GraduateGateway.graduatePart`、[`GraduateCreditMapGateway`](#710-graduatecreditmapgateway) | `load_graduate_part`、`load_graduate_credit_map` | `GraduateSource` | [§7.4](API.md#74-培养方案执行报告结构化类别课组) |
 | 校园通知 | `notices` | 读 | 新闻网 | `NoticeGateway.notices` | `load_notices` | `NoticeSource` | [§7.3](API.md#73-2026-10-18-教育系统只读数据盘点) |
 | 校园卡余额 | `campus-card` | 读 | 航财通 | [`CampusCardGateway`](#714-campuscardgateway) | `load_campus_card_balance` | `CampusCardBalanceSource` | [§6E](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) |
+| 财务收入 | `finance-incomes` | 读 | 财务查询系统 | [`FinanceIncomeGateway`](#715-窄接口只读扩展) | `load_finance_incomes` | `FinanceIncomeSource` | [§6H](API.md#6h-财务收入查询网上财务综合信息系统工作树只读待真机验收) |
+| 网费与流量 | `network-account` | 读 | 统一门户 / 网络自助 | [`NetworkAccountGateway`](#715-窄接口只读扩展) | `load_network_account` | `NetworkAccountSource` | [§6I](API.md#6i-门户个人指标与网费流量统一门户与网络自助工作树只读待真机验收) |
+| 课程评教 | `teaching-evaluation` | 读 | SPOC 评教 | [`TeachingEvaluationGateway`](#715-窄接口只读扩展) | `load_teaching_evaluation` | `TeachingEvaluationSource` | [§6J](API.md#6j-课程评教状态查询spoc-评教系统工作树只读不接提交待真机验收) |
 | 就业活动 | `career-events` | 读 | 学校就业网 | `CareerEventsGateway` | `load_career_events` | `CareerEventsSource` | [§6G](API.md#6g-就业活动公开月历工作树只读) |
 | 学术文化 | `campus-activities` | 读 | 学校公开页 | `CampusActivitiesGateway` | `load_campus_activities` | `CampusActivitiesSource` | [§6F](API.md#6f-学术文化公开列表工作树只读) |
 | 校车时刻表 | `shuttle` | 读 | 学校公开页 | `ShuttleGateway.shuttleTimetable` | `load_shuttle_timetable` | `ShuttleSource` | [§6C](API.md#6c-智慧校车脚本静态本人查询页面观察未购票) |
@@ -150,6 +153,9 @@ Flutter 页面
 | [§5.5 官网实时空间数据](API.md#55-官网实时空间数据公开只读) | `adapters/library_stats_http.rs` | `/engine2/buaa/more/1082575`（公开只读，与选座会话隔离） | `library_stats_service` |
 | [§6 图书目录与借阅](API.md#6-图书目录馆藏与本人借阅2026-10-23-部分只读验证) | `adapters/library_books_http.rs`、`library_loans_http.rs` | `/meta-local/opac/search`、`/bibs/`、`/users/loans` | `library_books_service`、`library_loans_service` |
 | [§6E 校园卡余额](API.md#6e-校园卡余额官方前端与脱敏结构真实-app-验收中) | `adapters/campus_card_http.rs` | `/api/campus_cards`、`/api/campus_card/balance` | `campus_card_service` |
+| [§6H 财务收入](API.md#6h-财务收入查询网上财务综合信息系统工作树只读待真机验收) | `adapters/finance_http.rs` | `PORTAL_START`、`JUMP_URL`、`API_LOGIN_URL`、`API_SRCX_URL` | `finance_service` |
+| [§6I 门户指标与流量](API.md#6i-门户个人指标与网费流量统一门户与网络自助工作树只读待真机验收) | `adapters/network_account_http.rs` | `PORTAL_ITEMS`、`PORTAL_DETAIL_BASE`、`ZFW_HOME` | `network_account_service` |
+| [§6J 课程评教状态](API.md#6j-课程评教状态查询spoc-评教系统工作树只读不接提交待真机验收) | `adapters/evaluation_http.rs` | `CAS_START`、`TASKS_URL`、`QUESTIONNAIRES_URL`、`REVIEWS_URL` | `evaluation_service` |
 | [§6F 学术文化](API.md#6f-学术文化公开列表工作树只读) | `adapters/campus_activities_http.rs` | `/index/xswh1.htm`、`/index/xswh1/<page>.htm` | `campus_activities_service` |
 | [§6G 就业活动](API.md#6g-就业活动公开月历工作树只读) | `adapters/career_http.rs` | `/f/recruitmentFair/ajax_calendar_list?time=YYYY-MM` | `career_service` |
 | [§6A 空教室](API.md#6a-空教室源码已核对真机待验收) | `adapters/classroom_http.rs` | `ACTIVATION_URL`、`CLASSROOM_BASE`、`/kc/queryXskcListPage` | `classroom_service` |
@@ -248,7 +254,10 @@ pub struct DataOutcome<T> {
 | `NoticeSource` | `load_notices` | `ports/notices.rs` |
 | `CareerEventsSource` | `load_career_events` | `ports/career.rs` |
 | `CampusActivitiesSource` | `load_campus_activities` | `ports/campus_activities.rs` |
-| `CampusCardBalanceSource` | `load_campus_card_balance` | `ports/campus_card.rs` |
+| `CampusCardBalanceSource` | `campus_card_balance` | `ports/campus_card.rs` |
+| `FinanceIncomeSource` | `finance_incomes` | `ports/finance.rs` |
+| `NetworkAccountSource` | `network_account` | `ports/network_account.rs` |
+| `TeachingEvaluationSource` | `load_teaching_evaluation` | `ports/evaluation.rs` |
 | `ShuttleSource` | `load_shuttle_timetable` | `ports/shuttle.rs` |
 | `LearningSnapshotSource` | `export_learning_snapshots`、`import_learning_snapshots` | `ports/query_snapshots.rs` |
 
@@ -282,7 +291,7 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ## 6. FFI 命令层
 
-`ginkgo_flutter_bridge` 导出 **92 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 infrastructure 适配器调用生成命令；页面仅经 [contracts.dart](../flutter/lib/application/contracts.dart) 引用类型。
+`ginkgo_flutter_bridge` 导出 **97 个命令**，是 Dart 唯一可见的 Rust 面。Dart 侧只允许 infrastructure 适配器调用生成命令；页面仅经 [contracts.dart](../flutter/lib/application/contracts.dart) 引用类型。
 
 命令计数口径：`flutter/lib/src/rust/api/**` 生成的 Dart 命令函数；以生成门禁统计为准。改命令后同步本行与 [§6.10](#610-返回形态与载荷契约)。
 
@@ -343,11 +352,11 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 
 ### 6.10 返回形态与载荷契约
 
-94 个命令按返回形态分为两类：
+97 个命令按返回形态分为两类：
 
 | 形态 | 数量 | 含义 | 解码位置 |
 | --- | --- | --- | --- |
-| 类型化 DTO | 94 | 命令直接返回结构体（`SessionResponse`、`SavedCredentialResponse`、`ScheduleResponse`、`CheckInResponse`、`CheckInQrResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
+| 类型化 DTO | 97 | 命令直接返回结构体（`SessionResponse`、`SavedCredentialResponse`、`ScheduleResponse`、`CheckInResponse`、`CheckInQrResponse`、`FinanceIncomeResponse`、`NetworkAccountResponse`、`TeachingEvaluationResponse`、`MutationResponse`、`CgyyLoadResponse` …） | Rust 端投影；Dart 只做 DTO → 呈现模型 |
 | `ReadOnlyResponse` 载荷 | 0 | —— | —— |
 
 使用载荷信封的 0 个命令：
@@ -442,6 +451,12 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 ### 7.14 CampusCardGateway
 
 `campusCardBalance()` → `CampusCardBalanceResponse`。独立只读接口，用户主动触发；金额以整数分返回，不包含卡号、银行卡或消费明细，不写通用查询快照。
+
+### 7.15 窄接口只读扩展
+
+- `FinanceIncomeGateway.loadFinanceIncomes()` → `FinanceIncomeRead`（`application/finance.dart`）：按需只读收入查询，白名单字段投影，不持久化。
+- `NetworkAccountGateway.loadNetworkAccount()` → `NetworkAccountRead`（`application/network_account.dart`）：按需只读网费余额、门户指标与流量明细，局部故障隔离，不持久化。
+- `TeachingEvaluationGateway.loadTeachingEvaluation({forceRefresh})` → `TeachingEvaluationRead`（`application/evaluation.dart`）：纯只读评教完成状态快照，不含提交动作。
 
 ## 7A. Flutter UI 层接口约定
 
@@ -539,6 +554,9 @@ CGYY 的本地 JSON 契约（`action`、参数约束、`state` 语义、TTL 与�
 | `notices` | `forceRefresh` | `NoticesResponse{data[], failure}` | 读失败保留旧值 | 进程快照 |
 | `shuttle` | — | `ShuttleTimetableResponse{source, tables[]}` | 读失败保留旧值 | 进程快照 |
 | `campus-card` | 用户主动查询 | `CampusCardBalanceResponse{balanceMinor, fetchedAt, failure}` | 失败仅保留本页旧值并标注可能过期 | **不持久化**；离页/后台/换账号清除，默认遮挡，无轮询或资金写操作 |
+| `finance-incomes` | 用户主动查询（账号绑定） | `FinanceIncomeResponse{data{entries[], total, fetchedAt}, failure}` | 失败与确认空分开显示 | **不持久化**；离页/后台/换账号清除，默认遮挡，剥离敏感证件与卡号 |
+| `network-account` | 用户主动查询（账号绑定） | `NetworkAccountResponse{data{netFeeMinor, portalFailure, trafficProducts[], trafficFailure, fetchedAt}, failure}` | 双侧独立故障展示或整页失败 | **不持久化**；离页/后台/换账号清除，默认遮挡，无充值写操作 |
+| `teaching-evaluation` | `forceRefresh`（账号绑定） | `TeachingEvaluationResponse{data{taskName, term, courses[], fetchedAt, stale}, failure}` | 读失败保留旧快照；无任务为空结果 | 进程快照（TTL 300s），无提交写操作 |
 | `tasks` | `action` + 任务字段 | 本机任务列表 | 损坏拒绝覆盖 | `tasks-<SHA-1(account)>.json`，v1→v2 原子升级 |
 | `learning-snapshots` | `enabled` / 导出字节 | `LearningSnapshotStatus` | 导入失败不部分生效 | 可选加密快照文件 |
 | `reminders` | 课程、作业、待办、签到快照 | `ExtendedReminderPlans` | 规划失败不影响主流程 | 已读摘要与开关（按账号） |

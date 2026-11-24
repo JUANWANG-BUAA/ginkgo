@@ -1,7 +1,8 @@
-import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
@@ -43,8 +44,7 @@ String scheduleViewModeDescription(ScheduleViewMode mode) => switch (mode) {
   ScheduleViewMode.exam => '考试',
 };
 
-/// One course in the day list. Large type stacks the time above the content;
-/// otherwise a color spine separates a fixed-width time column.
+/// iOS Calendar-style course row in the daily schedule list.
 class ScheduleCourseRow extends StatelessWidget {
   const ScheduleCourseRow({super.key, required this.course, this.onTap});
   final ScheduleCourse course;
@@ -53,79 +53,150 @@ class ScheduleCourseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final large = MediaQuery.textScalerOf(context).scale(16) > 22;
-    final time = Column(
+    final accent = courseColor(context, course.color, course.name);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+
+    final sectionPill = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GinkgoSpacing.small,
+        vertical: GinkgoSpacing.opticalIconInset,
+      ),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(GinkgoRadii.badge),
+      ),
+      child: Text(
+        '${course.startSection}–${course.endSection}节',
+        maxLines: 1,
+        style: GinkgoTypography.caption2.copyWith(
+          fontWeight: FontWeight.w600,
+          fontFeatures: GinkgoTypography.tabularDigits,
+          color: accent,
+        ),
+      ),
+    );
+
+    final timeColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           course.startTime ?? '时间待定',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: GinkgoTypography.headline.copyWith(
+            fontWeight: FontWeight.w700,
+            fontFeatures: GinkgoTypography.tabularDigits,
+            color: CupertinoColors.label.resolveFrom(context),
+          ),
         ),
-        if (course.endTime != null)
+        if (course.endTime != null) ...[
+          const SizedBox(height: GinkgoSpacing.opticalIconInset),
           Text(
             course.endTime!,
-            style: scheduleSecondary(context).copyWith(fontSize: 13),
+            style: GinkgoTypography.caption.copyWith(
+              fontFeatures: GinkgoTypography.tabularDigits,
+              color: secondary,
+            ),
           ),
-        const SizedBox(height: 5),
-        Text(
-          '第${course.startSection}–${course.endSection}节',
-          style: scheduleSecondary(context).copyWith(fontSize: 12),
-        ),
+        ],
+        const SizedBox(height: GinkgoSpacing.xs),
+        sectionPill,
       ],
     );
-    final content = Column(
+
+    final contentColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(course.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        if (course.place?.isNotEmpty == true)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(course.place!, style: scheduleSecondary(context)),
+        Text(
+          course.name,
+          style: GinkgoTypography.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: CupertinoColors.label.resolveFrom(context),
           ),
-        if (course.teacher?.isNotEmpty == true)
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(course.teacher!, style: scheduleSecondary(context)),
+        ),
+        if (course.place?.isNotEmpty == true) ...[
+          const SizedBox(height: GinkgoSpacing.xs),
+          Row(
+            children: [
+              Icon(CupertinoIcons.placemark_fill, size: 13, color: accent),
+              const SizedBox(width: GinkgoSpacing.xs),
+              Expanded(
+                child: Text(
+                  course.place!,
+                  maxLines: large ? 2 : 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GinkgoTypography.subheadline.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ],
+        if (course.teacher?.isNotEmpty == true) ...[
+          const SizedBox(height: GinkgoSpacing.xs),
+          Row(
+            children: [
+              Icon(CupertinoIcons.person_2, size: 13, color: secondary),
+              const SizedBox(width: GinkgoSpacing.xs),
+              Expanded(
+                child: Text(
+                  course.teacher!,
+                  maxLines: large ? 3 : 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GinkgoTypography.footnote.copyWith(color: secondary),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
+
     return CupertinoButton(
       key: Key('schedule-course-${course.id}'),
-      padding: const EdgeInsets.all(16),
+      padding: GinkgoSpacing.edgeInsetsFocusRow,
       onPressed: onTap,
       child: Row(
         children: [
           Expanded(
             child: DefaultTextStyle(
-              style: DefaultTextStyle.of(context).style
-                  .copyWith(color: CupertinoColors.label.resolveFrom(context)),
+              style: DefaultTextStyle.of(context).style.copyWith(
+                color: CupertinoColors.label.resolveFrom(context),
+              ),
               child: large
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [time, const SizedBox(height: 12), content],
+                      children: [
+                        timeColumn,
+                        const SizedBox(height: GinkgoSpacing.sm),
+                        contentColumn,
+                      ],
                     )
                   : Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(width: 78, child: time),
-                        Container(
-                          width: 4,
-                          height: 52,
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: courseColor(
-                              context,
-                              course.color,
-                              course.name,
+                        SizedBox(width: 72, child: timeColumn),
+                        const SizedBox(width: GinkgoSpacing.sm),
+                        Expanded(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(color: accent, width: 3.5),
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(2),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: GinkgoSpacing.md,
+                              ),
+                              child: contentColumn,
+                            ),
                           ),
                         ),
-                        Expanded(child: content),
                       ],
                     ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: GinkgoSpacing.sm),
           Icon(
             CupertinoIcons.chevron_forward,
             size: 14,
@@ -162,19 +233,20 @@ class ScheduleChevronRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CupertinoButton(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    padding: GinkgoSpacing.edgeInsetsListTile,
     minimumSize: const Size(48, 48),
     onPressed: onTap,
     child: Row(
       children: [
         Expanded(
           child: DefaultTextStyle(
-            style: DefaultTextStyle.of(context).style
-                .copyWith(color: CupertinoColors.label.resolveFrom(context)),
+            style: DefaultTextStyle.of(context).style.copyWith(
+              color: CupertinoColors.label.resolveFrom(context),
+            ),
             child: child,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: GinkgoSpacing.sm),
         Icon(
           CupertinoIcons.chevron_forward,
           size: 14,

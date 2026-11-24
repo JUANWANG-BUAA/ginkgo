@@ -61,9 +61,9 @@
 ## features/homework/homework_page.dart
 
 - `class HomeworkPage extends StatefulWidget`
-  <sub>class · features/homework/homework_page.dart:24</sub>
-    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:25</sub>
-    - `State<HomeworkPage> createState() => …`  <sub>:39</sub>
+  <sub>class · features/homework/homework_page.dart:23</sub>
+    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:24</sub>
+    - `State<HomeworkPage> createState() => …`  <sub>:38</sub>
 
 ## features/homework/homework_projection.dart
 
@@ -77,6 +77,13 @@
   <sub>function · features/homework/homework_projection.dart:103</sub>
 - `CupertinoDynamicColor homeworkDeadlineTint( String? dueAt, [ DateTime? beijingNow, ]) {…}` — Color for the deadline status:
   <sub>function · features/homework/homework_projection.dart:178</sub>
+
+## features/homework/homework_visuals.dart
+
+- `class HomeworkTelemetryCard extends StatelessWidget` — Compact Things-3 / Linear–inspired urgency & completion ribbon for HomeworkPage.
+  <sub>class · features/homework/homework_visuals.dart:9</sub>
+    - `const HomeworkTelemetryCard({ super.key, required this.pending, required this.submitted, required this.overdue, required this.unknown, required this.overduePending, required this.termCode, required this.demo, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
 
 ## features/homework/homework_widgets.dart
 

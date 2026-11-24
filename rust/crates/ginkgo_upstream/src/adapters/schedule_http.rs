@@ -17,6 +17,9 @@ pub const COURSES_URL: &str =
 pub const EXAMS_URL: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/exams.do";
 pub const TODAY_URL: &str =
     "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/teachingSchedule/detail.do";
+/// Student-portal activation page used by the reference `buaa-api` AAS login.
+pub const ACTIVATION_URL: &str = "https://sso.buaa.edu.cn/login?service=https%3A%2F%2Fbyxt.buaa.edu.cn%2Fjwapp%2Fsys%2Fhomeapp%2Findex.do%3FcontextPath%3D%2Fjwapp";
+const ACTIVATION_LANDING: &str = "/jwapp/sys/homeapp/index.do";
 const HOME_REFERER: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html";
 const EXAM_REFERER: &str = "https://byxt.buaa.edu.cn/jwapp/sys/homeapp/home/index.html";
 // Pinned UBAA applies this header, then Ktor ContentNegotiation appends JSON.
@@ -51,6 +54,22 @@ pub async fn detect_portal<T: HttpTransport>(session: &Session<T>) -> Result<Por
         return Ok(Portal::Unconfirmed);
     }
     Err(AppError::new(ErrorCode::ServiceUnavailable))
+}
+
+/// Visit the portal home once through the normal session so BYXT initialises
+/// the student's timetable context. Used only to retry an unexpectedly empty
+/// week, never as a precondition for every read.
+pub async fn activate_portal<T: HttpTransport>(session: &Session<T>) -> Result<(), AppError> {
+    let response = session
+        .send_following_redirects(HttpRequest::get(ACTIVATION_URL))
+        .await?;
+    if is_login_response(&response) {
+        return Err(AppError::session_expired());
+    }
+    if !(200..300).contains(&response.status) || !response.final_url.contains(ACTIVATION_LANDING) {
+        return Err(AppError::changed());
+    }
+    Ok(())
 }
 
 pub async fn load_terms<T: HttpTransport>(session: &Session<T>) -> Result<Vec<Term>, AppError> {

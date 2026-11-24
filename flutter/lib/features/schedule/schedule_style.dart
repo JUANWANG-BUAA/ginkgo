@@ -1,16 +1,17 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
 const weekdayNames = schoolWeekdays;
+const shortWeekdayLetters = ['一', '二', '三', '四', '五', '六', '日'];
 
 /// Quiet secondary text used across the schedule surface.
-TextStyle scheduleSecondary(BuildContext context) => TextStyle(
-  fontSize: 14,
-  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-);
+TextStyle scheduleSecondary(BuildContext context) => GinkgoTypography
+    .subheadline
+    .copyWith(color: CupertinoColors.secondaryLabel.resolveFrom(context));
 
 Color courseColor(BuildContext context, String? value, [String name = '']) {
   if (value != null) {
@@ -56,8 +57,7 @@ String shortDate(String date) {
 
 /// Column of today inside a week that starts on [weekStart], counting from 1.
 ///
-/// Returns null when today is outside that week. The grid uses this to
-/// highlight the current weekday.
+/// Returns null when today is outside that week.
 int? scheduleTodayColumn(String? weekStart) {
   final start = DateTime.tryParse(weekStart ?? '');
   if (start == null) return null;
@@ -68,9 +68,6 @@ int? scheduleTodayColumn(String? weekStart) {
 }
 
 /// Title of one weekday inside a week, e.g. `周一 · 10/19 · 今天`.
-///
-/// [weekStart] is the first day of the week; without it only the weekday
-/// name is shown.
 String scheduleDayTitle(int day, String? weekStart) {
   final start = DateTime.tryParse(weekStart ?? '');
   final date = start?.add(Duration(days: day - 1));

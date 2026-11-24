@@ -1,10 +1,13 @@
 import 'package:ginkgo_mirror/application/auth_challenge.dart';
 import 'package:ginkgo_mirror/application/campus_activities.dart';
+import 'package:ginkgo_mirror/application/evaluation.dart';
+import 'package:ginkgo_mirror/application/finance.dart';
 import 'package:ginkgo_mirror/application/graduate_credit_map.dart';
 import 'package:ginkgo_mirror/application/learning.dart';
 import 'package:ginkgo_mirror/application/learning_context.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/network_account.dart';
 import 'package:ginkgo_mirror/application/query_snapshots.dart';
 import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/application/saved_credential.dart';
@@ -33,6 +36,9 @@ class ServiceCapabilities {
     this.libraryLoans,
     this.libraryLoansOfficial,
     this.campusCard,
+    this.financeIncome,
+    this.networkAccount,
+    this.teachingEvaluation,
     this.reminderPlanning,
     this.studentServiceLinks,
   });
@@ -87,6 +93,15 @@ class ServiceCapabilities {
     campusCard: service is CampusCardGateway
         ? service as CampusCardGateway
         : null,
+    financeIncome: service is FinanceIncomeGateway
+        ? service as FinanceIncomeGateway
+        : null,
+    networkAccount: service is NetworkAccountGateway
+        ? service as NetworkAccountGateway
+        : null,
+    teachingEvaluation: service is TeachingEvaluationGateway
+        ? service as TeachingEvaluationGateway
+        : null,
     reminderPlanning: service is ReminderPlanningGateway
         ? service as ReminderPlanningGateway
         : null,
@@ -115,6 +130,9 @@ class ServiceCapabilities {
   final LibraryLoansGateway? libraryLoans;
   final LibraryLoansOfficialGateway? libraryLoansOfficial;
   final CampusCardGateway? campusCard;
+  final FinanceIncomeGateway? financeIncome;
+  final NetworkAccountGateway? networkAccount;
+  final TeachingEvaluationGateway? teachingEvaluation;
   final ReminderPlanningGateway? reminderPlanning;
   final VerifiedRouteGateway? verifiedRoute;
   final SavedCredentialGateway? savedCredential;

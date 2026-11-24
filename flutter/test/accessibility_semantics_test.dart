@@ -83,6 +83,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('作业').last);
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('homework-spoc:a')));
+    await tester.pumpAndSettle();
 
     final tile = tester.getRect(find.byKey(const Key('homework-spoc:a')));
     // The row used to be folded into a node that spanned the whole screen

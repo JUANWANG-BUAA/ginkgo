@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-
 import 'package:ginkgo_mirror/shared/reminders.dart';
-
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -17,6 +15,7 @@ import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/features/schedule/course_range_page.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
+import 'package:ginkgo_mirror/features/homework/homework_visuals.dart';
 import 'package:ginkgo_mirror/features/homework/homework_widgets.dart';
 
 import 'package:ginkgo_mirror/shared/today_time.dart';
@@ -268,6 +267,18 @@ class _HomeworkPageState extends State<HomeworkPage> {
   );
 
   List<Widget> _content(HomeworkResponse data) => [
+    if (data.items.isNotEmpty)
+      SliverToBoxAdapter(
+        child: HomeworkTelemetryCard(
+          pending: pending,
+          submitted: submitted,
+          overdue: overdue,
+          unknown: unknown,
+          overduePending: overduePending,
+          termCode: data.termCode,
+          demo: widget.service.isDemo,
+        ),
+      ),
     if (data.rolesComplete == false)
       const SliverToBoxAdapter(
         child: AppleSection(

@@ -156,7 +156,8 @@ token 层与视觉常量。
     - `static const double panel = 12.0;`  <sub>:8</sub>
     - `static const double dialog = 18.0;`  <sub>:9</sub>
     - `static const double group = 16.0;` — Inset list groups stay softly rounded without making each section read as  <sub>:13</sub>
-    - `static final borderRadiusDialog = BorderRadius.circular(dialog);`  <sub>:15</sub>
+    - `static const double pill = 999.0;`  <sub>:14</sub>
+    - `static final borderRadiusDialog = BorderRadius.circular(dialog);`  <sub>:16</sub>
 
 ## design/tokens/spacing.dart
 

@@ -150,6 +150,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode dco_decode_box_autoadd_failure_code(dynamic raw);
 
   @protected
+  FinanceIncomeReportDto dco_decode_box_autoadd_finance_income_report_dto(
+    dynamic raw,
+  );
+
+  @protected
   GraduateCreditMapDto dco_decode_box_autoadd_graduate_credit_map_dto(
     dynamic raw,
   );
@@ -204,10 +209,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope dco_decode_box_autoadd_live_scope(dynamic raw);
 
   @protected
+  NetworkAccountDto dco_decode_box_autoadd_network_account_dto(dynamic raw);
+
+  @protected
+  PortalMetricDto dco_decode_box_autoadd_portal_metric_dto(dynamic raw);
+
+  @protected
   RouteChoice dco_decode_box_autoadd_route_choice(dynamic raw);
 
   @protected
   ShuttleTimetableDto dco_decode_box_autoadd_shuttle_timetable_dto(dynamic raw);
+
+  @protected
+  TeachingEvaluationDto dco_decode_box_autoadd_teaching_evaluation_dto(
+    dynamic raw,
+  );
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
@@ -395,10 +411,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DemoScope dco_decode_demo_scope(dynamic raw);
 
   @protected
+  EvaluationCourseDto dco_decode_evaluation_course_dto(dynamic raw);
+
+  @protected
+  EvaluationCourseStatusDto dco_decode_evaluation_course_status_dto(
+    dynamic raw,
+  );
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
   FailureCode dco_decode_failure_code(dynamic raw);
+
+  @protected
+  FinanceIncomeEntryDto dco_decode_finance_income_entry_dto(dynamic raw);
+
+  @protected
+  FinanceIncomeReportDto dco_decode_finance_income_report_dto(dynamic raw);
+
+  @protected
+  FinanceIncomeResponse dco_decode_finance_income_response(dynamic raw);
 
   @protected
   GatewayVerificationResponse dco_decode_gateway_verification_response(
@@ -688,6 +721,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CourseResourceDto> dco_decode_list_course_resource_dto(dynamic raw);
 
   @protected
+  List<EvaluationCourseDto> dco_decode_list_evaluation_course_dto(dynamic raw);
+
+  @protected
+  List<FinanceIncomeEntryDto> dco_decode_list_finance_income_entry_dto(
+    dynamic raw,
+  );
+
+  @protected
   List<GradeCourse> dco_decode_list_grade_course(dynamic raw);
 
   @protected
@@ -765,6 +806,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<LocalTaskDto> dco_decode_list_local_task_dto(dynamic raw);
 
   @protected
+  List<NetworkTrafficProductDto> dco_decode_list_network_traffic_product_dto(
+    dynamic raw,
+  );
+
+  @protected
   List<NoticeDto> dco_decode_list_notice_dto(dynamic raw);
 
   @protected
@@ -826,6 +872,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MutationResponse dco_decode_mutation_response(dynamic raw);
+
+  @protected
+  NetworkAccountDto dco_decode_network_account_dto(dynamic raw);
+
+  @protected
+  NetworkAccountResponse dco_decode_network_account_response(dynamic raw);
+
+  @protected
+  NetworkTrafficProductDto dco_decode_network_traffic_product_dto(dynamic raw);
 
   @protected
   NoticeDto dco_decode_notice_dto(dynamic raw);
@@ -931,6 +986,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode? dco_decode_opt_box_autoadd_failure_code(dynamic raw);
 
   @protected
+  FinanceIncomeReportDto? dco_decode_opt_box_autoadd_finance_income_report_dto(
+    dynamic raw,
+  );
+
+  @protected
   GraduateCreditMapDto? dco_decode_opt_box_autoadd_graduate_credit_map_dto(
     dynamic raw,
   );
@@ -981,10 +1041,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LibraryStatsDto? dco_decode_opt_box_autoadd_library_stats_dto(dynamic raw);
 
   @protected
+  NetworkAccountDto? dco_decode_opt_box_autoadd_network_account_dto(
+    dynamic raw,
+  );
+
+  @protected
+  PortalMetricDto? dco_decode_opt_box_autoadd_portal_metric_dto(dynamic raw);
+
+  @protected
   RouteChoice? dco_decode_opt_box_autoadd_route_choice(dynamic raw);
 
   @protected
   ShuttleTimetableDto? dco_decode_opt_box_autoadd_shuttle_timetable_dto(
+    dynamic raw,
+  );
+
+  @protected
+  TeachingEvaluationDto? dco_decode_opt_box_autoadd_teaching_evaluation_dto(
     dynamic raw,
   );
 
@@ -1048,6 +1121,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlannedReminder dco_decode_planned_reminder(dynamic raw);
 
   @protected
+  PortalMetricDto dco_decode_portal_metric_dto(dynamic raw);
+
+  @protected
   QueryDates dco_decode_query_dates(dynamic raw);
 
   @protected
@@ -1109,6 +1185,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskReminderSeed dco_decode_task_reminder_seed(dynamic raw);
+
+  @protected
+  TeachingEvaluationDto dco_decode_teaching_evaluation_dto(dynamic raw);
+
+  @protected
+  TeachingEvaluationResponse dco_decode_teaching_evaluation_response(
+    dynamic raw,
+  );
 
   @protected
   TodayCourse dco_decode_today_course(dynamic raw);
@@ -1294,6 +1378,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FailureCode sse_decode_box_autoadd_failure_code(SseDeserializer deserializer);
 
   @protected
+  FinanceIncomeReportDto sse_decode_box_autoadd_finance_income_report_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   GraduateCreditMapDto sse_decode_box_autoadd_graduate_credit_map_dto(
     SseDeserializer deserializer,
   );
@@ -1356,10 +1445,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LiveScope sse_decode_box_autoadd_live_scope(SseDeserializer deserializer);
 
   @protected
+  NetworkAccountDto sse_decode_box_autoadd_network_account_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PortalMetricDto sse_decode_box_autoadd_portal_metric_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RouteChoice sse_decode_box_autoadd_route_choice(SseDeserializer deserializer);
 
   @protected
   ShuttleTimetableDto sse_decode_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TeachingEvaluationDto sse_decode_box_autoadd_teaching_evaluation_dto(
     SseDeserializer deserializer,
   );
 
@@ -1601,10 +1705,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DemoScope sse_decode_demo_scope(SseDeserializer deserializer);
 
   @protected
+  EvaluationCourseDto sse_decode_evaluation_course_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  EvaluationCourseStatusDto sse_decode_evaluation_course_status_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
   FailureCode sse_decode_failure_code(SseDeserializer deserializer);
+
+  @protected
+  FinanceIncomeEntryDto sse_decode_finance_income_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  FinanceIncomeReportDto sse_decode_finance_income_report_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  FinanceIncomeResponse sse_decode_finance_income_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   GatewayVerificationResponse sse_decode_gateway_verification_response(
@@ -1998,6 +2127,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<EvaluationCourseDto> sse_decode_list_evaluation_course_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<FinanceIncomeEntryDto> sse_decode_list_finance_income_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<GradeCourse> sse_decode_list_grade_course(SseDeserializer deserializer);
 
   @protected
@@ -2095,6 +2234,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<NetworkTrafficProductDto> sse_decode_list_network_traffic_product_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<NoticeDto> sse_decode_list_notice_dto(SseDeserializer deserializer);
 
   @protected
@@ -2182,6 +2326,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   MutationResponse sse_decode_mutation_response(SseDeserializer deserializer);
+
+  @protected
+  NetworkAccountDto sse_decode_network_account_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NetworkAccountResponse sse_decode_network_account_response(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NetworkTrafficProductDto sse_decode_network_traffic_product_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   NoticeDto sse_decode_notice_dto(SseDeserializer deserializer);
@@ -2315,6 +2474,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  FinanceIncomeReportDto? sse_decode_opt_box_autoadd_finance_income_report_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   GraduateCreditMapDto? sse_decode_opt_box_autoadd_graduate_credit_map_dto(
     SseDeserializer deserializer,
   );
@@ -2373,12 +2537,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  NetworkAccountDto? sse_decode_opt_box_autoadd_network_account_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PortalMetricDto? sse_decode_opt_box_autoadd_portal_metric_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RouteChoice? sse_decode_opt_box_autoadd_route_choice(
     SseDeserializer deserializer,
   );
 
   @protected
   ShuttleTimetableDto? sse_decode_opt_box_autoadd_shuttle_timetable_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TeachingEvaluationDto? sse_decode_opt_box_autoadd_teaching_evaluation_dto(
     SseDeserializer deserializer,
   );
 
@@ -2460,6 +2639,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlannedReminder sse_decode_planned_reminder(SseDeserializer deserializer);
 
   @protected
+  PortalMetricDto sse_decode_portal_metric_dto(SseDeserializer deserializer);
+
+  @protected
   QueryDates sse_decode_query_dates(SseDeserializer deserializer);
 
   @protected
@@ -2533,6 +2715,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TaskReminderSeed sse_decode_task_reminder_seed(SseDeserializer deserializer);
+
+  @protected
+  TeachingEvaluationDto sse_decode_teaching_evaluation_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TeachingEvaluationResponse sse_decode_teaching_evaluation_response(
+    SseDeserializer deserializer,
+  );
 
   @protected
   TodayCourse sse_decode_today_course(SseDeserializer deserializer);
@@ -2760,6 +2952,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_finance_income_report_dto(
+    FinanceIncomeReportDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_graduate_credit_map_dto(
     GraduateCreditMapDto self,
     SseSerializer serializer,
@@ -2841,6 +3039,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_network_account_dto(
+    NetworkAccountDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_portal_metric_dto(
+    PortalMetricDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_route_choice(
     RouteChoice self,
     SseSerializer serializer,
@@ -2849,6 +3059,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_shuttle_timetable_dto(
     ShuttleTimetableDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_teaching_evaluation_dto(
+    TeachingEvaluationDto self,
     SseSerializer serializer,
   );
 
@@ -3159,10 +3375,40 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_demo_scope(DemoScope self, SseSerializer serializer);
 
   @protected
+  void sse_encode_evaluation_course_dto(
+    EvaluationCourseDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_evaluation_course_status_dto(
+    EvaluationCourseStatusDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_failure_code(FailureCode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_finance_income_entry_dto(
+    FinanceIncomeEntryDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_finance_income_report_dto(
+    FinanceIncomeReportDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_finance_income_response(
+    FinanceIncomeResponse self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_gateway_verification_response(
@@ -3651,6 +3897,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_evaluation_course_dto(
+    List<EvaluationCourseDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_finance_income_entry_dto(
+    List<FinanceIncomeEntryDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_grade_course(
     List<GradeCourse> self,
     SseSerializer serializer,
@@ -3777,6 +4035,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_network_traffic_product_dto(
+    List<NetworkTrafficProductDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_notice_dto(
     List<NoticeDto> self,
     SseSerializer serializer,
@@ -3890,6 +4154,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_mutation_response(
     MutationResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_network_account_dto(
+    NetworkAccountDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_network_account_response(
+    NetworkAccountResponse self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_network_traffic_product_dto(
+    NetworkTrafficProductDto self,
     SseSerializer serializer,
   );
 
@@ -4050,6 +4332,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_finance_income_report_dto(
+    FinanceIncomeReportDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_graduate_credit_map_dto(
     GraduateCreditMapDto? self,
     SseSerializer serializer,
@@ -4119,6 +4407,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_network_account_dto(
+    NetworkAccountDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_portal_metric_dto(
+    PortalMetricDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_route_choice(
     RouteChoice? self,
     SseSerializer serializer,
@@ -4127,6 +4427,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_shuttle_timetable_dto(
     ShuttleTimetableDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_teaching_evaluation_dto(
+    TeachingEvaluationDto? self,
     SseSerializer serializer,
   );
 
@@ -4227,6 +4533,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_portal_metric_dto(
+    PortalMetricDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_query_dates(QueryDates self, SseSerializer serializer);
 
   @protected
@@ -4322,6 +4634,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_task_reminder_seed(
     TaskReminderSeed self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_teaching_evaluation_dto(
+    TeachingEvaluationDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_teaching_evaluation_response(
+    TeachingEvaluationResponse self,
     SseSerializer serializer,
   );
 

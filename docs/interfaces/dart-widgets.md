@@ -22,6 +22,7 @@
 - [widgets/ginkgo_mark.dart](#widgetsginkgomarkdart) (1)
 - [widgets/ginkgo_polished_widgets.dart](#widgetsginkgopolishedwidgetsdart) (5)
 - [widgets/ginkgo_visuals.dart](#widgetsginkgovisualsdart) (2)
+- [widgets/liquid_vial_gauge.dart](#widgetsliquidvialgaugedart) (2)
 - [widgets/loading_widgets.dart](#widgetsloadingwidgetsdart) (5)
 - [widgets/long_page_scroll.dart](#widgetslongpagescrolldart) (1)
 - [widgets/maintenance_scaffold.dart](#widgetsmaintenancescaffolddart) (1)
@@ -34,7 +35,10 @@
 - [widgets/school_links.dart](#widgetsschoollinksdart) (3)
 - [widgets/status_chip.dart](#widgetsstatuschipdart) (3)
 - [widgets/summary_strip.dart](#widgetssummarystripdart) (5)
+- [widgets/telemetry_instrument_card.dart](#widgetstelemetryinstrumentcarddart) (6)
+- [widgets/top_bounce_scroll_physics.dart](#widgetstopbouncescrollphysicsdart) (1)
 - [widgets/verified_route_label.dart](#widgetsverifiedroutelabeldart) (1)
+- [widgets/visual_section.dart](#widgetsvisualsectiondart) (3)
 
 ## widgets/academic_overview.dart
 
@@ -228,6 +232,16 @@
     - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:69</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:83</sub>
 
+## widgets/liquid_vial_gauge.dart
+
+- `enum LiquidPalette` — Color themes for the 3D glass liquid column inside [LiquidVialWell].
+  <sub>enum · widgets/liquid_vial_gauge.dart:9</sub>
+    - `const LiquidPalette({ required this.bottom, required this.middle, required this.top, required this.meniscus, required this.rim, });`  <sub>:46</sub>
+- `class LiquidVialWell extends StatelessWidget` — Tactile recessed instrument well housing a 3D glass test-tube gauge,
+  <sub>class · widgets/liquid_vial_gauge.dart:63</sub>
+    - `const LiquidVialWell({ super.key, required this.code, required this.readout, required this.fillRatio, this.palette = LiquidPalette.cobalt, this.scaleTicks = const ['75%', '50%', '25%'], this.footer, this.semanticLabel, this.frosted = false, });`  <sub>:64</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:107</sub>
+
 ## widgets/loading_widgets.dart
 
 - `class GinkgoActivity extends StatefulWidget` — A small ginkgo fan breathes without suggesting a measured percentage.
@@ -332,9 +346,9 @@
 ## widgets/resource_meter.dart
 
 - `class ResourceMeter extends StatelessWidget` — A resource snapshot. A free fraction is not a booking guarantee; unknown
-  <sub>class · widgets/resource_meter.dart:7</sub>
-    - `const ResourceMeter({ super.key, required this.label, required this.available, required this.total, required this.unit, this.detail, this.onTap, });`  <sub>:8</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:23</sub>
+  <sub>class · widgets/resource_meter.dart:9</sub>
+    - `const ResourceMeter({ super.key, required this.label, required this.available, required this.total, required this.unit, this.detail, this.onTap, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
 
 ## widgets/school_links.dart
 
@@ -379,9 +393,58 @@
     - `const MetricValue( this.value, { super.key, this.prominent = false, this.tone = StatusTone.neutral, this.suffix, });`  <sub>:500</sub>
     - `Widget build(BuildContext context) => …`  <sub>:514</sub>
 
+## widgets/telemetry_instrument_card.dart
+
+- `class BarSegment` — One colored segment inside [SegmentedCapsuleBar].
+  <sub>class · widgets/telemetry_instrument_card.dart:8</sub>
+    - `const BarSegment({ required this.fraction, required this.startColor, required this.endColor, });`  <sub>:9</sub>
+- `class TelemetryMeterData` — One horizontal meter row inside [TelemetryInstrumentCard]
+  <sub>class · widgets/telemetry_instrument_card.dart:22</sub>
+    - `const TelemetryMeterData({ required this.label, required this.trailing, this.ratio, this.startColor = const Color(0xFF0B68F5), this.endColor = const Color(0xFF38BDF8), });`  <sub>:23</sub>
+- `class TelemetryPill extends StatelessWidget` — Glowing dot + crisp label pill used in telemetry card headers.
+  <sub>class · widgets/telemetry_instrument_card.dart:41</sub>
+    - `const TelemetryPill({ super.key, required this.label, this.tone = StatusTone.neutral, this.dotColor, });`  <sub>:42</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:60</sub>
+- `class SegmentedCapsuleBar extends StatelessWidget` — Recessed multi-segment rounded capsule bar (like the dual-blue context bar).
+  <sub>class · widgets/telemetry_instrument_card.dart:126</sub>
+    - `const SegmentedCapsuleBar({ super.key, required this.segments, this.height = 7.5, });`  <sub>:127</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:137</sub>
+- `class TelemetryModeSwitcher extends StatelessWidget` — Compact pill switcher (modeled after `Gemini \| Claude` segmented capsule).
+  <sub>class · widgets/telemetry_instrument_card.dart:192</sub>
+    - `const TelemetryModeSwitcher({ super.key, required this.labels, required this.selectedIndex, required this.onSelected, });`  <sub>:193</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:213</sub>
+- `class TelemetryInstrumentCard extends StatelessWidget` — Composite tactile telemetry instrument card:
+  <sub>class · widgets/telemetry_instrument_card.dart:265</sub>
+    - `const TelemetryInstrumentCard({ super.key, required this.vial, required this.title, required this.statusLabel, this.statusTone = StatusTone.neutral, required this.headline, this.subheadline, this.segments = const [], this.barLeadingCaption, this.barTrailingCaption, this.sectionTitle, this.sectionBadge, this.sectionBadgeTone = StatusTone.success, this.switcher, this.meters = const [], });`  <sub>:266</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:311</sub>
+
+## widgets/top_bounce_scroll_physics.dart
+
+- `class TopBounceScrollPhysics extends BouncingScrollPhysics` — Bounces only past the top edge (so pull-to-refresh keeps working) and clamps
+  <sub>class · widgets/top_bounce_scroll_physics.dart:9</sub>
+    - `const TopBounceScrollPhysics({super.parent});`  <sub>:10</sub>
+    - `TopBounceScrollPhysics applyTo(ScrollPhysics? ancestor) => …`  <sub>:13</sub>
+    - `double applyBoundaryConditions(ScrollMetrics position, double value) {…}`  <sub>:17</sub>
+    - `Simulation? createBallisticSimulation( ScrollMetrics position, double velocity, ) {…}`  <sub>:32</sub>
+
 ## widgets/verified_route_label.dart
 
 - `class VerifiedRouteLabel extends StatefulWidget` — Reads an in-process identity snapshot, never probes school connectivity.
   <sub>class · widgets/verified_route_label.dart:8</sub>
     - `const VerifiedRouteLabel({ super.key, required this.gateway, this.revision = 0, });`  <sub>:9</sub>
     - `State<VerifiedRouteLabel> createState() => …`  <sub>:18</sub>
+
+## widgets/visual_section.dart
+
+- `class TodayVisualDivider extends StatelessWidget` — A quiet inset rule for rows nested inside a reveal animation.
+  <sub>class · widgets/visual_section.dart:7</sub>
+    - `const TodayVisualDivider({super.key});`  <sub>:8</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:11</sub>
+- `class TodayVisualSection extends StatelessWidget` — Shared structured section wrapper with secondary header and muted footer.
+  <sub>class · widgets/visual_section.dart:26</sub>
+    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:27</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:38</sub>
+- `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
+  <sub>class · widgets/visual_section.dart:68</sub>
+    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:69</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:87</sub>

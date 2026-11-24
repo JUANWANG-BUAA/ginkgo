@@ -7,6 +7,7 @@
 
 ## 目录
 
+- [features/library/library_action_grid.dart](#featureslibrarylibraryactiongriddart) (1)
 - [features/library/library_area_page.dart](#featureslibrarylibraryareapagedart) (1)
 - [features/library/library_books_page.dart](#featureslibrarylibrarybookspagedart) (1)
 - [features/library/library_cards.dart](#featureslibrarylibrarycardsdart) (4)
@@ -21,6 +22,13 @@
 - [features/library/library_stats_page.dart](#featureslibrarylibrarystatspagedart) (1)
 - [features/library/library_venue_selection_page.dart](#featureslibrarylibraryvenueselectionpagedart) (1)
 - [features/library/library_widgets.dart](#featureslibrarylibrarywidgetsdart) (6)
+
+## features/library/library_action_grid.dart
+
+- `class LibraryBentoGrid extends StatelessWidget` — Tactile 2×2 Bento action deck for the Library tab.
+  <sub>class · features/library/library_action_grid.dart:11</sub>
+    - `const LibraryBentoGrid({ super.key, required this.onFindSeats, required this.onOpenBooks, required this.onOpenStats, this.onOpenLoans, });`  <sub>:12</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:26</sub>
 
 ## features/library/library_area_page.dart
 
@@ -140,9 +148,9 @@
 ## features/library/library_stats_page.dart
 
 - `class LibraryStatsPage extends StatefulWidget` — Public counts are a snapshot, not a promise that a resource is bookable.
-  <sub>class · features/library/library_stats_page.dart:14</sub>
-    - `const LibraryStatsPage({super.key, required this.service});`  <sub>:15</sub>
-    - `State<LibraryStatsPage> createState() => …`  <sub>:18</sub>
+  <sub>class · features/library/library_stats_page.dart:15</sub>
+    - `const LibraryStatsPage({super.key, required this.service});`  <sub>:16</sub>
+    - `State<LibraryStatsPage> createState() => …`  <sub>:19</sub>
 
 ## features/library/library_venue_selection_page.dart
 

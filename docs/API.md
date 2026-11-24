@@ -29,6 +29,8 @@
 
 | # | 条目 | 旧版内容 | 本版内容 | 证据 |
 |---|------|----------|----------|------|
+| 120 | §6H / §6I / §6J 模块化只读扩展（工作树） | 缺财务收入协议；网费仅留入口候选；评教候选误记旧 `buaapj` | 新增 §6H 网上财务学生收入只读查询（`icw` → `chaxun.icw`）、§6I 门户指标与网费流量只读查询（`it.buaa` + `zfw.buaa`）、§6J 课程评教完成状态只读查询（`spoc.buaa.edu.cn/pjxt`）；全部采用窄端口隔离，不接资金或评教提交写操作 | `Auto-BUAA-icw`、`fontlos/buaa-api` 交叉核对及 `finance_http.rs`、`network_account_http.rs`、`evaluation_http.rs` 合成回归；真实账号仍待验收 |
+| 119 | §7.2 iClass 二维码实测路径保护与旧写端点停用说明 | 未注明无 `/eschool` 扫码基准路径已真机验证及旧写提交停用 | 明确锁定 `http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action` 为维护者真机扫码实测可用格式，禁止凭外部参考库追加 `/eschool`；注明直接 POST `stu_scan_sign` 已停用（上游直接提交改走 `8181` `stu_auto_sign`），本端仅保留二维码展示与只读回查 | 2026-11-23 维护者真机扫码确认与多源对照 |
 | 118 | §7.2 iClass 签到码接口与状态回查 | 客户端保存历史写端点说明 | 记录 `GET /app/common/get_timestamp.action` 时间戳字段、签到码参数格式与课程列表 `signStatus` 只读回查语义 | `checkin_http.rs`、`checkin_service.rs` 合成测试与 [本轮记录](_audit/2026-11-23-session-scroll-and-health-repair.md) |
 | 117 | 冷恢复存储故障与后台提醒边界 | 会话读取/解密失败可能被当作无记录，冷恢复错误进入登录页；提醒仅前台发现新事项 | 存储错误保留为可重试故障；Android 独立后台命令使用同一路线 Cookie 副本并经 UC 验证，密码端口为空，不改前台持久会话；失败组保留计划。CAS、验证码、HTTP 与 Cookie 规则不变 | 用户明确授权的最小冻结例外；`session_restore_storage.rs` 旧实现红灯、`background_session` 严格单次 UC GET 转录；[本轮审计](_audit/2026-11-03-background-reminders-and-recovery.md)。客户端策略，不是新增学校接口或实网验收 |
 | 116 | 继续移除自定认证控制流 | 初始 3xx 额外消费 Location；CAS 提交链终态非 200 直接返回服务异常；UC 导航提前按 CAS 错误查询中止；Cookie 按路径长度重排 | 初始 3xx 直接激活 UC；提交链先消费跳转、确认一次到期提示，再检查最终错误/401/参考表单标记，其他状态继续 UC；UC 导航不解析 CAS 错误查询；Cookie 按插入/轮换次序发送。撤销提交响应自动转新验证码挑战的自定分支 | 固定 UBAA `e8a397fc` 的 `login`、`followRedirectsAndCheckError`、`activateUcLogin`、`PersistentLocalCookieStorage`；[源码对照](_audit/2026-11-03-webvpn-captcha-source-comparison.md)。保留有界 HTTPS 导航、Cookie 安全作用域和 UC 身份匹配；未更改原独立捕获或伪造真实结果 |
@@ -427,6 +429,8 @@ GET https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/schoolCalendars.
 Ajax 头 + `Referer: https://byxt.buaa.edu.cn/jwapp/sys/homeapp/index.html`（LSA:206-213）。
 
 2026-11-03 固定 UBAA `e8a397fc` 的 Ktor/MockEngine 实际执行：§2.1 探测携带 `Accept: application/json`；`applyScheduleHeaders` 与原客户端 ContentNegotiation 组合后，学期查询的完整 Accept 为 `application/json, text/javascript, */*; q=0.01, application/json`。Rust 对齐该已执行请求形态；不是学校要求重复 JSON 条目的实网证据，见[请求差分](_audit/2026-11-03-ubaa-executable-reference.md)。
+
+2026-11-23 空周课表兜底：学期与周列表有数据而周课表 `arrangedList` 为空时，按 `buaa-api` 的 AAS 登录页（`sso.buaa.edu.cn/login?service=…byxt…/jwapp/sys/homeapp/index.do?contextPath=/jwapp`）经现有会话访问一次，落点须含 `/jwapp/sys/homeapp/index.do`，随后仅重复同一周课表读取一次；真正的空周仍为空。学期列表为空返回 `schedule_terms_empty`，周列表为空返回 `schedule_weeks_empty`，不再冒充“无课”。该兜底只来自参考实现与离线合成回归，未经真实账号证实；不调用确认课表类写接口。
 
 响应（`code` 是**字符串** `"0"`，LSA:227-228）：
 
@@ -1000,6 +1004,39 @@ Android 客户端失败策略（2026-11-03）：空教室的 CAS 激活及业务
 
 2026-11-03 补充匿名结构复核：`time=2026-11` 返回 HTTP 200、`state=1` 和 23 条记录。本次记录的 `id`、`title`、`campus`、`field`、`startTime`、`endTime`、`fairTypeName`、`status`、`url` 均为字符串；另观察到字符串字段 `typeName`、`link`、`type`、`fairType`、`startTimeFormat`、`startTimexs`、`endTimeFormat`、`linkUrl`，尚未确定其业务含义，不据此新增投影或操作。响应 SHA-256 为 `363da96e96fc9c6ed2ac7e54d30497f86db98040dcc3f9b3789f123e9b6bba9e`；只保存结构和摘要，未保存记录值。该类型观察不覆盖其他月份、空值变体、权限或设备，详见 [当次研究](_audit/2026-11-03-ibh-static-protocol-research.md)。
 
+## 6H. 财务收入查询（网上财务综合信息系统，工作树只读，待真机验收）⚠️
+
+参考线索：`CoolwindHF/Auto-BUAA-icw` 协议研究与 WebVPN 网关跳转边界补齐。仅提供助研津贴、助学金、劳务费等本人财务录入记录的按需只读查询，不涉及任何资金写操作、后台常驻轮询或外部通知。
+
+- **门户认证**：`GET https://sso.buaa.edu.cn/login?service=http%3A%2F%2Ficw.buaa.edu.cn%2Fcheckbuaa.aspx`，复用既有 SSO Cookie 会话，不重发密码。手动有界跟随跳转（最多 12 跳），仅允许白名单主机 `sso.buaa.edu.cn`、`icw.buaa.edu.cn`、`chaxun.icw.buaa.edu.cn`；对已知 `icw.buaa.edu.cn` 同路径 HTTP 回调安全升级为 HTTPS，WebVPN 下解包网关相对 `Location` 并识别 `d.buaa.edu.cn/login` 为 `webvpn_login_required`，最终须落于 `https://icw.buaa.edu.cn/Newindex.aspx`。
+- **票据跳转与登录**：`GET https://icw.buaa.edu.cn/jump.aspx?sysid=wscx`（禁自动跟随）返回 302 `Location` 至 `https://chaxun.icw.buaa.edu.cn/gxzhcxzhb/login?Userid=...&Cypt=...&Stamp=...`；随后 `POST https://chaxun.icw.buaa.edu.cn/api-zhcx/login`，表单 `username=<Userid>&password=<Cypt>&yzm=yzm&stamp=<Stamp>`，`Referer` 为该跳转地址。响应 `code == 200` 取 `data.token`（一次性查询 JWT，仅存当次请求内存）。
+- **分页读取与字段白名单**：`POST https://chaxun.icw.buaa.edu.cn/api-zhcx/getStudentSRCX`，头 `Authorization: Bearer <token>`，JSON `{"userId": "<Userid>", "currentPage": page, "limit": 100}`。响应 `code == 200` 下兼容现行 `data.{mx, total}` 与旧结构 `data.{data, count}`；校验分页总数一致与 `lsh` 无重复，防死循环。金额字段 `je`（应发）、`se`（税额）、`sfje`（实发）在 Rust 内按十进制精确转为整数分；仅白名单投影 `lsh`、`ffxmmc`（发放项目）、`zy`（摘要）、金额三项、`slbfb`/`sl`（税率）、`lrrq`（录入日期）、`nian`、`yue`，**严禁透传证件号、银行卡号等敏感字段**。
+- **失败与隐私边界**：`code == 401` 或 HTTP 401 按模块认证要求处理，不清除全局会话；金额默认遮挡、不落盘、不写日志，离页/后台/切账号立即清除内存数据。真实账号与双路线待真机验收。
+
+## 6I. 门户个人指标与网费流量（统一门户与网络自助，工作树只读，待真机验收）⚠️
+
+参考线索：统一信息门户 `it.buaa.edu.cn` 与校园网自助服务 `zfw.buaa.edu.cn` 公开前端与脱敏结构。仅按需只读读取账户余额指标与流量明细，严禁接入充值、缴费或套餐变更写操作。
+
+- **门户引导与指标（`it.buaa.edu.cn`）**：
+  1. 探针与引导：先 `GET https://it.buaa.edu.cn/personal/frontend/data/info`（桌面浏览器 `User-Agent`、`X-Requested-With: XMLHttpRequest`、`Referer: https://it.buaa.edu.cn/home/`）；遇 `e == 10013` 或 3xx/401/403/登录页时，走一次 `GET https://it.buaa.edu.cn/manage/common/login/index?redirect=https%3A%2F%2Fit.buaa.edu.cn%2Fhome%2F`（携带 `Referer: https://it.buaa.edu.cn/home/`，不可将 `redirect` 缩为根相对 `/home/` 以免 WebVPN 下落到网关根路径报错），经 `/manage/common/cas_login/30001` 与 SSO 建立门户会话并落于 `/home/` 后复核 `info`（`e == 0`）。
+  2. 配置项：`GET https://it.buaa.edu.cn/personal/frontend/data/items?type=personal_data`，成功码 `e == 0`，从 `d.data[]` 提取 `net.netFee`（网费余额）、`book.bookNum`（待还图书）、`mail.unread`（未读校内邮件）、`wangPan.wangPan`（云盘剩余空间）的动态配置 `id`（不跨次缓存）。
+  3. 指标详情：`GET https://it.buaa.edu.cn/personal/frontend/data/detail?id=<id>`，`e == 0` 读取 `d.data.value` 与 `unit`。单项指标失败独立保留错误，不丢弃其余成功项。
+- **网费流量表（`zfw.buaa.edu.cn`）**：
+  1. 优先 `GET https://zfw.buaa.edu.cn/home`（桌面浏览器 `User-Agent`、`Referer: https://zfw.buaa.edu.cn/pay/card`）；遇 3xx/401/403 或登录页时走一次 `GET https://zfw.buaa.edu.cn/sso/cas/index`（`Referer: https://zfw.buaa.edu.cn/home`）→ SSO → `/pay/card` 引导后再读 `/home`（`/pay/card` 仅作认证落点，绝不提交充值表单）。
+  2. HTML 解析：按最近祖先 `table` 定位含“已用流量”“免费流量剩余(不含套餐)”“计费流量剩余(不含套餐)”表头（忽略空白与全角括号差异）的流量主表，跳过无 `data-col-seq` 的占位/汇总行，通过表头 `data-col-seq` 匹配各产品行对应列；产品行内嵌套餐子表（含“套餐名称”“统计”表头及 `可用流量：...` 按钮）单独按 1024 进制折算计入免费剩余，隔离套餐子表第 3 列“有效期 `0天`”，防止误判为流量列结构错误。
+- **隐私边界**：按需读取、网费金额默认遮挡、不落盘、不写日志，离页/后台/切账号立即清除内存。真实账号待真机验收。
+
+## 6J. 课程评教状态查询（SPOC 评教系统，工作树只读，不接提交，待真机验收）⚠️
+
+参考线索：`fontlos/buaa-api` `tes` 模块协议核对（替代已过期的旧候选 `app.buaa.edu.cn/buaapj`）。**严格限定纯只读状态检查**，不接入问卷题目拉取或 `submitSaveEvaluation` 评教提交写接口（同时规避 API 提交导致网页端按钮失灵的上游缺陷）。
+
+- **CAS 引导**：从业务端 `GET https://spoc.buaa.edu.cn/pjxt/cas` 发起（使 WebVPN 网关自动改写 `service` 参数并写入 `PJXTINCO` Cookie，避免直接请求未包装 `service=` 导致 WebVPN 下验票 500），有界跟随 `sso.buaa.edu.cn` 与 `spoc.buaa.edu.cn` 重定向建立 `/pjxt` 会话；识别网关 `/login` 为 `webvpn_login_required`。若 SSO 已签发 `ticket=` 回调后 `pjxt` 跳往 `/pjxt/authentication/require`（HTTP 500，常见于未纳入本科评教系统的研究生账号），按当前账号无待评教任务返回空列表；签发票据前的网关/上游 5xx 仍报 `ServiceUnavailable`。
+- **评教任务读取**：`GET https://spoc.buaa.edu.cn/pjxt/personnelEvaluation/listObtainPersonnelEvaluationTasks?yhdm=<当前登录学号>&pageNum=1&pageSize=10`（纯 JSON GET，不附带无证据的 `X-Requested-With` 头）。响应 `code == "200"`（兼容数值 `0`/`200`）；若当前无任务列表为空，返回确认无待评任务而非报错；存在任务时提取首项任务 `rwid`、任务名称 `rwmc` 与可选学年学期 `rwxnxq`/`xnxq`。
+- **问卷与课程完成状态**：
+  1. `GET https://spoc.buaa.edu.cn/pjxt/evaluationMethodSix/getQuestionnaireListToTask?rwid=<rwid>`，读取问卷列表（提取各问卷 `wjid` 与问卷名称 `wjmc`）。
+  2. 对每个 `wjid` 顺序或有界读取 `GET https://spoc.buaa.edu.cn/pjxt/evaluationMethodSix/getRequiredReviewsData`（有 `rwxnxq` 时优先带 `wjid` 与 `xnxq`，为空或异常时兼容单 `wjid` 查询）。校验 `result` 容器（兼容数组或 `result.list`，拦截外层 `code == 200` 但内嵌 `content.status >= 400` 的异常响应），投影课程名称 `kcmc`、被评人/教师名称 `bpmc`（兼容 `bprm`/`jsxm`）、已评状态 `ypjcs`（已评次数 `>= 1` 为已评、`0` 为未评，兼容 `ypjzt`/`sfyp`，其余保留未知）。
+- **边界约束**：仅展示本学期评教任务、总课程数、已评/未评计数与课程明细，并提供官方评教系统链接交系统浏览器完成实际评教；模块 401/403 归为 `ModuleAuthRequired`，不污染全局登录态。真实账号待真机验收。
+
 ## 7. 本期不接入的系统（中转接口说明）
 
 旧版文档第 6-15 节（博雅 BYKC、SPOC、操场 CGYY、阳光打卡 YGDK、iHome、空闲教室、课程评价、iclass 签到、考试安排中转版）记载的 `/api/v1/*` 路径全部是 **UBAA Ktor 中转服务器的自有路由**（见 `BBAA/docs/tech/server-routes.md`），不是北航上游直连协议。本项目架构为仅直连（ARCHITECTURE.md §9.1.3），这些接口**无法使用**；上述系统若未来要接入，每个都需按 §6 的逆向流程重新取证（其中博雅/操场还涉及上游自定义加密，见 DEEP-ARCHITECTURE-REVIEW.md §3）。此处不再罗列。
@@ -1092,7 +1129,7 @@ Judge 作业详情页同时包含开始/截止时间、满分、题目表格、�
 
 只读字段以真实 WebVPN 转发响应为据；真机闭环与后台通知仍待验收。
 
-> 镜像实现（2026-11-23 更新）：Rust/Flutter 已接入入口 SSO、app login、当天/历史课程查询与 `get_timestamp.action` 实时签到码矩阵生成，字段与状态语义按本节；`STATUS=2` 只对当天课程查询解释为空，其他非成功 `STATUS` 返回业务拒绝；重复记录按 `id` 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立入口，已签到等无需操作的记录折叠为一行。前端通过 `prepare_checkin_qr` 获取由 `ginkgo_domain` 编码的布尔矩阵（学校原始 URL 不跨 FFI），支持定时刷新、单张保存至相册与状态只读回查。
+> 镜像实现（2026-11-23 更新）：Rust/Flutter 已接入入口 SSO、app login、当天/历史课程查询与 `get_timestamp.action` 实时签到码矩阵生成，字段与状态语义按本节；`STATUS=2` 只对当天课程查询解释为空，其他非成功 `STATUS` 返回业务拒绝；重复记录按 `id` 或课程时间合并，状态冲突显示待确认；同场次不同 ID 仅在存在未签到目标时保留独立入口，已签到等无需操作的记录折叠为一行。前端通过 `prepare_checkin_qr` 获取由 `ginkgo_domain` 编码的布尔矩阵（学校原始 URL 不跨 FFI），支持定时刷新、单张保存至相册与状态只读回查。**防误改保护（2026-11-23 真机扫码确认）**：二维码基准地址 `http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action`（不含 `/eschool` 前缀）已经维护者本人真机扫码验证可用，**禁止**凭外部参考库追加 `/eschool` 前缀；同时上游应用内直接提交已迁往 `8181/app/course/stu_auto_sign.action`，旧 `stu_scan_sign.action` 直接 POST 写操作已停用（仅保留供扫码端识别），不得将未接线的旧写常量重新启用为直接提交入口。
 
 ### 7.3 2026-10-18 教育系统只读数据盘点
 
@@ -1180,6 +1217,9 @@ enum APIError: Error {
 | 图书目录／本人借阅（部分验证） | `https://space.lib.buaa.edu.cn/meta-local/opac/*`（§6） | 公开目录匿名成功；本人loans登录页成功空，认证完整链待验 | JSON；holdings内嵌JSON字符串 |
 | 智慧校车（脚本＋页面） | `https://zhihuixiaoche.buaa.edu.cn/wechat/indexPage`（§6C） | 本人已登录页面观察，资格／匿名待验 | 查询事务形状待补 |
 | 阳光打卡（静态） | `https://ygdk.buaa.edu.cn`（§6D）；完整api拼接待验 | 静态身份合并，真实写未验 | 静态JSON／multipart |
+| 财务收入查询（工作树只读） | `https://icw.buaa.edu.cn/jump.aspx?sysid=wscx`、`https://chaxun.icw.buaa.edu.cn/api-zhcx/*`（§6H） | SSO Cookie → Cypt 票据 → Bearer JWT | JSON（双分页兼容） |
+| 门户指标与网费流量（工作树只读） | `https://it.buaa.edu.cn/personal/frontend/data/*`、`https://zfw.buaa.edu.cn/home`（§6I） | SSO Cookie → 门户 / 网费会话 | JSON / HTML 表格 |
+| 课程评教状态（工作树只读） | `https://spoc.buaa.edu.cn/pjxt/*`（§6J） | SSO Cookie → pjxt CAS | JSON |
 
 ## 附录 B：Cookie / Token 清单
 
@@ -1203,6 +1243,9 @@ enum APIError: Error {
 | 智慧校车（§6C） | `success`＋list按业务判断 | 静态消费；本轮列表UI非完整事务样本 |
 | 阳光打卡（§6D） | `code == 1`解包，提交后record_id／周期／计数各分支 | 官方静态；真实响应类型／写成功待验，不等于有效考勤 |
 | SPOC | `code == 200`，`content` 非空 | Int |
+| 财务查询 `chaxun.icw`（§6H） | `code == 200`，`data` 对象 | Int |
+| 统一门户 `it.buaa`（§6I） | `e == 0`（`10013` 为未登录） | Int |
+| SPOC 评教 `pjxt`（§6J） | `code == "200"`（兼容数值 `200`） | String / Int |
 
 ### 镜像实现记录（2026-10-20，§7.1）
 
