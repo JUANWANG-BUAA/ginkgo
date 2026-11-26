@@ -85,10 +85,10 @@
 ## features/settings/settings_page.dart
 
 - `class SettingsPage extends StatefulWidget`
-  <sub>class · features/settings/settings_page.dart:25</sub>
-    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:26</sub>
-    - `final Future<void> Function() onSignOut;`  <sub>:41</sub>
-    - `State<SettingsPage> createState() => …`  <sub>:46</sub>
+  <sub>class · features/settings/settings_page.dart:26</sub>
+    - `const SettingsPage({ super.key, required this.service, required this.onSignOut, this.accountName, this.accountId, this.route, required this.maintenance, });`  <sub>:27</sub>
+    - `final Future<void> Function() onSignOut;`  <sub>:42</sub>
+    - `State<SettingsPage> createState() => …`  <sub>:47</sub>
 
 ## features/settings/startup_update_hint.dart
 

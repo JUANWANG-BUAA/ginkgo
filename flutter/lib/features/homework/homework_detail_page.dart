@@ -132,7 +132,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             icon: CupertinoIcons.doc_text_fill,
             prominent: true,
             title: widget.item.title,
-            description: widget.item.courseName,
+            description: isNonStudentCourseRole(widget.item.courseRole)
+                ? '${widget.item.courseName} · ${homeworkCourseRoleLabel(widget.item.courseRole)}'
+                : widget.item.courseName,
             color: GinkgoColors.resourcePurple,
           ),
           AppleSection(
@@ -323,7 +325,6 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 saveFile: widget.fileActions.homeworkFileSave!,
               ),
           AppleSection(
-            footer: const Text('不支持的提交类型及结果未知时，请在 SPOC 官网核对。'),
             children: [
               AppleListTile(
                 leading: const Icon(

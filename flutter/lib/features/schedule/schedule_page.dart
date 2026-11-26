@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/application/platform_actions.dart';
+import 'package:ginkgo_mirror/application/schedule_ics.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_modal_sheet.dart';
 import 'package:ginkgo_mirror/widgets/long_page_scroll.dart';
 
 import 'schedule_controls.dart';
@@ -15,8 +21,14 @@ import 'schedule_week_strip.dart';
 import 'schedule_widgets.dart';
 
 class SchedulePage extends StatefulWidget {
-  const SchedulePage({super.key, required this.service, this.onOpenCheckIn});
+  const SchedulePage({
+    super.key,
+    required this.service,
+    this.fileActions = const PlatformActions(),
+    this.onOpenCheckIn,
+  });
   final AcademicGateway service;
+  final PlatformActions fileActions;
   final VoidCallback? onOpenCheckIn;
   @override
   State<SchedulePage> createState() => _SchedulePageState();
@@ -181,6 +193,70 @@ class _SchedulePageState extends State<SchedulePage> {
     load(week: week);
   }
 
+  void _swipeWeek(int delta) {
+    final snapshot = data;
+    if (snapshot == null || snapshot.weeks.isEmpty) return;
+    final currentIndex = snapshot.weeks.indexWhere(
+      (w) => w.number == selectedWeek,
+    );
+    if (currentIndex < 0) return;
+    final nextIndex = (currentIndex + delta).clamp(0, snapshot.weeks.length - 1);
+    if (nextIndex == currentIndex) return;
+    selectWeek(snapshot.weeks[nextIndex].number);
+  }
+
+  Future<void> _exportIcs() async {
+    final snapshot = data;
+    final saver = widget.fileActions.learningFileSaver;
+    if (snapshot == null || saver == null || snapshot.courses.isEmpty) return;
+    unawaited(HapticFeedback.lightImpact());
+    try {
+      final saved = await saver(
+        LearningDownload(
+          scheduleIcsFileName(snapshot),
+          buildScheduleIcsBytes(snapshot),
+        ),
+        () => mounted,
+      );
+      if (saved != null && mounted) {
+        setState(() => notice = '已导出第 ${snapshot.weekNumber} 周日历文件 (.ics)');
+      }
+    } catch (_) {
+      if (mounted) setState(() => notice = '导出日历失败，请重试');
+    }
+  }
+
+  Future<void> _showConflictCourses(List<ScheduleCourse> overlap) async {
+    final chosen = await showGinkgoModalSheet<ScheduleCourse>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: GinkgoSpacing.edgeInsetsCard,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '该时段有 ${overlap.length} 门重叠课程',
+                style: GinkgoTypography.headline.copyWith(
+                  color: CupertinoColors.label.resolveFrom(sheetContext),
+                ),
+              ),
+              const SizedBox(height: GinkgoSpacing.sm),
+              for (final course in overlap)
+                ScheduleCourseRow(
+                  course: course,
+                  onTap: () => Navigator.of(sheetContext).pop(course),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (chosen != null && mounted) showCourse(chosen);
+  }
+
   @override
   Widget build(BuildContext context) => CupertinoPageScaffold(
     backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(
@@ -192,6 +268,7 @@ class _SchedulePageState extends State<SchedulePage> {
         child: CustomScrollView(
           controller: scrollController,
           key: const Key('schedule-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             CupertinoSliverRefreshControl(onRefresh: () => load(force: true)),
             SliverList.list(
@@ -225,32 +302,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   else
                     const ScheduleLoadingSection(),
                 ],
-                if (notice != null)
-                  ScheduleSection(
-                    children: [
-                      Padding(
-                        padding: GinkgoSpacing.edgeInsetsCard,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              notice!,
-                              style: TextStyle(
-                                color: CupertinoColors.systemOrange.resolveFrom(
-                                  context,
-                                ),
-                              ),
-                            ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: busy ? null : () => load(force: true),
-                              child: const Text('重试'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                if (notice != null && data == null) _noticeBanner(),
                 const SizedBox(height: GinkgoSpacing.bottomScrollClearance),
               ],
             ),
@@ -258,6 +310,30 @@ class _SchedulePageState extends State<SchedulePage> {
         ),
       ),
     ),
+  );
+
+  Widget _noticeBanner() => ScheduleSection(
+    children: [
+      Padding(
+        padding: GinkgoSpacing.edgeInsetsCard,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              notice!,
+              style: TextStyle(
+                color: CupertinoColors.systemOrange.resolveFrom(context),
+              ),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: busy ? null : () => load(force: true),
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      ),
+    ],
   );
 
   List<Widget> _content(ScheduleResponse snapshot) {
@@ -287,6 +363,9 @@ class _SchedulePageState extends State<SchedulePage> {
           }
         }),
         onRefresh: () => load(force: true),
+        onExportIcs: widget.fileActions.learningFileSaver == null
+            ? null
+            : _exportIcs,
       ),
       if (snapshot.weeks.isNotEmpty)
         ScheduleWeekStrip(
@@ -294,6 +373,7 @@ class _SchedulePageState extends State<SchedulePage> {
           selectedWeek: selectedWeek,
           onSelected: selectWeek,
         ),
+      if (notice != null) _noticeBanner(),
       _viewModeSwitch(snapshot),
       if (viewMode == ScheduleViewMode.weekGrid ||
           viewMode == ScheduleViewMode.dayList)
@@ -312,6 +392,8 @@ class _SchedulePageState extends State<SchedulePage> {
             filter();
           }),
           onCourseTap: showCourse,
+          onConflictTap: _showConflictCourses,
+          onSwipeWeek: _swipeWeek,
         )
       else if (viewMode == ScheduleViewMode.semester)
         ScheduleSemesterWeeks(weeks: snapshot.weeks, onSelected: selectWeek)

@@ -120,17 +120,22 @@ class AcademicMetric extends StatelessWidget {
         ),
       ),
       const SizedBox(height: GinkgoSpacing.small),
-      Text(
-        value,
-        style: TextStyle(
-          fontSize: prominent
-              ? GinkgoTypography.metricProminentSize
-              : GinkgoTypography.metricSize,
-          fontWeight: FontWeight.w600,
-          color: prominent
-              ? GinkgoColors.resourcePurple.resolveFrom(context)
-              : CupertinoColors.label.resolveFrom(context),
-          fontFeatures: const [FontFeature.tabularFigures()],
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          value,
+          maxLines: 1,
+          style: TextStyle(
+            fontSize: prominent
+                ? GinkgoTypography.metricProminentSize
+                : GinkgoTypography.metricSize,
+            fontWeight: FontWeight.w600,
+            color: prominent
+                ? GinkgoColors.resourcePurple.resolveFrom(context)
+                : CupertinoColors.label.resolveFrom(context),
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
         ),
       ),
     ],

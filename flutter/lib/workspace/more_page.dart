@@ -117,6 +117,7 @@ class _MorePageState extends State<MorePage> {
       ),
       child: CustomScrollView(
         key: const Key('more-scroll'),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
           ApplePageHeader(
             largeTitle: const Text('更多'),

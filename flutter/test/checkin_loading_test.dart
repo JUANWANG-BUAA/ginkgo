@@ -50,7 +50,6 @@ void main() {
         tester.widget<GinkgoActivity>(find.byType(GinkgoActivity)).size,
         24,
       );
-      expect(find.text('首次连接需要建立学校和 iClass 会话，后续读取会复用有效会话。'), findsOneWidget);
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expect(tester.takeException(), isNull);
     },

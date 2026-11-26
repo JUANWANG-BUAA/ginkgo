@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_schedule">今日课表</string>
+    <string name="shortcut_checkin">课程签到</string>
+    <string name="shortcut_campus_card">校园卡余额</string>
+    <string name="shortcut_library">图书馆选座</string>
+    <string name="widget_schedule_name">今日课表</string>
+    <string name="widget_schedule_description">在桌面查看下一节课的时间与教室</string>
+</resources>

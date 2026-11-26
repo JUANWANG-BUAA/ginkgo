@@ -1,11 +1,14 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/shared/checkin_visibility.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
+import 'today_action_row.dart';
 import 'today_course_focus.dart';
 import 'today_course_list.dart';
 import 'today_presentation.dart';
@@ -39,8 +42,8 @@ class TodayCoursePlaceholder extends StatelessWidget {
   );
 }
 
-/// The loaded "today's courses" section: heading, focus card, the expandable
-/// course list and the way into the full timetable.
+/// The loaded "today's courses" section: timeline focus card, fused inline
+/// check-in actions, expandable course list and entry to the full timetable.
 class TodayCourseSection extends StatelessWidget {
   const TodayCourseSection({
     super.key,
@@ -53,6 +56,10 @@ class TodayCourseSection extends StatelessWidget {
     required this.onRetry,
     this.onOpenSchedule,
     this.demo = false,
+    this.checkinSection,
+    this.checkinCourses = const [],
+    this.onCheckInRetry,
+    this.onOpenCheckIn,
   });
 
   final TodayResponse data;
@@ -66,6 +73,10 @@ class TodayCourseSection extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback? onOpenSchedule;
   final bool demo;
+  final RefreshSection<CheckInResponse>? checkinSection;
+  final List<CheckInCourse> checkinCourses;
+  final VoidCallback? onCheckInRetry;
+  final VoidCallback? onOpenCheckIn;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +85,25 @@ class TodayCourseSection extends StatelessWidget {
     final courses = data.courses;
     final isToday =
         todayDate(data.date) == DateTime.utc(now.year, now.month, now.day);
+    if (courses.isEmpty && isToday && error == null) {
+      return const SizedBox.shrink();
+    }
+    final showFooter = (error != null || !isToday) && data.fetchedAt != null;
+    final checkin = checkinSection;
+    final checkinData = checkin?.value;
+    final checkinError = checkin == null
+        ? null
+        : switch (checkin.failure) {
+            FailureCode.moduleAuthRequired => '签到服务认证未完成',
+            _ when checkinData == null && checkin.error != null =>
+              '签到状态暂时无法读取',
+            _ => checkin.error,
+          };
+    final showInlineCheckInStrip =
+        courses.isNotEmpty &&
+        checkin != null &&
+        (checkinData == null || checkinError != null);
+
     return TodayVisualSection(
       key: const Key('today-courses'),
       header: Column(
@@ -90,24 +120,20 @@ class TodayCourseSection extends StatelessWidget {
             actionLabel: onOpenSchedule == null ? null : '完整课表',
             onAction: onOpenSchedule,
           ),
-          const SizedBox(height: 2),
-          Text(
-            dateLabel,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppleDesign.statusInactive.resolveFrom(context),
+          if (!isToday) ...[
+            const SizedBox(height: GinkgoSpacing.xs),
+            Text(
+              dateLabel,
+              style: GinkgoTypography.caption.copyWith(
+                color: AppleDesign.statusInactive.resolveFrom(context),
+              ),
             ),
-          ),
+          ],
         ],
       ),
-      footer: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (data.fetchedAt != null)
-            Text('课表同步：${_syncedAtLabel(data.fetchedAt!)}'),
-          if (demo) const Text('离线演示 · 合成样例'),
-        ],
-      ),
+      footer: showFooter
+          ? Text('课表同步：${_syncedAtLabel(data.fetchedAt!)}')
+          : null,
       children: [
         if (loading || error != null)
           SectionFeedback(
@@ -128,28 +154,39 @@ class TodayCourseSection extends StatelessWidget {
             now: now,
             stale: error != null,
             onOpen: onOpenSchedule,
+            checkinCourses: checkinCourses,
+            onOpenCheckIn: onOpenCheckIn,
           ),
           Semantics(
             expanded: expanded,
             child: CupertinoButton(
               key: const Key('today-toggle-courses'),
-              minimumSize: const Size(48, 48),
+              minimumSize: GinkgoButtonTokens.minTarget,
               onPressed: onToggleExpanded,
               child: Row(
                 children: [
-                  Expanded(child: Text(expanded ? '收起今日课程' : '展开今日课程')),
+                  Expanded(
+                    child: Text(
+                      expanded ? '收起今日课程' : '展开今日课程',
+                      style: GinkgoTypography.subheadline.copyWith(
+                        color: CupertinoTheme.of(context).primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                   Icon(
                     expanded
                         ? CupertinoIcons.chevron_up
                         : CupertinoIcons.chevron_down,
-                    size: 16,
+                    size: GinkgoIconTokens.glyphSm,
                   ),
                 ],
               ),
             ),
           ),
           if (expanded)
-            for (final (index, course) in courses.indexed)
+            for (final (index, course) in courses.indexed) ...[
+              const TodayVisualDivider(),
               TodayCourseRow(
                 key: Key('today-course-$index-${course.name}'),
                 course: course,
@@ -159,7 +196,34 @@ class TodayCourseSection extends StatelessWidget {
                       course.time,
                     )?.status(now) ??
                     '时间待确认',
+                checkin: matchCheckInForTodayCourse(course, checkinCourses),
+                onOpenCheckIn: onOpenCheckIn,
               ),
+            ],
+          if (showInlineCheckInStrip) ...[
+            const TodayVisualDivider(),
+            KeyedSubtree(
+              key: const Key('today-checkin'),
+              child: checkinData == null &&
+                      !checkin.loading &&
+                      checkinError == null
+                  ? TodayActionRow(
+                      summary: true,
+                      title: '查看课程签到',
+                      onTap: onCheckInRetry,
+                    )
+                  : SectionFeedback(
+                      loading: checkin.loading,
+                      label: checkinData == null
+                          ? '正在读取签到状态…'
+                          : '正在更新签到状态…',
+                      hasData: checkinData != null,
+                      quietWhenRefreshing: true,
+                      error: checkinError,
+                      onRetry: onCheckInRetry ?? () {},
+                    ),
+            ),
+          ],
         ],
       ],
     );

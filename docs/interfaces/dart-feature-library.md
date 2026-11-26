@@ -21,7 +21,7 @@
 - [features/library/library_slot_page.dart](#featureslibrarylibraryslotpagedart) (1)
 - [features/library/library_stats_page.dart](#featureslibrarylibrarystatspagedart) (1)
 - [features/library/library_venue_selection_page.dart](#featureslibrarylibraryvenueselectionpagedart) (1)
-- [features/library/library_widgets.dart](#featureslibrarylibrarywidgetsdart) (6)
+- [features/library/library_widgets.dart](#featureslibrarylibrarywidgetsdart) (7)
 
 ## features/library/library_action_grid.dart
 
@@ -33,10 +33,10 @@
 ## features/library/library_area_page.dart
 
 - `class LibraryAreaPage extends StatefulWidget` — Library hierarchy and explicit, single-attempt booking actions.
-  <sub>class · features/library/library_area_page.dart:12</sub>
-    - `const LibraryAreaPage({ super.key, required this.service, required this.venue, required this.onReservationChanged, required this.onViewReservations, });`  <sub>:13</sub>
-    - `final Future<void> Function() onReservationChanged;`  <sub>:20</sub>
-    - `State<LibraryAreaPage> createState() => …`  <sub>:25</sub>
+  <sub>class · features/library/library_area_page.dart:15</sub>
+    - `const LibraryAreaPage({ super.key, required this.service, required this.venue, required this.onReservationChanged, required this.onViewReservations, });`  <sub>:16</sub>
+    - `final Future<void> Function() onReservationChanged;`  <sub>:23</sub>
+    - `State<LibraryAreaPage> createState() => …`  <sub>:28</sub>
 
 ## features/library/library_books_page.dart
 
@@ -117,17 +117,17 @@
 
 ## features/library/library_loans_page.dart
 
-- `class LibraryLoansPage extends StatefulWidget` — Private records exist only while this page is active. No background reads.
-  <sub>class · features/library/library_loans_page.dart:13</sub>
-    - `const LibraryLoansPage({super.key, this.gateway, this.officialGateway});`  <sub>:14</sub>
-    - `State<LibraryLoansPage> createState() => …`  <sub>:21</sub>
+- `class LibraryLoansPage extends StatefulWidget` — Private records live in session memory only (never written to disk) and are
+  <sub>class · features/library/library_loans_page.dart:16</sub>
+    - `const LibraryLoansPage({super.key, this.gateway, this.officialGateway});`  <sub>:17</sub>
+    - `State<LibraryLoansPage> createState() => …`  <sub>:24</sub>
 
 ## features/library/library_page.dart
 
 - `class LibraryPage extends StatefulWidget` — Library hierarchy and explicit, single-attempt booking actions.
-  <sub>class · features/library/library_page.dart:22</sub>
-    - `const LibraryPage({super.key, required this.service, this.onOpenLoans});`  <sub>:23</sub>
-    - `State<LibraryPage> createState() => …`  <sub>:27</sub>
+  <sub>class · features/library/library_page.dart:23</sub>
+    - `const LibraryPage({super.key, required this.service, this.onOpenLoans});`  <sub>:24</sub>
+    - `State<LibraryPage> createState() => …`  <sub>:28</sub>
 
 ## features/library/library_seat_page.dart
 
@@ -140,10 +140,10 @@
 ## features/library/library_slot_page.dart
 
 - `class LibrarySlotPage extends StatefulWidget` — Library hierarchy and explicit, single-attempt booking actions.
-  <sub>class · features/library/library_slot_page.dart:11</sub>
-    - `const LibrarySlotPage({ super.key, required this.service, required this.area, required this.onReservationChanged, required this.onViewReservations, });`  <sub>:12</sub>
-    - `final Future<void> Function() onReservationChanged;`  <sub>:19</sub>
-    - `State<LibrarySlotPage> createState() => …`  <sub>:24</sub>
+  <sub>class · features/library/library_slot_page.dart:17</sub>
+    - `const LibrarySlotPage({ super.key, required this.service, required this.area, required this.onReservationChanged, required this.onViewReservations, });`  <sub>:18</sub>
+    - `final Future<void> Function() onReservationChanged;`  <sub>:25</sub>
+    - `State<LibrarySlotPage> createState() => …`  <sub>:30</sub>
 
 ## features/library/library_stats_page.dart
 
@@ -162,20 +162,24 @@
 ## features/library/library_widgets.dart
 
 - `class LibrarySectionStatus extends StatelessWidget` — Inline status for a section that is still loading or that failed while
-  <sub>class · features/library/library_widgets.dart:13</sub>
-    - `const LibrarySectionStatus({ super.key, required this.id, required this.loading, required this.hasSnapshot, required this.failure, required this.retry, });`  <sub>:14</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:30</sub>
+  <sub>class · features/library/library_widgets.dart:16</sub>
+    - `const LibrarySectionStatus({ super.key, required this.id, required this.loading, required this.hasSnapshot, required this.failure, required this.retry, });`  <sub>:17</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:33</sub>
 - `class LibraryDisclosureToggle extends StatelessWidget` — The toggle of a collapsible read-only note. The label states the current
-  <sub>class · features/library/library_widgets.dart:42</sub>
-    - `const LibraryDisclosureToggle({ super.key, required this.label, required this.expanded, required this.onToggle, this.toggleKey, });`  <sub>:43</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:57</sub>
+  <sub>class · features/library/library_widgets.dart:45</sub>
+    - `const LibraryDisclosureToggle({ super.key, required this.label, required this.expanded, required this.onToggle, this.toggleKey, });`  <sub>:46</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:60</sub>
 - `class LibraryNoteText extends StatelessWidget` — The body of a read-only note that the reader opened on purpose.
-  <sub>class · features/library/library_widgets.dart:101</sub>
-    - `const LibraryNoteText({super.key, required this.text});`  <sub>:102</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:107</sub>
+  <sub>class · features/library/library_widgets.dart:104</sub>
+    - `const LibraryNoteText({super.key, required this.text});`  <sub>:105</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:110</sub>
 - `String libraryActionLabel(String action) => …` — The human label of one booking action. The same mapping is used by the
-  <sub>function · features/library/library_widgets.dart:123</sub>
+  <sub>function · features/library/library_widgets.dart:126</sub>
 - `IconData libraryActionIcon(String action) => …` — The icon of one booking action.
-  <sub>function · features/library/library_widgets.dart:132</sub>
+  <sub>function · features/library/library_widgets.dart:135</sub>
 - `CupertinoDynamicColor? libraryActionTint(String action) => …` — The semantic tint of one booking action. Actions without a tint keep the
-  <sub>function · features/library/library_widgets.dart:141</sub>
+  <sub>function · features/library/library_widgets.dart:144</sub>
+- `class LibraryBookingCard extends StatelessWidget` — Clean, structured booking card for active or pending library seat records.
+  <sub>class · features/library/library_widgets.dart:156</sub>
+    - `const LibraryBookingCard({ super.key, required this.booking, required this.statusLabel, required this.statusTone, required this.timeDetail, required this.actionsDisabled, required this.uncertainActions, required this.onAction, });`  <sub>:157</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:189</sub>

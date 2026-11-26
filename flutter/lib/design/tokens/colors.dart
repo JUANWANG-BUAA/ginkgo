@@ -3,14 +3,15 @@ import 'package:flutter/cupertino.dart';
 /// Semantic colors for Ginkgo across light and dark brightness modes.
 /// Aligned with Apple HIG (iOS / macOS) dynamic system materials.
 abstract final class GinkgoColors {
-  // Brand & Accent
+  // Brand & Accent (light #15803d achieves >= 5.0:1 contrast with white for
+  // crisp white-on-green filled buttons and WCAG AA text on white cards).
   static const accent = CupertinoDynamicColor.withBrightness(
-    color: Color(0xff189840),
+    color: Color(0xff15803d),
     darkColor: Color(0xff47bd6b),
   );
 
   static const accentSubtle = CupertinoDynamicColor.withBrightness(
-    color: Color(0x1a189840),
+    color: Color(0x1a15803d),
     darkColor: Color(0x2447bd6b),
   );
 

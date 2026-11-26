@@ -1,5 +1,6 @@
 import 'native_auth_challenge.dart';
 
+import 'dart:async';
 import 'dart:convert';
 
 import '../application/homework_files.dart';
@@ -14,6 +15,7 @@ import '../application/local_tasks_read.dart';
 import '../application/notices.dart';
 import '../application/saved_credential.dart';
 import '../application/service_health.dart';
+import '../application/session_memory_cache.dart';
 import '../application/shuttle.dart';
 import '../application/mirror_service.dart';
 import '../src/rust/api/live.dart' as live;
@@ -33,6 +35,8 @@ import 'package:ginkgo_mirror/infrastructure/native_library.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 import 'package:ginkgo_mirror/infrastructure/native_network_account.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_snapshot_store.dart';
+import 'package:ginkgo_mirror/infrastructure/offline_cache_store.dart';
+import 'package:ginkgo_mirror/infrastructure/widget_sync.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_planning.dart';
 import 'package:ginkgo_mirror/infrastructure/graduate_credit_map_payload.dart';
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
@@ -70,7 +74,13 @@ final class NativeMirrorService
         CareerEventsGateway,
         CampusActivitiesGateway,
         GraduateCreditMapGateway {
-  const NativeMirrorService({this.expectedAccount});
+  const NativeMirrorService({
+    this.expectedAccount,
+    this.offlineFastPath = false,
+  });
+
+  @override
+  final bool offlineFastPath;
 
   @override
   Future<RouteChoice?> lastVerifiedRoute() =>
@@ -334,8 +344,12 @@ final class NativeMirrorService
   @override
   Future<SessionResponse> signOut() async {
     clearInFlightNativeReads();
+    SessionMemoryCache.shared.clearAll();
     try {
       await learningSnapshots.clear();
+      await OfflineCacheStore.shared.clearSessionHint();
+      await OfflineCacheStore.shared.clearAccount(expectedAccount);
+      await clearScheduleWidget();
     } catch (_) {
       /* Storage is fail-closed; authentication must still be revoked. */
     }
@@ -345,6 +359,7 @@ final class NativeMirrorService
   @override
   Future<SessionResponse> setRoute(RouteChoice route) async {
     clearInFlightNativeReads();
+    SessionMemoryCache.shared.clearAll();
     try {
       await learningSnapshots.clear();
     } catch (_) {
@@ -356,7 +371,9 @@ final class NativeMirrorService
   @override
   Future<bool> clearCache() async {
     clearInFlightNativeReads();
+    SessionMemoryCache.shared.clearAll();
     await learningSnapshots.clear();
+    await OfflineCacheStore.shared.clearAccount(expectedAccount);
     return boundedNativeRead(() => live.clearCache());
   }
 
@@ -392,23 +409,55 @@ final class NativeMirrorService
     String? termId,
     int? week,
     bool forceRefresh = false,
-  }) => coalescedNativeRead(
-    account: expectedAccount,
-    key: 'schedule:${termId ?? ''}:${week ?? ''}',
-    forceRefresh: forceRefresh,
-    command: () => ServiceHealthTracker.shared.observe(
-      ServiceEndpointId.schedule,
-      () => boundedNativeRead(
-        () => live.loadSchedule(
+  }) async {
+    final owner = expectedAccount;
+    if (offlineFastPath && !forceRefresh && owner != null && owner.isNotEmpty) {
+      final cached = await OfflineCacheStore.shared.readSchedule(
+        owner,
+        termId: termId,
+        week: week,
+      );
+      if (cached != null) return cached;
+    }
+    final result = await coalescedNativeRead(
+      account: owner,
+      key: 'schedule:${termId ?? ''}:${week ?? ''}',
+      forceRefresh: forceRefresh,
+      command: () => ServiceHealthTracker.shared.observe(
+        ServiceEndpointId.schedule,
+        () => boundedNativeRead(
+          () => live.loadSchedule(
+            termId: termId,
+            week: week,
+            forceRefresh: forceRefresh,
+          ),
+        ),
+        failureOf: (r) => r.failure,
+        staleOf: (r) => r.failure != null && r.fetchedAt != null,
+      ),
+    );
+    if (owner != null && owner.isNotEmpty) {
+      if (result.failure == null && result.termId.isNotEmpty) {
+        unawaited(
+          OfflineCacheStore.shared.saveSchedule(
+            owner,
+            result,
+            requestedTermId: termId,
+            requestedWeek: week,
+          ),
+        );
+      } else if (result.failure != null && result.termId.isEmpty) {
+        final cached = await OfflineCacheStore.shared.readSchedule(
+          owner,
           termId: termId,
           week: week,
-          forceRefresh: forceRefresh,
-        ),
-      ),
-      failureOf: (r) => r.failure,
-      staleOf: (r) => r.failure != null && r.fetchedAt != null,
-    ),
-  );
+          attachFailure: result.failure,
+        );
+        if (cached != null) return cached;
+      }
+    }
+    return result;
+  }
 
   @override
   Future<GradeTermsResponse> gradeTerms() =>
@@ -426,20 +475,39 @@ final class NativeMirrorService
       );
 
   @override
-  Future<TodayResponse> today({bool forceRefresh = false}) =>
-      coalescedNativeRead(
-        account: expectedAccount,
-        key: 'today',
-        forceRefresh: forceRefresh,
-        command: () => ServiceHealthTracker.shared.observe(
-          ServiceEndpointId.today,
-          () => boundedNativeRead(
-            () => live.loadToday(forceRefresh: forceRefresh),
-          ),
-          failureOf: (r) => r.failure,
-          staleOf: (r) => r.failure != null && r.fetchedAt != null,
+  Future<TodayResponse> today({bool forceRefresh = false}) async {
+    final owner = expectedAccount;
+    if (offlineFastPath && !forceRefresh && owner != null && owner.isNotEmpty) {
+      final cached = await OfflineCacheStore.shared.readToday(owner);
+      if (cached != null) return cached;
+    }
+    final result = await coalescedNativeRead(
+      account: owner,
+      key: 'today',
+      forceRefresh: forceRefresh,
+      command: () => ServiceHealthTracker.shared.observe(
+        ServiceEndpointId.today,
+        () => boundedNativeRead(
+          () => live.loadToday(forceRefresh: forceRefresh),
         ),
-      );
+        failureOf: (r) => r.failure,
+        staleOf: (r) => r.failure != null && r.fetchedAt != null,
+      ),
+    );
+    if (owner != null && owner.isNotEmpty) {
+      if (result.failure == null && result.date.isNotEmpty) {
+        unawaited(OfflineCacheStore.shared.saveToday(owner, result));
+        unawaited(syncTodayScheduleWidget(result));
+      } else if (result.failure != null && result.fetchedAt == null) {
+        final cached = await OfflineCacheStore.shared.readToday(
+          owner,
+          attachFailure: result.failure,
+        );
+        if (cached != null) return cached;
+      }
+    }
+    return result;
+  }
 
   @override
   Future<CheckInResponse> checkin({bool forceRefresh = false}) =>

@@ -16,12 +16,17 @@ import 'package:ginkgo_mirror/features/today/today_checkin_section.dart';
 import 'package:ginkgo_mirror/features/today/today_homework_section.dart';
 import 'package:ginkgo_mirror/features/today/today_page.dart';
 import 'package:ginkgo_mirror/features/today/today_tasks_section.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 
 import 'local_tasks_read_fixture.dart';
 import 'platform_actions_fake.dart';
 
 final clock = DateTime.utc(2026, 10, 22, 9);
+const oneCourseToday = TodayResponse(
+  date: '2026-10-22',
+  courses: [TodayCourse(name: '合成课程', time: '14:00-15:00', place: '合成教学楼')],
+);
 const emptyCourses = TodayResponse(date: '2026-10-22', courses: []);
 const emptyHomework = HomeworkResponse(
   termName: '合成学期',
@@ -60,6 +65,7 @@ class TodayFake extends Fake implements MirrorService {
   final homeworkRequests = <Completer<HomeworkResponse>>[];
   final taskRequests = <Completer<LocalTasksRead>>[];
   bool holdCourses = false, holdHomework = false, holdTasks = false;
+  TodayResponse todayCourses = emptyCourses;
   CheckInResponse checkinResult = const CheckInResponse(
     date: '2026-10-22',
     courses: [],
@@ -73,7 +79,7 @@ class TodayFake extends Fake implements MirrorService {
   @override
   Future<TodayResponse> today({bool forceRefresh = false}) {
     courseReads++;
-    if (!holdCourses) return Future.value(emptyCourses);
+    if (!holdCourses) return Future.value(todayCourses);
     final c = Completer<TodayResponse>();
     courseRequests.add(c);
     return c.future;
@@ -189,22 +195,78 @@ Future<void> clear(WidgetTester tester) async {
   await tester.pump();
 }
 
+class _QuietTodayFake extends TodayFake {
+  @override
+  Future<ScheduleResponse> schedule({
+    String? termId,
+    int? week,
+    bool forceRefresh = false,
+  }) async => const ScheduleResponse(
+    terms: [],
+    weeks: [],
+    termId: 'synthetic',
+    weekNumber: 1,
+    courses: [],
+    exams: [],
+  );
+}
+
 void main() {
+  testWidgets(
+    'quiet day hides empty course and checkin cards and shows clean all-clear state',
+    (tester) async {
+      size(tester);
+      final service = _QuietTodayFake()
+        ..assignments = const HomeworkResponse(
+          termName: '合成学期',
+          termCode: 'synthetic',
+          items: [],
+          rolesComplete: true,
+        );
+      await tester.pumpWidget(host(page(service)));
+      await tester.pumpAndSettle();
+      expect(service.checkinReads, 0);
+      expect(find.byKey(const Key('today-courses')), findsNothing);
+      expect(find.byKey(const Key('today-checkin')), findsNothing);
+      expect(find.byKey(const Key('today-homework')), findsNothing);
+      expect(find.byKey(const Key('today-tasks')), findsNothing);
+      expect(find.byKey(const Key('today-open-diagnostics')), findsNothing);
+      expect(find.byKey(const Key('today-all-clear')), findsOneWidget);
+      expect(find.text('今天暂无安排'), findsOneWidget);
+
+      // Tapping refresh on a quiet day must NOT flash empty legacy cards or
+      // pop open the status banner while requests are in flight.
+      service
+        ..holdCourses = true
+        ..holdHomework = true;
+      await tester.tap(find.bySemanticsLabel('刷新今天').first);
+      await tester.pump();
+      expect(find.byKey(const Key('today-courses')), findsNothing);
+      expect(find.byKey(const Key('today-checkin')), findsNothing);
+      expect(find.byKey(const Key('today-open-diagnostics')), findsNothing);
+      expect(find.text('今天没有课程'), findsNothing);
+      expect(find.byKey(const Key('today-all-clear')), findsOneWidget);
+      service.courseRequests.single.complete(emptyCourses);
+      service.homeworkRequests.single.complete(service.assignments);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('today-all-clear')), findsOneWidget);
+    },
+  );
+
   testWidgets('the dashboard reads checkin only after an explicit action', (
     tester,
   ) async {
     size(tester);
-    final service = TodayFake();
+    final service = TodayFake()..todayCourses = oneCourseToday;
     await tester.pumpWidget(host(page(service)));
     await tester.pumpAndSettle();
     expect(service.checkinReads, 0);
     expect(find.byKey(const Key('today-checkin')), findsOneWidget);
     expect(find.byKey(const Key('today-checkin-entry')), findsNothing);
-    expect(find.text('今天没有课程'), findsOneWidget);
     await tester.tap(find.text('查看课程签到'));
     await tester.pumpAndSettle();
     expect(service.checkinReads, 1);
-    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
   });
 
   testWidgets('a check-in auth failure offers only a local read retry', (
@@ -212,6 +274,7 @@ void main() {
   ) async {
     size(tester);
     final service = TodayFake()
+      ..todayCourses = oneCourseToday
       ..checkinResult = const CheckInResponse(
         date: '',
         courses: [],
@@ -238,7 +301,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.checkinReads, 2);
     expect((service.courseReads, service.homeworkReads, service.taskReads), before);
-    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
     expect(find.text('签到服务认证未完成'), findsNothing);
   });
 
@@ -294,7 +357,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
     checkins.error = '合成签到读取失败';
     await tester.pumpWidget(
       host(
@@ -346,13 +409,23 @@ void main() {
       ..value = const HomeworkResponse(
         termName: '合成学期',
         termCode: 'synthetic',
-        items: [],
+        items: [
+          HomeworkItem(
+            id: 'past',
+            courseRole: 'student',
+            courseName: '合成课程',
+            title: '历史已截止作业',
+            dueAt: '2026-10-01 23:59:00',
+            status: HomeworkStatus.pending,
+          ),
+        ],
         rolesComplete: true,
       );
     await tester.pumpWidget(
       host(TodayHomeworkSection(section: homework, onRetry: () {}, now: clock)),
     );
     expect(find.byKey(const Key('today-homework')), findsNothing);
+    expect(find.text('有已截止作业'), findsNothing);
     homework.dispose();
   });
 
@@ -499,7 +572,7 @@ void main() {
         lessThan(tester.getTopLeft(find.text('无日期作业')).dy),
       );
       expect(find.text('助教作业'), findsNothing);
-      expect(find.text('截止时间待确认'), findsOneWidget);
+      expect(find.text('截止待确认'), findsOneWidget);
       await tester.tap(find.byKey(const Key('today-homework-item-soon')));
       expect(opened?.id, 'soon');
       section.value = const HomeworkResponse(
@@ -817,6 +890,142 @@ void main() {
       } finally {
         semantics.dispose();
       }
+    },
+  );
+
+  testWidgets(
+    'TA and hidden iClass check-in courses never pop up on Today',
+    (tester) async {
+      size(tester);
+      // 1. Quiet day (0 student courses today): refreshing Today must NOT pop
+      // up a TA course returned by iClass.
+      final quiet = _QuietTodayFake()
+        ..assignments = const HomeworkResponse(
+          termName: '合成学期',
+          termCode: 'synthetic',
+          items: [],
+          rolesComplete: true,
+        )
+        ..checkinResult = const CheckInResponse(
+          date: '2026-10-22',
+          courses: [
+            CheckInCourse(
+              id: 'ta-session-1',
+              courseId: 'ta-course-1',
+              courseName: '助教实验课',
+              beginsAt: '14:00',
+              endsAt: '15:35',
+              status: CheckInStatus.notSigned,
+              mergedRecordCount: 1,
+              conflicting: false,
+            ),
+          ],
+          fromCache: false,
+          stale: false,
+        );
+      await tester.pumpWidget(host(page(quiet)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('刷新今天').first);
+      await tester.pumpAndSettle();
+      expect(quiet.checkinReads, 0);
+      expect(find.byKey(const Key('today-checkin')), findsNothing);
+      expect(find.text('助教实验课'), findsNothing);
+      expect(find.byKey(const Key('today-all-clear')), findsOneWidget);
+
+      // 2. Day with a student course + a TA course in iClass: only the
+      // student's own scheduled course appears in TodayCheckInSection.
+      final mixed = TodayFake()
+        ..todayCourses = oneCourseToday
+        ..checkinResult = const CheckInResponse(
+          date: '2026-10-22',
+          courses: [
+            CheckInCourse(
+              id: 'stu-session-1',
+              courseId: 'stu-course-1',
+              courseName: '合成课程',
+              beginsAt: '14:00',
+              endsAt: '15:00',
+              status: CheckInStatus.notSigned,
+              mergedRecordCount: 1,
+              conflicting: false,
+            ),
+            CheckInCourse(
+              id: 'ta-session-2',
+              courseId: 'ta-course-2',
+              courseName: '助教实验课',
+              beginsAt: '16:00',
+              endsAt: '17:35',
+              status: CheckInStatus.notSigned,
+              mergedRecordCount: 1,
+              conflicting: false,
+            ),
+          ],
+          fromCache: false,
+          stale: false,
+        );
+      final visibility = CourseVisibility('a');
+      await tester.pumpWidget(
+        host(
+          CourseVisibilityScope(
+            account: 'a',
+            controllerFactory: (_) => visibility,
+            child: page(mixed),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('查看课程签到'));
+      await tester.pumpAndSettle();
+      // Header carries date context instead of decorative copy, and check-in
+      // fuses directly into 今日课程 without rendering a duplicate 课程签到 card.
+      expect(find.text('从今日课程开始安排一天'), findsNothing);
+      expect(find.textContaining('10月22日 · 周四'), findsWidgets);
+      expect(find.text('课程签到'), findsNothing);
+      expect(find.text('未签到 · 去签到'), findsOneWidget);
+      expect(find.byKey(const Key('today-checkin-stu-session-1')), findsOneWidget);
+      expect(find.byKey(const Key('today-checkin-ta-session-2')), findsNothing);
+      expect(find.text('助教实验课'), findsNothing);
+
+      // 3. Hiding the student course in CourseVisibilityScope ('iclass') hides
+      // its fused check-in pill from Today as well.
+      await visibility.setHidden('iclass', 'stu-course-1', true);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('today-checkin-stu-session-1')), findsNothing);
+      expect(find.byKey(const Key('today-checkin')), findsNothing);
+
+      // 4. Even without a confirmed timetable, SPOC-confirmed assistant courses
+      // are filtered out of TodayCheckInSection.
+      final section = RefreshSection<CheckInResponse>()
+        ..value = mixed.checkinResult;
+      await tester.pumpWidget(
+        host(
+          TodayCheckInSection(
+            section: section,
+            now: clock,
+            homework: const HomeworkResponse(
+              termName: '合成学期',
+              termCode: 'synthetic',
+              items: [
+                HomeworkItem(
+                  id: 'hw-ta',
+                  courseId: 'spoc-ta',
+                  courseName: '助教实验课',
+                  title: '助教作业',
+                  courseRole: 'assistant',
+                  status: HomeworkStatus.pending,
+                ),
+              ],
+              rolesComplete: true,
+            ),
+            onRetry: () {},
+            onOpen: () {},
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('today-checkin-stu-session-1')), findsOneWidget);
+      expect(find.byKey(const Key('today-checkin-ta-session-2')), findsNothing);
+      await clear(tester);
+      section.dispose();
     },
   );
 }

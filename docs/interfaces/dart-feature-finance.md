@@ -8,9 +8,9 @@
 ## features/finance/finance_page.dart
 
 - `class FinancePage extends StatefulWidget`
-  <sub>class · features/finance/finance_page.dart:13</sub>
-    - `const FinancePage({super.key, this.gateway});`  <sub>:14</sub>
-    - `State<FinancePage> createState() => …`  <sub>:19</sub>
+  <sub>class · features/finance/finance_page.dart:18</sub>
+    - `const FinancePage({super.key, this.gateway});`  <sub>:19</sub>
+    - `State<FinancePage> createState() => …`  <sub>:24</sub>
 
 ## features/finance/finance_visuals.dart
 

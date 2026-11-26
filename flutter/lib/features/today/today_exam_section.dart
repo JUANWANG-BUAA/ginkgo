@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
-import 'package:ginkgo_mirror/application/failure_message.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_action_row.dart';
@@ -17,12 +17,16 @@ class TodayExamSection extends StatefulWidget {
     required this.now,
     this.refreshToken = 0,
     this.onOpen,
+    this.onVisibilityChanged,
+    this.onWeekNumberChanged,
   });
 
   final MirrorService service;
   final DateTime now;
   final int refreshToken;
   final ValueChanged<String>? onOpen;
+  final ValueChanged<bool>? onVisibilityChanged;
+  final ValueChanged<int?>? onWeekNumberChanged;
 
   @override
   State<TodayExamSection> createState() => _TodayExamSectionState();
@@ -30,6 +34,8 @@ class TodayExamSection extends StatefulWidget {
 
 class _TodayExamSectionState extends State<TodayExamSection> {
   late RefreshSection<ScheduleResponse> exams;
+  bool _lastVisible = false;
+  int? _lastWeekNumber;
 
   @override
   void initState() {
@@ -43,7 +49,48 @@ class _TodayExamSectionState extends State<TodayExamSection> {
   }
 
   void _changed() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    _notifyVisibility();
+    _notifyWeekNumber();
+    setState(() {});
+  }
+
+  void _notifyWeekNumber() {
+    final week = exams.value?.weekNumber;
+    final normalized = (week != null && week > 0) ? week : null;
+    if (normalized == _lastWeekNumber) return;
+    _lastWeekNumber = normalized;
+    final callback = widget.onWeekNumberChanged;
+    if (callback == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) callback(_lastWeekNumber);
+    });
+  }
+
+  bool _isVisible() {
+    final data = exams.value;
+    if (data == null) return exams.loading || exams.error != null;
+    if (exams.error != null) return true;
+    final today = DateTime.utc(
+      widget.now.year,
+      widget.now.month,
+      widget.now.day,
+    );
+    return data.exams.any((exam) {
+      final day = exam.examDate == null ? null : todayDate(exam.examDate!);
+      return day == null || !day.isBefore(today);
+    });
+  }
+
+  void _notifyVisibility() {
+    final visible = _isVisible();
+    if (visible == _lastVisible) return;
+    _lastVisible = visible;
+    final callback = widget.onVisibilityChanged;
+    if (callback == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) callback(_lastVisible);
+    });
   }
 
   @override
@@ -139,21 +186,26 @@ class _TodayExamSectionState extends State<TodayExamSection> {
             ? null
             : () => widget.onOpen!('schedule'),
       ),
-      footer: data.fetchedAt == null
-          ? const Text('学校考试安排')
-          : Text('考试同步：${schoolTimestampLabel(data.fetchedAt)}'),
       children: [
-        for (final exam in upcoming.take(3))
-          TodayActionRow(
+        for (final (index, exam) in upcoming.take(3).indexed) ...[
+          if (index > 0) const TodayVisualDivider(),
+          GinkgoProgressiveRow(
             key: Key('today-exam-${exam.id}'),
+            emphasized: index == 0,
             title: exam.courseName,
             subtitle:
-                '${exams.error == null ? '' : '旧数据 · '}${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'} · ${exam.examPlace ?? '地点待确认'}',
+                '${exams.error == null ? '' : '旧数据 · '}${exam.examPlace ?? '地点待确认'}',
+            badgeLabel: _examCountdownLabel(exam.examDate, today),
+            badgeIcon: CupertinoIcons.calendar,
+            meta: '${exam.examDate ?? '日期待确认'} ${exam.startTime ?? '时间待确认'}',
+            accent: _examTint(exam.examDate, today),
             onTap: widget.onOpen == null
                 ? null
                 : () => widget.onOpen!('schedule'),
           ),
-        if (upcoming.length > 3)
+        ],
+        if (upcoming.length > 3) ...[
+          const TodayVisualDivider(),
           TodayActionRow(
             summary: true,
             title: '另有 ${upcoming.length - 3} 场考试',
@@ -161,6 +213,7 @@ class _TodayExamSectionState extends State<TodayExamSection> {
                 ? null
                 : () => widget.onOpen!('schedule'),
           ),
+        ],
         if (exams.error != null)
           SectionFeedback(
             loading: exams.loading,
@@ -172,5 +225,23 @@ class _TodayExamSectionState extends State<TodayExamSection> {
           ),
       ],
     );
+  }
+
+  String _examCountdownLabel(String? rawDate, DateTime today) {
+    final day = rawDate == null ? null : todayDate(rawDate);
+    if (day == null) return '日期待确认';
+    final diff = day.difference(today).inDays;
+    if (diff <= 0) return '今天';
+    if (diff == 1) return '明天';
+    return '$diff 天后';
+  }
+
+  Color _examTint(String? rawDate, DateTime today) {
+    final day = rawDate == null ? null : todayDate(rawDate);
+    if (day == null) return AppleDesign.statusUncertain;
+    final diff = day.difference(today).inDays;
+    if (diff <= 2) return GinkgoColors.statusDanger;
+    if (diff <= 7) return AppleDesign.statusPending;
+    return GinkgoColors.resourceBlue;
   }
 }

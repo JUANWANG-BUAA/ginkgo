@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 
@@ -113,14 +114,59 @@ class CheckinCourseRow extends StatelessWidget {
                   ),
                 ),
               if (canSubmit)
-                CupertinoButton.tinted(
+                CupertinoButton(
                   key: Key('checkin-submit-${course.id}'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 8,
-                  ),
+                  padding: EdgeInsets.zero,
+                  minimumSize: GinkgoButtonTokens.minTarget,
                   onPressed: !windowOpen ? null : onSubmit,
-                  child: Text(windowOpen ? '签到码' : '课前 10 分钟开放'),
+                  child: windowOpen && onSubmit != null
+                      ? DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: CupertinoTheme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(
+                              GinkgoButtonTokens.actionRadius,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: GinkgoButtonTokens.paddingCompact,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.qrcode,
+                                  size: GinkgoIconTokens.glyphSm,
+                                  color: CupertinoDynamicColor.resolve(
+                                    CupertinoTheme.of(
+                                      context,
+                                    ).primaryContrastingColor,
+                                    context,
+                                  ),
+                                ),
+                                const SizedBox(width: GinkgoSpacing.small),
+                                Text(
+                                  '签到码',
+                                  style: GinkgoTypography.footnote.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoDynamicColor.resolve(
+                                      CupertinoTheme.of(
+                                        context,
+                                      ).primaryContrastingColor,
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : GinkgoBadge(
+                          label: windowOpen ? '签到码' : '课前 10 分钟开放',
+                          icon: CupertinoIcons.clock,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                          compact: true,
+                        ),
                 ),
             ],
           ),

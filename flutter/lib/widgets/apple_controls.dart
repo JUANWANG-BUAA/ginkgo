@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_surfaces.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_modal_sheet.dart';
 
 /// Presents a discrete choice with the system action sheet.
 ///
@@ -49,7 +50,7 @@ Future<T?> chooseWheel<T>(
   if (values.isEmpty) return Future<T?>.value();
   final found = selected == null ? -1 : values.indexOf(selected);
   var index = found < 0 ? 0 : found;
-  return showCupertinoModalPopup<T>(
+  return showGinkgoModalSheet<T>(
     context: context,
     builder: (sheetContext) {
       final textScale = MediaQuery.textScalerOf(sheetContext).scale(1);

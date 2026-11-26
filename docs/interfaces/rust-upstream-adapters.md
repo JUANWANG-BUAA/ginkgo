@@ -109,25 +109,25 @@
 - `pub async fn resolve_login_name<T: HttpTransport>( session: &Session<T>, ) -> Result<String, AppError> {…}` — Follow the SSO entry manually (at most eight hops) and return only the
   <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:23</sub>
 - `pub async fn app_login<T: HttpTransport>( session: &Session<T>, login_name: &str, ) -> Result<IClassSession, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:70</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:80</sub>
 - `pub async fn course_schedule<T: HttpTransport>( session: &Session<T>, iclass: &IClassSession, date: &str, ) -> Result<Vec<CheckInCourse>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:81</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:92</sub>
 - `pub const TIMESTAMP_URL: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";`
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:151</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:251</sub>
 - `pub const SCAN_SIGN_URL: &str = "https://iclass.buaa.edu.cn:8347/app/course/stu_scan_sign.action";`
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:152</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:252</sub>
 - `pub const CLASSROOM_QR_BASE_URL: &str = "http://iclass.buaa.edu.cn:8081/app/course/stu_scan_sign.action";`
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:153</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:253</sub>
 - `pub async fn fetch_timestamp<T: HttpTransport>(session: &Session<T>) -> Result<String, AppError> {…}` — Fetch the upstream server timestamp used by the iClass QR check-in payload.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:157</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:257</sub>
 - `pub fn scan_sign_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the `stu_scan_sign.action` URL used for direct POST submission.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:183</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:283</sub>
 - `pub const MAX_QR_TIMESTAMP_OFFSET_MS: u32 = 15_000;` — Maximum forward buffer (in milliseconds) allowed when saving a QR code for
-  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:190</sub>
+  <sub>const · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:290</sub>
 - `pub fn apply_timestamp_offset(timestamp: &str, offset_ms: u32) -> Result<String, AppError> {…}` — Apply a bounded non-negative millisecond offset to an upstream timestamp.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:193</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:293</sub>
 - `pub fn classroom_qr_url(course_id: &str, timestamp: &str) -> Result<String, AppError> {…}` — Build the classroom QR payload scanned by WeCom / 智慧北航 `wx.scanQRCode`.
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:212</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/checkin_http.rs:312</sub>
 
 ## classroom_http
 
@@ -243,21 +243,21 @@
 - `pub const ASSIGNMENT_SQL_ID: &str = "1713252980496efac7d5d9985e81693116d3e8a52ebf2b";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:10</sub>
 - `pub struct SpocAuth`
-  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:13</sub>
-    - `token: String`  <sub>:14</sub>
-    - `role: String`  <sub>:15</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:14</sub>
+    - `token: String`  <sub>:15</sub>
+    - `role: String`  <sub>:16</sub>
 - `pub async fn load_page<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, term_code: &str, page: i32, ) -> Result<HomeworkPage, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:18</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:19</sub>
 - `pub fn page_payload(term_code: &str, page: i32) -> String {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:48</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:51</sub>
 - `pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<SpocAuth, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:77</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:80</sub>
 - `pub async fn load<T: HttpTransport>( session: &Session<T>, ) -> Result<homework::HomeworkData, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:172</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:199</sub>
 - `pub(crate) async fn course_ids<T: HttpTransport>( session: &Session<T>, auth: &SpocAuth, path: &str, ) -> Result<std::collections::BTreeSet<String>, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:263</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:424</sub>
 - `pub async fn load_detail<T: HttpTransport>( session: &Session<T>, id: &str, ) -> Result<homework::HomeworkDetail, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:296</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/homework_http.rs:463</sub>
 
 ## announcements
 
@@ -461,4 +461,4 @@
 - `pub const URL: &str = "https://api.github.com/repos/JUANWANG-BUAA/ginkgo/releases?per_page=100";`
   <sub>const · rust/crates/ginkgo_upstream/src/adapters/updates_http.rs:7</sub>
 - `pub async fn load<T: HttpTransport + Sync>(session: &Session<T>) -> Result<String, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/updates_http.rs:8</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/adapters/updates_http.rs:36</sub>

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/verified_route_label.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -230,13 +231,13 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               AppleSection(
                 header: const Text('账号'),
-                footer: const Text('已记住的密码保存在系统安全存储中，退出登录会删除。'),
                 children: [
                   AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.person_crop_circle_fill,
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.person_fill,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
                       color: AppleDesign.accent,
-                      size: 30,
                     ),
                     title: Text(
                       widget.service.isDemo
@@ -279,8 +280,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 header: const Text('偏好与系统'),
                 children: [
                   AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.paintbrush,
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.paintbrush,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
                       color: AppleDesign.resourcePurple,
                     ),
                     title: const Text('显示与阅读'),
@@ -291,8 +294,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => _open(const AppearancePage()),
                   ),
                   AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.bell,
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.bell,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
                       color: AppleDesign.resourceBlue,
                     ),
                     title: const Text('通知与后台'),
@@ -301,8 +306,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => _open(const SystemPreferencesPage()),
                   ),
                   AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.lock_shield,
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.lock_shield,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
                       color: AppleDesign.accent,
                     ),
                     title: const Text('账号与隐私'),
@@ -314,7 +321,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               AppleSection(
                 header: const Text('网络路线'),
-                footer: const Text('显示最近验证成功的路线，不代表网络实时在线。切换失败不会退出账号。'),
                 children: [
                   if (capabilities.verifiedRoute case final gateway?)
                     AppleListTile(
@@ -358,11 +364,15 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               AppleSection(
                 header: const Text('数据与存储'),
-                footer: const Text('查询结果 5 分钟内复用，刷新失败时保留旧结果。'),
                 children: [
                   if (!kReleaseMode && snapshotGateway != null)
                     AppleListTile(
-                      leading: const Icon(CupertinoIcons.lock_shield),
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.lock_shield,
+                        size: GinkgoIconTokens.md,
+                        iconSize: GinkgoIconTokens.glyphMd,
+                        color: AppleDesign.resourceTeal,
+                      ),
                       trailing: const CupertinoListTileChevron(),
                       title: const Text('加密学习快照'),
                       subtitle: const Text('默认关闭 · 仅限 Android 本机保存'),
@@ -371,8 +381,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                   AppleListTile(
-                    leading: const Icon(
-                      CupertinoIcons.trash,
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.trash,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
                       color: CupertinoColors.systemOrange,
                     ),
                     trailing: clearingCache
@@ -402,8 +414,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   if (widget.maintenance != null)
                     AppleListTile(
-                      leading: const Icon(
-                        CupertinoIcons.checkmark_shield,
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.checkmark_shield,
+                        size: GinkgoIconTokens.md,
+                        iconSize: GinkgoIconTokens.glyphMd,
                         color: AppleDesign.accent,
                       ),
                       title: const Text('运行自检'),
@@ -427,9 +441,11 @@ class _SettingsPageState extends State<SettingsPage> {
                           : '已观测 ${tracker.healthyCount} 项可用'
                                 '${tracker.degradedCount > 0 ? ' · ${tracker.degradedCount} 项异常' : ''}';
                       return AppleListTile(
-                        leading: const Icon(
-                          CupertinoIcons.timer,
-                          color: AppleDesign.accent,
+                        leading: const GinkgoIconTile(
+                          icon: CupertinoIcons.timer,
+                          size: GinkgoIconTokens.md,
+                          iconSize: GinkgoIconTokens.glyphMd,
+                          color: AppleDesign.resourceBlue,
                         ),
                         title: const Text('学校接口耗时'),
                         subtitle: Text(summary),
@@ -444,8 +460,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   if (widget.maintenance != null)
                     AppleListTile(
-                      leading: const Icon(
-                        CupertinoIcons.arrow_down_circle,
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.arrow_down_circle,
+                        size: GinkgoIconTokens.md,
+                        iconSize: GinkgoIconTokens.glyphMd,
                         color: AppleDesign.accent,
                       ),
                       title: const Text('软件更新'),

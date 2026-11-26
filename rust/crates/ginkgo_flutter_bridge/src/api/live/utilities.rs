@@ -474,8 +474,10 @@ pub(super) async fn execute_cgyy(command: String) -> CgyyActionResultResponse {
             })
             .await
             {
-                Some(Ok(result)) => result,
-                Some(Err(_)) | None => Err(AppError::unavailable()),
+                SubmitOutcome::Completed(Ok(result)) => result,
+                SubmitOutcome::Completed(Err(_))
+                | SubmitOutcome::GateTimeout
+                | SubmitOutcome::InFlightTimeout => Err(AppError::unavailable()),
             }
         }
         Err(error) => Err(error),

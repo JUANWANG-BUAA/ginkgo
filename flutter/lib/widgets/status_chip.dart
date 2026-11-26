@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// The tone of a value or a status. Color only reinforces a word that is
 /// already written next to it, so the meaning survives color blindness,
@@ -66,51 +67,14 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = statusToneColor(context, tone);
-    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.6;
     return Semantics(
       label: label,
       excludeSemantics: true,
-      child: Container(
-        padding: GinkgoSpacing.badgeInsets(
-          compact: compact,
-          largeText: MediaQuery.textScalerOf(context).scale(1) > 1.3,
-        ),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: dark ? 0.22 : 0.12),
-          borderRadius: BorderRadius.circular(GinkgoRadii.compact),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: largeText
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: largeText
-                  ? GinkgoSpacing.edgeInsetsStatusGlyphAlignment
-                  : EdgeInsets.zero,
-              child: Icon(
-                icon,
-                size: MediaQuery.textScalerOf(context).scale(12).clamp(12, 20),
-                color: color,
-                applyTextScaling: false,
-              ),
-            ),
-            const SizedBox(width: GinkgoSpacing.xs),
-            Flexible(
-              child: Text(
-                label,
-                softWrap: true,
-                style: TextStyle(
-                  fontSize: GinkgoTypography.caption2.fontSize,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: GinkgoBadge(
+        label: label,
+        icon: icon,
+        color: color,
+        compact: compact,
       ),
     );
   }

@@ -96,8 +96,8 @@ class NetworkAccountInstrumentPanel extends StatelessWidget {
         : hasPartialIssue
         ? ('部分可用', StatusTone.pending)
         : report != null
-        ? ('实体试管', StatusTone.success)
-        : ('尚未查询', StatusTone.uncertain);
+        ? ('已同步', StatusTone.success)
+        : ('待同步', StatusTone.uncertain);
 
     final products = report?.trafficProducts ?? const [];
     final safeIdx = products.isEmpty
@@ -148,26 +148,23 @@ class NetworkAccountInstrumentPanel extends StatelessWidget {
       fillRatio: usedRatio,
       palette: tightQuota ? LiquidPalette.amber : LiquidPalette.cobalt,
       scaleTicks: scaleTicks,
-      footer: active != null ? '已用 ${active.usedText}' : '按需只读',
+      footer: active != null ? '已用 ${active.usedText}' : '流量',
       semanticLabel: '校园网流量已用比例',
     );
 
     if (report == null) {
       return TelemetryInstrumentCard(
         vial: vial,
-        title: '校园网流量与门户遥测',
+        title: '校园网流量',
         statusLabel: statusLabel,
         statusTone: statusTone,
         headline: busy
-            ? '正在读取门户与网关流量…'
+            ? '正在读取流量…'
             : failure != null
             ? '本次读取未成功'
-            : '待读取实时流量池',
-        subheadline: '数据仅留存当前页面内存 · 离页自动清除',
-        meters: const [
-          TelemetryMeterData(label: '数据策略', trailing: '仅内存 · 不落盘'),
-          TelemetryMeterData(label: '写操作边界', trailing: '纯只读 · 无充值'),
-        ],
+            : '正在准备数据',
+        subheadline: '',
+        meters: const [],
       );
     }
 
@@ -176,25 +173,18 @@ class NetworkAccountInstrumentPanel extends StatelessWidget {
         : active != null
         ? '已用 ${active.usedText}'
         : report.trafficFailure != null
-        ? '流量池暂不可用'
+        ? '流量暂不可用'
         : '暂无在用流量产品';
 
     final subheadline = hasValidPool && active != null
-        ? '${active.usedText} / ${formatTrafficTotal(totalBytes)} 总配额池'
+        ? '${active.usedText} / ${formatTrafficTotal(totalBytes)}'
         : active != null
         ? '免费剩余 ${active.freeRemainingText} · 计费剩余 ${active.paidRemainingText}'
-        : '门户个人统计已同步';
-
-    final cloudVal = double.tryParse(report.cloudDriveFree?.value ?? '');
-    final cloudIsGb =
-        (report.cloudDriveFree?.unit ?? '').toUpperCase().startsWith('G');
-    final cloudRatio = (cloudVal != null && cloudIsGb && cloudVal >= 0)
-        ? (cloudVal / 100.0).clamp(0.0, 1.0)
-        : null;
+        : '';
 
     return TelemetryInstrumentCard(
       vial: vial,
-      title: '校园网流量池',
+      title: '校园网流量',
       statusLabel: statusLabel,
       statusTone: statusTone,
       headline: headline,
@@ -217,10 +207,8 @@ class NetworkAccountInstrumentPanel extends StatelessWidget {
       barLeadingCaption: active == null
           ? null
           : '已用 ${active.usedText} · 免费余 ${active.freeRemainingText}',
-      barTrailingCaption: hasValidPool
-          ? '${active!.usedText} / ${formatTrafficTotal(totalBytes)}'
-          : null,
-      sectionTitle: active != null ? '配额水位' : null,
+      barTrailingCaption: null,
+      sectionTitle: active != null ? '流量配额' : null,
       sectionBadge: usedRatio == null
           ? null
           : tightQuota
@@ -253,14 +241,6 @@ class NetworkAccountInstrumentPanel extends StatelessWidget {
             trailing: active.paidRemainingText,
             startColor: const Color(0xFF4F46E5),
             endColor: const Color(0xFF818CF8),
-          ),
-        if (report.cloudDriveFree != null)
-          TelemetryMeterData(
-            label: '云盘空间',
-            ratio: cloudRatio,
-            trailing: report.cloudDriveFree!.displayText,
-            startColor: const Color(0xFF0D9488),
-            endColor: const Color(0xFF2DD4BF),
           ),
       ],
     );

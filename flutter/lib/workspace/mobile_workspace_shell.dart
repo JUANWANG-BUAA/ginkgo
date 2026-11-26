@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import '../application/contracts.dart' show RouteChoice;
@@ -24,6 +26,8 @@ class MobileWorkspaceShell extends StatefulWidget {
     this.accountId,
     this.route,
     this.onSignOut,
+    this.externalDestinations,
+    this.takeInitialDestination,
   });
   final WorkspaceShellState shell;
   final MirrorService service;
@@ -32,6 +36,8 @@ class MobileWorkspaceShell extends StatefulWidget {
   final String? accountId;
   final RouteChoice? route;
   final Future<void> Function()? onSignOut;
+  final Stream<String>? externalDestinations;
+  final Future<String?> Function()? takeInitialDestination;
   @override
   State<MobileWorkspaceShell> createState() => _MobileWorkspaceShellState();
 }
@@ -41,6 +47,7 @@ class _MobileWorkspaceShellState extends State<MobileWorkspaceShell> {
     initialIndex: widget.shell.mobileIndex,
   );
   final back = WorkspaceBackController();
+  StreamSubscription<String>? _linkSubscription;
 
   @override
   void initState() {
@@ -50,10 +57,19 @@ class _MobileWorkspaceShellState extends State<MobileWorkspaceShell> {
     widget.shell.onMobileTab(tabs.index);
     tabs.addListener(back.disarm);
     tabs.addListener(_readActive);
+    _linkSubscription = widget.externalDestinations?.listen(_openExternal);
+    final initial = widget.takeInitialDestination;
+    if (initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final target = await initial();
+        if (mounted && target != null) _openExternal(target);
+      });
+    }
   }
 
   @override
   void dispose() {
+    _linkSubscription?.cancel();
     tabs.removeListener(back.disarm);
     tabs.removeListener(_readActive);
     back.dispose();
@@ -61,8 +77,32 @@ class _MobileWorkspaceShellState extends State<MobileWorkspaceShell> {
     super.dispose();
   }
 
+  void _openExternal(String id) {
+    if (!mounted) return;
+    final tabIndex = mobileDestinations.indexWhere(
+      (destination) => destination.id == id,
+    );
+    if (tabIndex >= 0) {
+      tabs.index = tabIndex;
+      widget.shell.navigatorFor(id).currentState?.popUntil((r) => r.isFirst);
+      return;
+    }
+    final destination = destinationById(id);
+    if (destination == null) return;
+    final activeId = mobileDestinations[tabs.index].id;
+    final nav = widget.shell.navigatorFor(activeId).currentState;
+    if (nav == null) return;
+    nav.popUntil((r) => r.isFirst);
+    nav.push(
+      CupertinoPageRoute<void>(
+        builder: (detailContext) =>
+            destination.build(_contextFor(detailContext)),
+      ),
+    );
+  }
+
   void _readActive() {
-    widget.shell.onMobileTab(tabs.index);
+    widget.shell.onMobileTab(tabs.index, persist: true);
     ReminderScope.of(context)?.setActive(mobileDestinations[tabs.index].id);
   }
 

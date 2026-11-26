@@ -22,6 +22,7 @@ class ScheduleControls extends StatelessWidget {
     required this.onSelectWeek,
     required this.onToggleSearch,
     required this.onRefresh,
+    this.onExportIcs,
   });
   final ScheduleResponse snapshot;
   final Map<String, ScheduleTerm> terms;
@@ -34,6 +35,7 @@ class ScheduleControls extends StatelessWidget {
   final void Function(int week) onSelectWeek;
   final VoidCallback onToggleSearch;
   final VoidCallback onRefresh;
+  final VoidCallback? onExportIcs;
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +180,7 @@ class ScheduleControls extends StatelessWidget {
         : CupertinoButton(
             key: const Key('schedule-current-week'),
             padding: const EdgeInsets.symmetric(horizontal: GinkgoSpacing.xs),
-            minimumSize: const Size(48, 48),
+            minimumSize: GinkgoButtonTokens.minTarget,
             onPressed: () => onSelectWeek(currentWeekEntry.number),
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -189,7 +191,7 @@ class ScheduleControls extends StatelessWidget {
                 color: isOnCurrentWeek
                     ? fillColor
                     : primary.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(GinkgoRadii.panel),
+                borderRadius: BorderRadius.circular(GinkgoRadii.pill),
               ),
               child: Text(
                 isOnCurrentWeek ? '本周' : '回本周',
@@ -255,6 +257,17 @@ class ScheduleControls extends StatelessWidget {
                       : CupertinoColors.label.resolveFrom(context),
                 ),
               ),
+              if (onExportIcs != null && snapshot.courses.isNotEmpty)
+                circleToolButton(
+                  key: const Key('schedule-export-ics'),
+                  label: '导出日历',
+                  onPressed: busy ? null : onExportIcs,
+                  icon: Icon(
+                    CupertinoIcons.share,
+                    size: 18,
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
               circleToolButton(
                 key: const Key('schedule-refresh-button'),
                 label: '刷新课表',

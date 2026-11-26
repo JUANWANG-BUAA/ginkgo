@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/mirror_service.dart';
@@ -8,6 +10,10 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'library_seat_page.dart';
 
 /// Library hierarchy and explicit, single-attempt booking actions.
+///
+/// Most BUAA library areas expose only a single active booking period per day,
+/// so a single-slot response automatically replaces this page with
+/// [LibrarySeatPage] to eliminate the redundant intermediate tap.
 class LibrarySlotPage extends StatefulWidget {
   const LibrarySlotPage({
     super.key,
@@ -28,6 +34,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
   List<LibrarySlot>? slots;
   String? error;
   bool busy = false;
+  bool _autoNavigated = false;
   Future<void>? _loadTask;
   int requestSerial = 0;
 
@@ -70,6 +77,26 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
     try {
       final result = await widget.service.librarySlots(widget.area.id);
       if (!mounted || serial != requestSerial) return;
+      if (result.failure == null &&
+          result.slots.length == 1 &&
+          !_autoNavigated) {
+        _autoNavigated = true;
+        final single = result.slots.single;
+        unawaited(
+          Navigator.of(context).pushReplacement(
+            CupertinoPageRoute<void>(
+              builder: (_) => LibrarySeatPage(
+                service: widget.service,
+                area: widget.area,
+                slot: single,
+                onReservationChanged: widget.onReservationChanged,
+                onViewReservations: widget.onViewReservations,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
       setState(() {
         if (result.failure != null) {
           error = failureMessage(result.failure);
@@ -118,7 +145,7 @@ class _LibrarySlotPageState extends State<LibrarySlotPage> {
                   onAction: load,
                 ),
               if (slots == null && error == null)
-                const GinkgoLoadingView(label: '正在读取时段…'),
+                const GinkgoLoadingView(label: '正在进入座位列表…'),
               if (slots != null)
                 SummaryStrip(
                   items: [

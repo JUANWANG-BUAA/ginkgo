@@ -28,7 +28,21 @@ class CgyyBookingPage extends StatefulWidget {
   State<CgyyBookingPage> createState() => _CgyyBookingPageState();
 }
 
+class _CgyyDraft {
+  _CgyyDraft({
+    required this.phone,
+    required this.theme,
+    required this.count,
+    required this.content,
+    required this.joiners,
+  });
+  final String phone, theme, count, content, joiners;
+}
+
 class _CgyyBookingPageState extends State<CgyyBookingPage> {
+  static final Map<String, _CgyyDraft> _drafts = {};
+  String get _draftKey => '${widget.siteId}:${widget.date}';
+
   CgyyBookingOptions? options;
   String? notice;
   bool busy = false, loading = false, review = false;
@@ -46,6 +60,14 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
   @override
   void initState() {
     super.initState();
+    final saved = _drafts[_draftKey];
+    if (saved != null) {
+      phone.text = saved.phone;
+      theme.text = saved.theme;
+      count.text = saved.count;
+      content.text = saved.content;
+      joiners.text = saved.joiners;
+    }
     for (final controller in [phone, theme, count, content, joiners]) {
       controller.addListener(markDirty);
     }
@@ -54,6 +76,17 @@ class _CgyyBookingPageState extends State<CgyyBookingPage> {
 
   @override
   void dispose() {
+    if (dirty && !review && outcome == null) {
+      _drafts[_draftKey] = _CgyyDraft(
+        phone: phone.text,
+        theme: theme.text,
+        count: count.text,
+        content: content.text,
+        joiners: joiners.text,
+      );
+    } else {
+      _drafts.remove(_draftKey);
+    }
     for (final c in [phone, theme, count, content, joiners]) {
       c.dispose();
     }

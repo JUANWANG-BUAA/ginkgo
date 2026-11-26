@@ -116,7 +116,6 @@ class _LibraryVenueSelectionPageState extends State<LibraryVenueSelectionPage> {
                   if (venues case final items? when items.isNotEmpty)
                     AppleSection(
                       header: const Text('选择场馆'),
-                      footer: const Text('空闲数以学校实时查询为准。'),
                       children: [
                         for (final venue in items)
                           LibraryVenueMeter(

@@ -161,7 +161,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('作业').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('homework-spoc:a')));
+      await tester.tap(find.byKey(const Key('homework-spoc:b')));
       await tester.pumpAndSettle();
       expect(find.text('作业详情'), findsOneWidget);
       await tester.binding.handlePopRoute();
@@ -250,14 +250,14 @@ void main() {
         .first;
     final position = tester.state<ScrollableState>(scroller).position;
     await tester.scrollUntilVisible(
-      find.text('课程签到'),
+      find.text('查看课程签到'),
       180,
       scrollable: scroller,
     );
     await tester.pumpAndSettle();
     expect(
       courseTop,
-      lessThan(tester.getRect(find.text('课程签到')).top + position.pixels),
+      lessThan(tester.getRect(find.text('查看课程签到')).top + position.pixels),
     );
     await tester.scrollUntilVisible(
       find.text('完整课表'),
@@ -283,7 +283,7 @@ void main() {
     expect(find.text('90.3'), findsOneWidget);
     await tester.tap(find.byKey(const Key('desktop-sidebar-homework')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('homework-spoc:a')));
+    await tester.tap(find.byKey(const Key('homework-spoc:b')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('desktop-sidebar')), findsOneWidget);
     expect(find.text('作业详情'), findsOneWidget);

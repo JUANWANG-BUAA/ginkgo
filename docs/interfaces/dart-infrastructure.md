@@ -43,21 +43,24 @@ native/demo 适配器、运行时与持久化实现。
 - [infrastructure/native_library.dart](#infrastructurenativelibrarydart) (1)
 - [infrastructure/native_library_loans.dart](#infrastructurenativelibraryloansdart) (2)
 - [infrastructure/native_mirror_service.dart](#infrastructurenativemirrorservicedart) (1)
+- [infrastructure/native_navigation_links.dart](#infrastructurenativenavigationlinksdart) (1)
 - [infrastructure/native_network_account.dart](#infrastructurenativenetworkaccountdart) (2)
 - [infrastructure/native_reminder_planning.dart](#infrastructurenativereminderplanningdart) (1)
 - [infrastructure/native_reminder_platform.dart](#infrastructurenativereminderplatformdart) (1)
 - [infrastructure/native_saved_credential.dart](#infrastructurenativesavedcredentialdart) (1)
 - [infrastructure/native_school_rules.dart](#infrastructurenativeschoolrulesdart) (1)
 - [infrastructure/notices_decode.dart](#infrastructurenoticesdecodedart) (1)
+- [infrastructure/offline_cache_store.dart](#infrastructureofflinecachestoredart) (2)
 - [infrastructure/reminder_store.dart](#infrastructurereminderstoredart) (1)
 - [infrastructure/serial_reminder_platform.dart](#infrastructureserialreminderplatformdart) (1)
 - [infrastructure/shuttle_decode.dart](#infrastructureshuttledecodedart) (1)
 - [infrastructure/task_storage.dart](#infrastructuretaskstoragedart) (1)
+- [infrastructure/widget_sync.dart](#infrastructurewidgetsyncdart) (2)
 
 ## infrastructure/background_reminders.dart
 
 - `Future<void> runBackgroundReminders() async {…}` — A headless isolate owned by Android JobScheduler, not a second UI session.
-  <sub>function · infrastructure/background_reminders.dart:16</sub>
+  <sub>function · infrastructure/background_reminders.dart:17</sub>
 
 ## infrastructure/bykc_decode.dart
 
@@ -317,16 +320,17 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_homework_files.dart
 
 - `mixin NativeHomeworkFiles implements HomeworkFilesGateway`
-  <sub>mixin · infrastructure/native_homework_files.dart:11</sub>
-    - `Future<HomeworkResponse> homework({bool forceRefresh = false}) => …`  <sub>:14</sub>
-    - `Future<live.HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, }) => …`  <sub>:29</sub>
-    - `Future<List<HomeworkPendingSubmission>> pendingHomeworkSubmissions({ String? assignmentId, }) async {…}`  <sub>:62</sub>
-    - `Future<List<HomeworkCapabilityEvidence>> homeworkCapabilities( String assignmentId, ) async {…}`  <sub>:88</sub>
-    - `Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async {…}`  <sub>:123</sub>
-    - `Future<HomeworkFileReceipt> uploadHomeworkFile( String assignmentId, String name, Uint8List bytes, ) async {…}`  <sub>:153</sub>
-    - `Future<MutationResponse> submitHomeworkFile(String handle) async {…}`  <sub>:178</sub>
-    - `Future<MutationResponse> reconcileHomeworkFile(String handle) => …`  <sub>:190</sub>
-    - `Future<HomeworkFileDownload> downloadHomeworkFile( String assignmentId, String attachmentId, ) async {…}`  <sub>:194</sub>
+  <sub>mixin · infrastructure/native_homework_files.dart:13</sub>
+    - `bool get offlineFastPath => …`  <sub>:15</sub>
+    - `Future<HomeworkResponse> homework({bool forceRefresh = false}) async {…}`  <sub>:17</sub>
+    - `Future<live.HomeworkDetailResponse> homeworkDetail( String assignmentId, { bool forceRefresh = false, }) => …`  <sub>:50</sub>
+    - `Future<List<HomeworkPendingSubmission>> pendingHomeworkSubmissions({ String? assignmentId, }) async {…}`  <sub>:83</sub>
+    - `Future<List<HomeworkCapabilityEvidence>> homeworkCapabilities( String assignmentId, ) async {…}`  <sub>:109</sub>
+    - `Future<HomeworkFileWorkspace> homeworkFiles(String assignmentId) async {…}`  <sub>:144</sub>
+    - `Future<HomeworkFileReceipt> uploadHomeworkFile( String assignmentId, String name, Uint8List bytes, ) async {…}`  <sub>:174</sub>
+    - `Future<MutationResponse> submitHomeworkFile(String handle) async {…}`  <sub>:199</sub>
+    - `Future<MutationResponse> reconcileHomeworkFile(String handle) => …`  <sub>:211</sub>
+    - `Future<HomeworkFileDownload> downloadHomeworkFile( String assignmentId, String attachmentId, ) async {…}`  <sub>:215</sub>
 
 ## infrastructure/native_learning.dart
 
@@ -359,7 +363,15 @@ native/demo 适配器、运行时与持久化实现。
 ## infrastructure/native_mirror_service.dart
 
 - `final class NativeMirrorService`
-  <sub>class · infrastructure/native_mirror_service.dart:47</sub>
+  <sub>class · infrastructure/native_mirror_service.dart:51</sub>
+
+## infrastructure/native_navigation_links.dart
+
+- `class NativeNavigationLinks` — Bridges Android App Shortcuts, home-screen widget taps, and notification
+  <sub>class · infrastructure/native_navigation_links.dart:8</sub>
+    - `static final shared = NativeNavigationLinks._();`  <sub>:20</sub>
+    - `Stream<String> get destinations => …`  <sub>:24</sub>
+    - `Future<String?> takeInitialDestination() async {…}`  <sub>:26</sub>
 
 ## infrastructure/native_network_account.dart
 
@@ -405,6 +417,27 @@ native/demo 适配器、运行时与持久化实现。
 - `NoticesRead decodeNotices(live.NoticesResponse response) {…}` — Native and demo both cross the bridge as the same typed DTO, so they share
   <sub>function · infrastructure/notices_decode.dart:7</sub>
 
+## infrastructure/offline_cache_store.dart
+
+- `class OfflineSessionHint` — Lightweight pointer to the last signed-in account for 0ms offline-first
+  <sub>class · infrastructure/offline_cache_store.dart:12</sub>
+    - `const OfflineSessionHint({ required this.account, this.name, this.route, });`  <sub>:13</sub>
+    - `SessionResponse toPlaceholderSession() => …`  <sub>:23</sub>
+- `class OfflineCacheStore` — Account-isolated read-only disk cache for core daily snapshots (schedule,
+  <sub>class · infrastructure/offline_cache_store.dart:35</sub>
+    - `static final shared = OfflineCacheStore();`  <sub>:39</sub>
+    - `final Future<Directory> Function() _supportDirectory;`  <sub>:43</sub>
+    - `Future<OfflineSessionHint?> readSessionHint() async {…}`  <sub>:85</sub>
+    - `Future<void> saveSessionHint(OfflineSessionHint hint) => …`  <sub>:109</sub>
+    - `Future<void> clearSessionHint() => …`  <sub>:121</sub>
+    - `Future<void> clearAccount(String? account) => …`  <sub>:128</sub>
+    - `Future<void> saveToday(String account, TodayResponse value) => …`  <sub>:140</sub>
+    - `Future<TodayResponse?> readToday( String account, { FailureCode? attachFailure, }) async {…}`  <sub>:152</sub>
+    - `Future<void> saveSchedule( String account, ScheduleResponse value, { String? requestedTermId, int? requestedWeek, }) => …`  <sub>:167</sub>
+    - `Future<ScheduleResponse?> readSchedule( String account, { String? termId, int? week, FailureCode? attachFailure, }) async {…}`  <sub>:198</sub>
+    - `Future<void> saveHomework(String account, HomeworkResponse value) => …`  <sub>:235</sub>
+    - `Future<HomeworkResponse?> readHomework( String account, { FailureCode? attachFailure, }) async {…}`  <sub>:250</sub>
+
 ## infrastructure/reminder_store.dart
 
 - `class FileReminderStore implements ReminderStore` — Stores the existing account-digest-named reminder document atomically.
@@ -430,3 +463,10 @@ native/demo 适配器、运行时与持久化实现。
 
 - `Future<String> localTasksStorageRoot() async => …` — Platform-specific location for the Rust local task store.
   <sub>function · infrastructure/task_storage.dart:4</sub>
+
+## infrastructure/widget_sync.dart
+
+- `Future<void> syncTodayScheduleWidget(TodayResponse value) async {…}` — Pushes the active account's today courses to the Android home-screen widget.
+  <sub>function · infrastructure/widget_sync.dart:13</sub>
+- `Future<void> clearScheduleWidget() async {…}`
+  <sub>function · infrastructure/widget_sync.dart:33</sub>

@@ -325,6 +325,7 @@ class _TasksPageState extends State<TasksPage> {
     onToggle: () => edit('toggle', task: task),
     onMore: () => taskMenu(task),
     onSource: () => source(task),
+    onDelete: () => remove(task),
   );
 
   Widget headerActions() => TasksHeaderActions(
@@ -353,16 +354,22 @@ class _TasksPageState extends State<TasksPage> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(32, 16, 32, 4),
-                  child: Text(
-                    '个人待办仅保存在本机。完成不代表已向学校提交作业。',
-                    style: GinkgoTypography.footnote.copyWith(
-                      color: AppleDesign.statusInactive.resolveFrom(context),
-                      height: 1.4,
+                if (tasks.any((t) => t.sourceAssignmentId != null))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      GinkgoSpacing.xl,
+                      GinkgoSpacing.base,
+                      GinkgoSpacing.xl,
+                      GinkgoSpacing.xs,
+                    ),
+                    child: Text(
+                      '个人待办仅保存在本机。完成不代表已向学校提交作业。',
+                      style: GinkgoTypography.footnote.copyWith(
+                        color: AppleDesign.statusInactive.resolveFrom(context),
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                ),
                 if (busy && tasks.isEmpty) GinkgoLoadingView(label: busyLabel),
                 if (busy && tasks.isNotEmpty)
                   Padding(
@@ -401,14 +408,15 @@ class _TasksPageState extends State<TasksPage> {
                         icon: CupertinoIcons.checkmark_circle,
                       ),
                     ],
-                    note: '仅保存在本机当前账号，不写入学校系统。',
                   ),
                 if (!busy && readable && tasks.isEmpty)
-                  const AppleSection(
+                  AppleSection(
                     children: [
                       AppleEmptyState(
                         title: '暂无待办',
-                        description: '点击右上角添加本机待办。',
+                        description: '仅保存在本机，不代表学校作业提交状态。',
+                        action: '添加待办',
+                        onAction: () => editor(),
                       ),
                     ],
                   ),

@@ -43,8 +43,8 @@
         "AUTH-05",
         "AUTH-06"
       ],
-      "source_sha256": "eaa5911ab6388d3a385a2fe336fc7ee214c3cf04a198850499e3ac3eb4857455",
-      "document_sha256": "ee60837537e9534a06094f6e5fd8b8fbf704a8e7d23909c2826a67e0a12d4dc7"
+      "source_sha256": "014f0efbf56b1078e3ff7e204bcbc9720138c02cdcc44b50aaf3459104060c18",
+      "document_sha256": "d24ec193ec3e52d4d3f33ebeb65ef9e1bbb9d8cd5c6163e4ce18241f17af5769"
     },
     {
       "id": "school-protocols",
@@ -81,8 +81,8 @@
         "WRITE-01",
         "WRITE-02"
       ],
-      "source_sha256": "9e32f098c7310431e249b7489307c53b3753f9d684e26ebbc8fa7d9b6424d07b",
-      "document_sha256": "cb83962d253705db039660282854d8b17a0b6447a5c1569e4fc556dd58fa086f"
+      "source_sha256": "77af67964d409cb44c46f620040c8851b2d75e8500e0310427495577525da59b",
+      "document_sha256": "83db72ee7be98579ed11805102f47db9c338854cfdfee94746105a0eaf8a0125"
     },
     {
       "id": "client-contracts",
@@ -139,7 +139,7 @@
         "PREF-01",
         "READ-01"
       ],
-      "source_sha256": "0039497c36ed16f38686a6df235618166d6f50322405b0f7788cafe2b982b1a2",
+      "source_sha256": "fe84aa89ecdbbd4b5798f54ddfbdbe56af6c76fe955b0b046cdce4f40400bab0",
       "document_sha256": "f6e8063ca66eff1460e7e91f968683f94d3a2560366dfede7d7fa3168dc27595"
     }
   ]

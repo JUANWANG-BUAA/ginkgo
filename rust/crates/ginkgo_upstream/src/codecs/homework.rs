@@ -35,26 +35,38 @@ pub fn encrypt_page_param(plain: &str) -> String {
 }
 
 pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
-    let rows = value
-        .get("list")
-        .and_then(Value::as_array)
-        .ok_or_else(AppError::changed)?;
-    let page_num = value.get("pageNum").and_then(Value::as_i64).unwrap_or(1) as i32;
+    let rows = value.get("list").and_then(Value::as_array).ok_or_else(|| {
+        AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_page_list")
+    })?;
+    let raw_page_num = value.get("pageNum").and_then(Value::as_i64).unwrap_or(1) as i32;
     let pages = value
         .get("pages")
         .and_then(Value::as_i64)
         .map(|pages| pages as i32);
     let has_next = value.get("hasNextPage").and_then(Value::as_bool);
+    // MyBatis PageHelper returns pageNum=0, pages=0, list=[] on an empty first page.
+    let page_num =
+        if raw_page_num == 0 && rows.is_empty() && pages == Some(0) && has_next != Some(true) {
+            1
+        } else {
+            raw_page_num
+        };
     if let (Some(has_next), Some(pages)) = (has_next, pages) {
         if has_next != (page_num < pages) {
-            return Err(AppError::changed());
+            return Err(AppError::with_detail(
+                crate::ErrorCode::ChangedResponse,
+                "spoc_page_hasnext",
+            ));
         }
     }
     if pages.is_none() && has_next.is_none()
         || page_num < 1
         || pages.is_some_and(|pages| pages < page_num && !rows.is_empty())
     {
-        return Err(AppError::changed());
+        return Err(AppError::with_detail(
+            crate::ErrorCode::ChangedResponse,
+            "spoc_page_bounds",
+        ));
     }
     let items = rows
         .iter()
@@ -87,39 +99,71 @@ pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {
     })
 }
 
-/// Course context uses kcid/kcmc/skjs, matching SpocHomeworkClient.Course.
-/// Never infer the teacher from a title, list position or a different course.
+/// Course context uses kcid/kcmc/skjs (and optional juese from /jxkj/queryKclb:
+/// "1"=teacher, "2"=assistant, "3"=student per SPOC jxkj/jxkj2 SPA).
+/// Never infer the teacher or role from a title, list position or a different course.
 pub fn apply_course_context(items: &mut [HomeworkItem], courses: &Value) -> Result<(), AppError> {
-    let rows = courses.as_array().ok_or_else(AppError::changed)?;
+    let rows = courses.as_array().ok_or_else(|| {
+        AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_courses_array")
+    })?;
     let mut context = std::collections::BTreeMap::new();
     for row in rows {
         let id = row["kcid"]
             .as_str()
             .filter(|s| !s.trim().is_empty())
-            .ok_or_else(AppError::changed)?;
+            .ok_or_else(|| {
+                AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_courses_kcid")
+            })?;
         let name = row["kcmc"]
             .as_str()
             .filter(|s| !s.trim().is_empty())
-            .ok_or_else(AppError::changed)?;
+            .ok_or_else(|| {
+                AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_courses_kcmc")
+            })?;
         let teacher = match row.get("skjs") {
             None | Some(Value::Null) => None,
             Some(Value::String(value)) => Some(value.trim()).filter(|s| !s.is_empty()),
-            _ => return Err(AppError::changed()),
+            _ => {
+                return Err(AppError::with_detail(
+                    crate::ErrorCode::ChangedResponse,
+                    "spoc_courses_skjs",
+                ))
+            }
         };
-        if context.insert(id, (name, teacher)).is_some() {
-            return Err(AppError::changed());
+        let role = map_course_juese(optional_string(row, "juese").as_deref());
+        if context.insert(id, (name, teacher, role)).is_some() {
+            return Err(AppError::with_detail(
+                crate::ErrorCode::ChangedResponse,
+                "spoc_courses_dup",
+            ));
         }
     }
     for item in items {
         item.teacher_name = None;
-        if let Some((name, teacher)) = item.course_id.as_deref().and_then(|id| context.get(id)) {
+        if let Some((name, teacher, role)) =
+            item.course_id.as_deref().and_then(|id| context.get(id))
+        {
             if item.course_name == "SPOC 课程" {
                 item.course_name = (*name).to_owned();
             }
             item.teacher_name = teacher.map(str::to_owned);
+            if let Some(role) = role {
+                item.course_role = Some((*role).to_owned());
+            }
         }
     }
     Ok(())
+}
+
+/// Map `/jxkj/queryKclb` `juese` values observed in SPOC `jxkj` / `jxkj2` SPA:
+/// `"1"` = teacher (`jskclist`), `"2"` = assistant (`zjkclist`), `"3"` = student (`xskclist`).
+fn map_course_juese(raw: Option<&str>) -> Option<&'static str> {
+    match raw.map(str::trim) {
+        Some("1") => Some("teacher"),
+        Some("2") => Some("assistant"),
+        Some("3") => Some("student"),
+        _ => None,
+    }
 }
 
 fn map_status(raw: Option<&str>) -> (HomeworkStatus, Option<String>) {
@@ -133,7 +177,9 @@ fn map_status(raw: Option<&str>) -> (HomeworkStatus, Option<String>) {
 fn required_string(row: &Value, key: &str) -> Result<String, AppError> {
     optional_string(row, key)
         .filter(|value| !value.trim().is_empty())
-        .ok_or_else(AppError::changed)
+        .ok_or_else(|| {
+            AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_page_item_field")
+        })
 }
 
 fn optional_string(row: &Value, key: &str) -> Option<String> {
@@ -149,9 +195,11 @@ pub fn content(value: &Value) -> Result<&Value, AppError> {
     let code = value
         .get("code")
         .and_then(|v| v.as_i64().or_else(|| v.as_str()?.parse().ok()))
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_env_code"))?;
     match code {
-        200 => value.get("content").ok_or_else(AppError::changed),
+        200 => value.get("content").ok_or_else(|| {
+            AppError::with_detail(crate::ErrorCode::ChangedResponse, "spoc_env_content")
+        }),
         // SPOC refuses its own token. The shared school session is untouched
         // by that refusal, so this is a module-scoped authentication demand.
         401 | 403 => Err(AppError::module_auth_required()),
@@ -259,5 +307,48 @@ mod tests {
         }))
         .expect_err("inconsistent");
         assert_eq!(error.code, ErrorCode::ChangedResponse);
+    }
+
+    #[test]
+    fn empty_pagehelper_zero_page_num_normalizes_to_first_page() {
+        let page = parse_page(json!({
+            "pageNum": 0,
+            "pages": 0,
+            "hasNextPage": false,
+            "list": []
+        }))
+        .expect("empty first page");
+        assert_eq!(page.page_num, 1);
+        assert!(page.items.is_empty());
+    }
+
+    #[test]
+    fn apply_course_context_maps_juese_for_student_assistant_and_teacher() {
+        let mut page = parse_page(json!({
+            "pageNum": 1,
+            "pages": 1,
+            "hasNextPage": false,
+            "list": [
+                {"zyid": "1", "zymc": "学生作业", "sskcid": "c-stu", "kcmc": "课程甲"},
+                {"zyid": "2", "zymc": "助教作业", "sskcid": "c-ta", "kcmc": "课程乙"},
+                {"zyid": "3", "zymc": "教师作业", "sskcid": "c-tch", "kcmc": "课程丙"},
+                {"zyid": "4", "zymc": "未知角色", "sskcid": "c-unk", "kcmc": "课程丁"}
+            ]
+        }))
+        .expect("page");
+        apply_course_context(
+            &mut page.items,
+            &json!([
+                {"kcid": "c-stu", "kcmc": "课程甲", "juese": "3"},
+                {"kcid": "c-ta", "kcmc": "课程乙", "juese": 2},
+                {"kcid": "c-tch", "kcmc": "课程丙", "juese": "1"},
+                {"kcid": "c-unk", "kcmc": "课程丁"}
+            ]),
+        )
+        .expect("context");
+        assert_eq!(page.items[0].course_role.as_deref(), Some("student"));
+        assert_eq!(page.items[1].course_role.as_deref(), Some("assistant"));
+        assert_eq!(page.items[2].course_role.as_deref(), Some("teacher"));
+        assert_eq!(page.items[3].course_role, None);
     }
 }

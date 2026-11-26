@@ -17,6 +17,8 @@ class PlatformActions {
     this.checkinQrSaver,
     this.checkinQrHelper,
     this.maintenance,
+    this.networkStatus,
+    this.openWifiSettings,
   });
 
   /// Saves a learning resource locally and offers to open it.
@@ -36,4 +38,10 @@ class PlatformActions {
 
   /// The update and self-check capability.
   final MaintenanceService? maintenance;
+
+  /// Checks Android network capability (e.g. `captivePortal`, `offline`, `validated`).
+  final Future<String> Function()? networkStatus;
+
+  /// Opens system Wi-Fi settings so the user can complete campus portal login.
+  final Future<bool> Function()? openWifiSettings;
 }

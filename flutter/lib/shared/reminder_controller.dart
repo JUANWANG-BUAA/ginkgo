@@ -13,6 +13,7 @@ import 'package:ginkgo_mirror/application/reminder_planning.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
 import 'package:ginkgo_mirror/application/reminder_store.dart';
 import 'package:ginkgo_mirror/application/reminder_platform.dart';
+import 'package:ginkgo_mirror/shared/checkin_visibility.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/shared/homework_visibility.dart';
 
@@ -283,7 +284,10 @@ class ReminderController extends ChangeNotifier {
     final planner = this.planner;
     if (planner == null || data.failure != null || data.stale) return;
     final result = planner.planCheckinHomeworkReminders(
-      checkin: checkinReminderSeeds(data.date, data.courses),
+      checkin: checkinReminderSeeds(
+        data.date,
+        personalCheckInCourses(data.courses, visibility: visibility),
+      ),
       homework: const [],
       nowMillis: clock().millisecondsSinceEpoch,
     );

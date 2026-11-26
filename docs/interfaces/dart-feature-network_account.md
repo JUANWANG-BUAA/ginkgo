@@ -8,9 +8,9 @@
 ## features/network_account/network_account_page.dart
 
 - `class NetworkAccountPage extends StatefulWidget`
-  <sub>class · features/network_account/network_account_page.dart:15</sub>
-    - `const NetworkAccountPage({super.key, this.gateway, this.officialLinks});`  <sub>:16</sub>
-    - `State<NetworkAccountPage> createState() => …`  <sub>:22</sub>
+  <sub>class · features/network_account/network_account_page.dart:20</sub>
+    - `const NetworkAccountPage({super.key, this.gateway, this.officialLinks});`  <sub>:21</sub>
+    - `State<NetworkAccountPage> createState() => …`  <sub>:27</sub>
 
 ## features/network_account/network_account_visuals.dart
 

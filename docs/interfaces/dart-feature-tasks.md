@@ -26,14 +26,14 @@
 ## features/tasks/tasks_widgets.dart
 
 - `class TaskRowCard extends StatelessWidget` — 单条本机待办卡片。
-  <sub>class · features/tasks/tasks_widgets.dart:11</sub>
-    - `const TaskRowCard({ super.key, required this.task, required this.highlighted, required this.targetKey, required this.busy, required this.readable, required this.locating, required this.onToggle, required this.onMore, required this.onSource, });`  <sub>:12</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:36</sub>
+  <sub>class · features/tasks/tasks_widgets.dart:14</sub>
+    - `const TaskRowCard({ super.key, required this.task, required this.highlighted, required this.targetKey, required this.busy, required this.readable, required this.locating, required this.onToggle, required this.onMore, required this.onSource, this.onDelete, });`  <sub>:15</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:41</sub>
 - `class TasksHeaderActions extends StatelessWidget` — 待办页头操作（更多 / 新增）。
-  <sub>class · features/tasks/tasks_widgets.dart:144</sub>
-    - `const TasksHeaderActions({ super.key, required this.busy, required this.readable, required this.onMore, required this.onAdd, });`  <sub>:145</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:159</sub>
+  <sub>class · features/tasks/tasks_widgets.dart:218</sub>
+    - `const TasksHeaderActions({ super.key, required this.busy, required this.readable, required this.onMore, required this.onAdd, });`  <sub>:219</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:233</sub>
 - `class TasksPageHeader extends StatelessWidget` — 待办页头。
-  <sub>class · features/tasks/tasks_widgets.dart:192</sub>
-    - `const TasksPageHeader({ super.key, required this.actions, required this.canPop, required this.onBack, });`  <sub>:193</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:205</sub>
+  <sub>class · features/tasks/tasks_widgets.dart:266</sub>
+    - `const TasksPageHeader({ super.key, required this.actions, required this.canPop, required this.onBack, });`  <sub>:267</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:279</sub>

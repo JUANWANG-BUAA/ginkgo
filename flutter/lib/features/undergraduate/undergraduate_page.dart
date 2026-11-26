@@ -362,7 +362,6 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         icon: CupertinoIcons.doc_checkmark_fill,
         color: GinkgoColors.accent,
       ),
-      footer: const Text('数据来自 BYXT 考试接口；考场与座号请以教务处最终通知为准。'),
       children: exams.isEmpty
           ? [
               AppleEmptyState(
@@ -387,8 +386,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
       if (widget.onOpenFeature != null) ...[
         AppleListTile(
           key: const Key('undergrad-open-schedule'),
-          leading: const Icon(
-            CupertinoIcons.calendar,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.calendar,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.resourceBlue,
           ),
           title: const Text('本科周课表与节次'),
@@ -398,8 +399,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         ),
         AppleListTile(
           key: const Key('undergrad-open-grades'),
-          leading: const Icon(
-            CupertinoIcons.chart_bar_alt_fill,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.chart_bar_alt_fill,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.resourcePurple,
           ),
           title: const Text('课程成绩与绩点明细'),
@@ -409,8 +412,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         ),
         AppleListTile(
           key: const Key('undergrad-open-bykc'),
-          leading: const Icon(
-            CupertinoIcons.book_solid,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.book_solid,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.resourceTeal,
           ),
           title: const Text('博雅课程目录'),
@@ -420,8 +425,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         ),
         AppleListTile(
           key: const Key('undergrad-open-evaluation'),
-          leading: const Icon(
-            CupertinoIcons.checkmark_rectangle,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.checkmark_rectangle,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.resourceTeal,
           ),
           title: const Text('教学评价完成度'),
@@ -431,8 +438,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         ),
         AppleListTile(
           key: const Key('undergrad-open-homework'),
-          leading: const Icon(
-            CupertinoIcons.doc_text,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.doc_text,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.accent,
           ),
           title: const Text('SPOC 课程作业'),
@@ -442,8 +451,10 @@ class _UndergraduatePageState extends State<UndergraduatePage> {
         ),
         AppleListTile(
           key: const Key('undergrad-open-learning'),
-          leading: const Icon(
-            CupertinoIcons.book_circle,
+          leading: const GinkgoIconTile(
+            icon: CupertinoIcons.book_circle,
+            size: GinkgoIconTokens.md,
+            iconSize: GinkgoIconTokens.glyphMd,
             color: GinkgoColors.resourceBlue,
           ),
           title: const Text('SPOC 课程资料与公告'),

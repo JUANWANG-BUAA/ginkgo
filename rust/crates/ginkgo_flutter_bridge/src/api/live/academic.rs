@@ -3,6 +3,15 @@ use super::*;
 
 static SCHEDULE_READ_GATE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
+/// Coalesces fast concurrent startup reads (`today` + default `schedule`) within
+/// a short window so healthy requests share one cache fill, without letting a
+/// stalled upstream lock both pages out for the full 45s read budget.
+async fn try_coalesce_schedule() -> Option<tokio::sync::MutexGuard<'static, ()>> {
+    tokio::time::timeout(std::time::Duration::from_secs(3), SCHEDULE_READ_GATE.lock())
+        .await
+        .ok()
+}
+
 pub(super) async fn load_schedule(
     term_id: Option<String>,
     week: Option<i32>,
@@ -19,7 +28,7 @@ pub(super) async fn load_schedule(
     };
     match with_session_read(|| async {
         let _coalesce = if share_cold_default {
-            Some(SCHEDULE_READ_GATE.lock().await)
+            try_coalesce_schedule().await
         } else {
             None
         };
@@ -44,7 +53,7 @@ pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {
     };
     match with_session_read(|| async {
         let _coalesce = if !force_refresh {
-            Some(SCHEDULE_READ_GATE.lock().await)
+            try_coalesce_schedule().await
         } else {
             None
         };

@@ -2,9 +2,13 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 
 /// Maps typed Rust domain failure codes to human-readable Chinese error messages.
-String failureMessage(FailureCode? code) {
+String failureMessage(FailureCode? code, {String? detail}) {
   if (code != null) {
     DiagnosticLog.shared.record(code, showHint: false);
+  }
+  if (code == FailureCode.moduleAuthRequired &&
+      detail == 'webvpn_route_login_required') {
+    return '当前网络无法直连该服务，请连接校园网或在设置中切换 WebVPN 路线后重试';
   }
   return switch (code) {
     FailureCode.invalidRequest => '查询或筛选条件无效，请调整后重试',

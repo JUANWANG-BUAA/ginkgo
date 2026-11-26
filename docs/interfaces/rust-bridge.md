@@ -21,7 +21,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - [library](#library) (11)
 - [mapping](#mapping) (15)
 - [network_account](#networkaccount) (1)
-- [runtime](#runtime) (17)
+- [runtime](#runtime) (18)
 - [session](#session) (6)
 - [utilities](#utilities) (17)
 - [live](#live) (210)
@@ -35,15 +35,15 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 ## academic
 
 - `pub(super) async fn load_schedule( term_id: Option<String>, week: Option<i32>, force_refresh: bool, ) -> ScheduleResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:6</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:15</sub>
 - `pub(super) async fn load_today(force_refresh: bool) -> TodayResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:35</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:44</sub>
 - `pub(super) async fn load_checkin_today(force_refresh: bool) -> CheckInResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:69</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:78</sub>
 - `pub(super) async fn load_grade_terms() -> GradeTermsResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:83</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:92</sub>
 - `pub(super) async fn load_grades(term_code: Option<String>, force_refresh: bool) -> GradeResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:119</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/academic.rs:128</sub>
 
 ## auth_challenge
 
@@ -199,7 +199,7 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn reserve_library_seat( area_id: String, seat_id: String, slot: crate::api::mirror::LibrarySlot, ) -> MutationResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:324</sub>
 - `pub(super) async fn perform_library_action(booking_id: String, action: String) -> MutationResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:362</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs:366</sub>
 
 ## mapping
 
@@ -271,10 +271,12 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:162</sub>
 - `pub(super) async fn with_module_read<T, F, Fut>( module: ModuleAccess, body: F, ) -> Result<T, AppError>` — Take the session read gate and a module read gate, then run a read.
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:172</sub>
-- `pub(super) async fn with_module_submit<T, F, Fut>(module: ModuleAccess, body: F) -> Option<T> where` — Take the session read gate and a module write gate, then run a submitted
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:190</sub>
+- `pub(super) enum SubmitOutcome<T>` — Distinguishes a lock-wait timeout before the write was ever sent from a
+  <sub>enum · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:189</sub>
+- `pub(super) async fn with_module_submit<T, F, Fut>(module: ModuleAccess, body: F) -> SubmitOutcome<T> where` — Take the session read gate and a module write gate, then run a submitted
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:199</sub>
 - `pub(super) fn service() -> Result<&'static LiveService, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:203</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs:216</sub>
 
 ## session
 
@@ -312,21 +314,21 @@ FFI DTO 与粗粒度命令；Dart 唯一可见的 Rust 面。
 - `pub(super) async fn execute_cgyy(command: String) -> CgyyActionResultResponse {…}`
   <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:455</sub>
 - `pub(super) fn load_demo_cgyy(kind: String) -> CgyyLoadResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:488</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:490</sub>
 - `pub(super) async fn load_library_books( query: String, page: i64, sort: String, descending: bool, ) -> BookPageResponse {…}` — Public OPAC search. Read-only, anonymous and bounded by the service.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:494</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:496</sub>
 - `pub(super) async fn load_shuttle_timetable() -> ShuttleTimetableResponse {…}` — Published shuttle timetable. Public page, no identity, no ticketing.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:546</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:548</sub>
 - `pub(super) async fn load_library_holdings(bib_id: String) -> BookHoldingsResponse {…}` — Public holdings for one bib id. The nested JSON string is decoded in Rust.
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:598</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:600</sub>
 - `pub(super) async fn export_learning_snapshots(expected: String) -> LearningSnapshotResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:631</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:633</sub>
 - `pub(super) async fn import_learning_snapshots( expected: String, bytes: Vec<u8>, ) -> SnapshotImportResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:651</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:653</sub>
 - `pub(super) async fn load_library_loans(expected: String, page: u32) -> LibraryLoansResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:676</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:678</sub>
 - `pub(super) async fn check_android_update(current: String) -> UpdateResponse {…}`
-  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:719</sub>
+  <sub>fn · rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs:721</sub>
 
 ## live
 

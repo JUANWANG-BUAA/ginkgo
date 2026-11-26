@@ -62,7 +62,6 @@ class _CheckInLoadingState extends State<CheckInLoading> {
 
   @override
   Widget build(BuildContext context) => AppleSection(
-    footer: const Text('首次连接需要建立学校和 iClass 会话，后续读取会复用有效会话。'),
     children: [
       GinkgoLoadingView(
         label: label,

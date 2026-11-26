@@ -32,6 +32,10 @@ Flutter 登录编排、平台配置、runtime 组装以及其他业务模块即�
 
 用户在报告“几分钟后重新要求登录、后台无提醒”并确认修复范围后回复“好的，开始”，授权后台提醒调度和冷启动恢复失败处理。仅 `session_source.rs` 的快照读取错误由吞错改为向上传递；CAS、验证码、密码提交、Cookie、路线与 HTTP 实现仍保持 Beta.9 原字节。原始清单哈希保留不动，`authorized_revisions` 只允许检查器内逐字固定的这一个修订哈希，不提供通用刷新或绕过。Android 保险库读取失败不再冒充“无记录”，Flutter 暂时故障展示重试而不是退出；后台新入口使用密码盲、仅内存的会话副本，不改交互登录链。范围及验证见[本轮记录](_audit/2026-11-03-background-reminders-and-recovery.md)。后续不得以此例外继续修改其他冻结行为。
 
+### 2026-11-26 最小授权例外（WebVPN XHR UC 探针误判）
+
+用户在模拟器直连不可达 `spoc.buaa.edu.cn` / `iclass.buaa.edu.cn` 场景下报告两页均显示“数据格式无法识别”（耗时 20021 ms / 10002 ms），确认根因后明确回复“没问题”授权窄范围修复：仅修订 `rust/crates/ginkgo_upstream/src/auth/uc.rs` 的 `parse_uc_status`，将 `d.buaa.edu.cn` 针对 XHR 请求返回的网关未登录 JSON（`{"success": false, "url": "/login", ...}`）归类为 `SessionExpired`，使既有 `automatic_route.rs` 准确上报 `ModuleAuthRequired("webvpn_route_login_required")` 而非 `ChangedResponse`。CAS、验证码、Cookie、路线状态机、HTTP 传输与密码单次提交均保持原字节不变；原始 Beta.9 清单哈希保留不动。详见 [2026-11-26 审计记录](_audit/2026-11-26-webvpn-xhr-uc-fallback.md)。
+
 `python3 scripts/check-network-freeze.py` 无网络、无账号、无需历史 Git 对象，逐文件比较固定 Beta.9 清单；新增、删除、改动或符号链接均失败。完整本地门禁和 Mirror CI 在开始时执行它，并运行检查器自己的反例测试。
 
 这是防止误改和明确代理权限的仓库约束，不是不可绕过的访问控制；有仓库写权限的人仍能改门禁。后续 agent 必须遵守用户授权规则，不得以这种技术限制为理由自行解冻。

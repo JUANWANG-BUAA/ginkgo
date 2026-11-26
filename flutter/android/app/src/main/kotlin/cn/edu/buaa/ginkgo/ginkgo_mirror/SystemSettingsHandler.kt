@@ -5,6 +5,8 @@ import android.app.Activity
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -16,6 +18,21 @@ class SystemSettingsHandler(private val activity: Activity) : MethodChannel.Meth
     companion object { const val NOTIFICATION_REQUEST = 7211 }
     private var permissionResult: MethodChannel.Result? = null
     private val preferences = activity.getSharedPreferences("system-preferences", 0)
+
+    private fun networkStatus(): String {
+        val cm = activity.getSystemService(ConnectivityManager::class.java) ?: return "unknown"
+        val caps = if (Build.VERSION.SDK_INT >= 23) {
+            cm.getNetworkCapabilities(cm.activeNetwork)
+        } else {
+            null
+        } ?: return "offline"
+        return when {
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) -> "captivePortal"
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) -> "validated"
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) -> "unvalidated"
+            else -> "offline"
+        }
+    }
 
     private fun notificationPermission(): String {
         val enabled = Build.VERSION.SDK_INT < 24 ||
@@ -52,6 +69,8 @@ class SystemSettingsHandler(private val activity: Activity) : MethodChannel.Meth
                 result,
             )
             "openAppSettings" -> open(appSettings(), result)
+            "networkStatus" -> result.success(networkStatus())
+            "openWifiSettings" -> open(Intent(Settings.ACTION_WIFI_SETTINGS), result)
             "shareProject" -> open(
                 Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"

@@ -5,4 +5,9 @@
     <color name="launch_mark_stroke">#8FD6A4</color>
     <color name="launch_mark_fill">#8FD6A4</color>
     <color name="launch_mark_vein">#11160F</color>
+    <color name="widget_surface">#1A1F18</color>
+    <color name="widget_border">#2C3429</color>
+    <color name="widget_primary_text">#F0F2EC</color>
+    <color name="widget_secondary_text">#A0A89B</color>
+    <color name="widget_accent">#7BD095</color>
 </resources>

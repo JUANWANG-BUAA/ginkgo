@@ -57,10 +57,12 @@ class AppPreferences extends ChangeNotifier {
   /// production entry point injects the platform-backed file store.
   AppPreferences({PreferencesWriter? writer, PreferencesReader? reader})
     : _writer = writer ?? _discardWrite,
-      _reader = reader ?? _emptyRead;
+      _reader = reader ?? _emptyRead,
+      hasBackingStore = writer != null || reader != null;
   static final shared = AppPreferences();
   final PreferencesWriter _writer;
   final PreferencesReader _reader;
+  final bool hasBackingStore;
   Future<void> _pending = Future.value();
   int _saveRevision = 0;
   int _restoreRevision = 0;
@@ -92,6 +94,18 @@ class AppPreferences extends ChangeNotifier {
   /// Chosen network route, kept so the login page and the next start use the
   /// same path instead of silently falling back to automatic.
   String routeMode = 'automatic';
+
+  /// Remembers whether the user prefers revealing sensitive balance amounts
+  /// automatically after entering read-only balance pages (defaults to visible;
+  /// tapping「隐藏」persists `false` for privacy in public places).
+  bool revealSensitiveAmounts = true;
+
+  /// Last active mobile tab id for smooth session continuity.
+  String? lastMobileTab;
+
+  /// Last visited library reading area for one-tap repeat seat booking.
+  String? favoriteLibraryAreaId;
+  String? favoriteLibraryAreaName;
 
   static Future<void> _discardWrite(Map<String, Object> _) async {}
 
@@ -153,6 +167,19 @@ class AppPreferences extends ChangeNotifier {
       routeMode = value['routeMode'] is String
           ? value['routeMode'] as String
           : 'automatic';
+      revealSensitiveAmounts = value['revealSensitiveAmounts'] != false;
+      lastMobileTab = value['lastMobileTab'] is String &&
+              (value['lastMobileTab'] as String).isNotEmpty
+          ? value['lastMobileTab'] as String
+          : null;
+      favoriteLibraryAreaId = value['favoriteLibraryAreaId'] is String &&
+              (value['favoriteLibraryAreaId'] as String).isNotEmpty
+          ? value['favoriteLibraryAreaId'] as String
+          : null;
+      favoriteLibraryAreaName = value['favoriteLibraryAreaName'] is String &&
+              (value['favoriteLibraryAreaName'] as String).isNotEmpty
+          ? value['favoriteLibraryAreaName'] as String
+          : null;
       _notify();
     } catch (_) {
       if (!current()) return;
@@ -171,9 +198,13 @@ class AppPreferences extends ChangeNotifier {
     'explicitSignOut': explicitSignOut,
     'rememberPassword': rememberPassword,
     'routeMode': routeMode,
+    if (!revealSensitiveAmounts) 'revealSensitiveAmounts': false,
+    'lastMobileTab': ?lastMobileTab,
+    'favoriteLibraryAreaId': ?favoriteLibraryAreaId,
+    'favoriteLibraryAreaName': ?favoriteLibraryAreaName,
   };
 
-  Future<void> _scheduleSave(String failureMessage) {
+  Future<void> _scheduleSave(String failureMessage, {bool notify = true}) {
     if (_disposed) return Future.value();
     final revision = ++_saveRevision;
     final snapshot = _snapshot();
@@ -184,18 +215,18 @@ class AppPreferences extends ChangeNotifier {
         await _writer(snapshot);
         if (revision == _saveRevision && saveError != null) {
           saveError = null;
-          _notify();
+          if (notify) _notify();
         }
       } catch (_) {
         if (revision == _saveRevision) {
           saveError = failureMessage;
           _writeError = failureMessage;
-          _notify();
+          if (notify) _notify();
         }
       }
     });
     _pending = task;
-    _notify();
+    if (notify) _notify();
     return task;
   }
 
@@ -243,6 +274,27 @@ class AppPreferences extends ChangeNotifier {
     return _scheduleSave(
       value ? '已退出登录，但本机退出标记保存失败，请重试保存' : '登录已完成，但本机设置保存失败，请重试保存',
     );
+  }
+
+  Future<void> setRevealSensitiveAmounts(bool value) {
+    if (revealSensitiveAmounts == value) return Future.value();
+    revealSensitiveAmounts = value;
+    return _scheduleSave('显示偏好保存失败，请稍后重试');
+  }
+
+  Future<void> setLastMobileTab(String id) {
+    if (!hasBackingStore || lastMobileTab == id) return Future.value();
+    lastMobileTab = id;
+    return _scheduleSave('页面偏好保存失败', notify: false);
+  }
+
+  Future<void> setFavoriteLibraryArea(String id, String name) {
+    if (favoriteLibraryAreaId == id && favoriteLibraryAreaName == name) {
+      return Future.value();
+    }
+    favoriteLibraryAreaId = id;
+    favoriteLibraryAreaName = name;
+    return _scheduleSave('常去区域保存失败');
   }
 }
 

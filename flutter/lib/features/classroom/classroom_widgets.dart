@@ -290,20 +290,25 @@ class ClassroomShortcutButton extends StatelessWidget {
     required this.value,
     required this.onSelected,
     this.enabled = true,
+    this.selected = false,
   });
   final String title;
   final String value;
   final ValueChanged<String> onSelected;
   final bool enabled;
+  final bool selected;
 
   @override
-  Widget build(BuildContext context) => CupertinoButton.tinted(
+  Widget build(BuildContext context) => GinkgoActionButton(
     key: Key('classroom-shortcut-$title'),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    minimumSize: const Size(48, 48),
-    borderRadius: BorderRadius.circular(24),
+    label: title,
+    pill: true,
+    compact: true,
+    selected: selected,
+    variant: selected
+        ? GinkgoButtonVariant.tinted
+        : GinkgoButtonVariant.subtle,
     onPressed: !enabled || value.isEmpty ? null : () => onSelected(value),
-    child: Text(title, style: const TextStyle(fontSize: 17)),
   );
 }
 

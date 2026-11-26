@@ -171,7 +171,7 @@ void main() {
       expect(service.assignments.length, 1);
       service.assignments.single.complete(assignments);
       await tester.pump();
-      expect(find.text('1 项待处理'), findsOneWidget);
+      expect(find.text('1 项'), findsOneWidget);
       expect(find.text('合成作业'), findsOneWidget);
       expect(find.text('助教作业'), findsNothing);
       expect(find.textContaining('1 项状态待确认'), findsOneWidget);
@@ -249,7 +249,8 @@ void main() {
       const HomeworkResponse(termName: '', termCode: 'new', items: []),
     );
     await tester.pumpAndSettle();
-    expect(find.text('今天没有课程'), findsOneWidget);
+    expect(find.byKey(const Key('today-courses')), findsNothing);
+    expect(find.text('今天没有课程'), findsNothing);
     expect(find.text('作业范围待确认'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -287,7 +288,7 @@ void main() {
     service.courses.last.complete(todayFixture);
     service.assignments.last.complete(assignments);
     await tester.pumpAndSettle();
-    expect(find.text('今天没有签到任务'), findsOneWidget);
+    expect(find.byKey(const Key('today-checkin')), findsNothing);
   });
 
   testWidgets('desktop refresh shortcut reloads both sections', (tester) async {

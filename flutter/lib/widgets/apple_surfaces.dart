@@ -250,25 +250,14 @@ class AppleSection extends StatelessWidget {
             ),
             child: ClipRSuperellipse(
               borderRadius: BorderRadius.circular(
-                AppleDesign.panelRadius(context),
+                GinkgoSurfaceTokens.cardRadius(context),
               ),
               child: _AppleGroupResize(
                 enabled: animateSize,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.secondarySystemGroupedBackground
-                        .resolveFrom(context),
-                    borderRadius: BorderRadius.circular(
-                      AppleDesign.panelRadius(context),
-                    ),
-                    border: AppleDesign.desktop(context)
-                        ? Border.all(
-                            color: CupertinoColors.separator
-                                .resolveFrom(context)
-                                .withValues(alpha: 0.3),
-                            width: 0.5,
-                          )
-                        : null,
+                  decoration: GinkgoSurfaceTokens.cardDecoration(
+                    context,
+                    elevated: !AppleDesign.desktop(context),
                   ),
                   child: Column(
                     children: [
@@ -276,12 +265,10 @@ class AppleSection extends StatelessWidget {
                         children[i],
                         if (i != children.length - 1)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: GinkgoSpacing.edgeInsetsPage,
                             child: Container(
-                              height: 0.5,
-                              color: CupertinoColors.separator
-                                  .resolveFrom(context)
-                                  .withValues(alpha: 0.16),
+                              height: GinkgoSpacing.hairline,
+                              color: GinkgoSurfaceTokens.dividerColor(context),
                             ),
                           ),
                       ],

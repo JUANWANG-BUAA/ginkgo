@@ -38,7 +38,6 @@ class ShuttlePlanSection extends StatelessWidget {
         title: '下一班计划',
         badge: '静态时刻表',
       ),
-      footer: const Text('按北京时间推算；公布容量不代表实时空位，临时调整以官方通知为准。'),
       children: [
         if (upcoming.isEmpty)
           AppleListTile(

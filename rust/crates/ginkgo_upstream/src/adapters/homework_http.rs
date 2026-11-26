@@ -8,6 +8,7 @@ use crate::{
 
 pub const SPOC_BASE: &str = "https://spoc.buaa.edu.cn/spocnewht";
 pub const ASSIGNMENT_SQL_ID: &str = "1713252980496efac7d5d9985e81693116d3e8a52ebf2b";
+const DESKTOP_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SpocAuth {
@@ -31,16 +32,18 @@ pub async fn load_page<T: HttpTransport>(
     let plain = page_payload(term_code, page);
     let encoded = homework::encrypt_page_param(&plain);
     let body = serde_json::json!({"param": encoded}).to_string();
-    let request = HttpRequest::post_form(format!("{SPOC_BASE}/inco/ht/queryListByPage"), body)
-        .header("Content-Type", "application/json")
-        .header("Token", &format!("Inco-{}", auth.token))
-        .header("RoleCode", &auth.role)
-        .header("X-Requested-With", "XMLHttpRequest")
-        .header("Accept", "application/json, text/javascript, */*; q=0.01");
+    let request = headers(
+        HttpRequest::post_form(format!("{SPOC_BASE}/inco/ht/queryListByPage"), body)
+            .header("Content-Type", "application/json"),
+        auth,
+    );
     let response = session.send_with_fallback(request).await?;
     let page_data = decode_page(&response)?;
     if page_data.page_num != page {
-        return Err(AppError::changed());
+        return Err(AppError::with_detail(
+            ErrorCode::ChangedResponse,
+            "spoc_page_num",
+        ));
     }
     Ok(page_data)
 }
@@ -68,25 +71,45 @@ fn decode_page(response: &HttpResponse) -> Result<HomeworkPage, AppError> {
     if response.body.trim_start().starts_with('<') {
         return Err(classify_refusal(response));
     }
-    let value: serde_json::Value =
-        serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
+    let value: serde_json::Value = serde_json::from_str(&response.body)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_page_json"))?;
     homework::parse_page(homework::content(&value)?.clone())
 }
 
 // API.md §7.1 and SpocHomeworkClient.swift: SPA -> full CAS callback -> role.
 pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<SpocAuth, AppError> {
-    let _ = session
-        .send_following_redirects(HttpRequest::get("https://spoc.buaa.edu.cn/spocnew/"))
-        .await?;
-    let callback = session
-        .send_following_redirects(HttpRequest::get(format!("{SPOC_BASE}/cas")))
-        .await?;
+    // Match Swift's best-effort landing warmup so a transient SPA page hiccup
+    // never aborts the actual CAS ticket exchange, while avoiding a second
+    // 10s connect timeout when the host is already unreachable on this route.
+    if let Err(err) = follow_spoc_redirects(
+        session,
+        HttpRequest::get("https://spoc.buaa.edu.cn/spocnew/")
+            .header("User-Agent", DESKTOP_UA)
+            .header("Accept", "text/html,application/xhtml+xml"),
+    )
+    .await
+    {
+        if matches!(
+            err.code,
+            ErrorCode::NetworkUnreachable
+                | ErrorCode::ModuleAuthRequired
+                | ErrorCode::AccessPolicyDenied
+        ) {
+            return Err(err);
+        }
+    }
+    let (callback, redirected_token) = follow_spoc_redirects(
+        session,
+        HttpRequest::get(format!("{SPOC_BASE}/cas"))
+            .header("User-Agent", DESKTOP_UA)
+            .header("Accept", "text/html,application/xhtml+xml"),
+    )
+    .await?;
     check_gateway(&callback)?;
-    let url = url::Url::parse(&callback.final_url).map_err(|_| AppError::changed())?;
-    let token = url
-        .query_pairs()
-        .find(|(key, value)| key == "token" && !value.is_empty())
-        .map(|(_, value)| value.into_owned())
+    let url = url::Url::parse(&callback.final_url)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_callback_url"))?;
+    let token = extract_spoc_token(&url)
+        .or(redirected_token)
         .ok_or_else(AppError::session_expired)?;
     let response = session
         .send_with_fallback(
@@ -94,8 +117,11 @@ pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<Spoc
                 format!("{SPOC_BASE}/sys/casLogin"),
                 serde_json::json!({"token": token}).to_string(),
             )
+            .header("User-Agent", DESKTOP_UA)
             .header("Content-Type", "application/json")
-            .header("Token", &format!("Inco-{token}")),
+            .header("Token", &format!("Inco-{token}"))
+            .header("X-Requested-With", "XMLHttpRequest")
+            .header("Accept", "application/json, text/javascript, */*; q=0.01"),
         )
         .await?;
     let value = decode(&response)?;
@@ -131,7 +157,7 @@ pub async fn authenticate<T: HttpTransport>(session: &Session<T>) -> Result<Spoc
                         .find_map(|item| role(&item["jsdm"]))
                 })
         })
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_role_missing"))?;
     Ok(SpocAuth { token, role: code })
 }
 
@@ -143,7 +169,8 @@ fn decode(response: &HttpResponse) -> Result<serde_json::Value, AppError> {
     if !(200..300).contains(&response.status) {
         return Err(AppError::new(ErrorCode::ServiceUnavailable));
     }
-    serde_json::from_str(&response.body).map_err(|_| AppError::changed())
+    serde_json::from_str(&response.body)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_decode_json"))
 }
 
 async fn get<T: HttpTransport>(
@@ -151,18 +178,18 @@ async fn get<T: HttpTransport>(
     auth: &SpocAuth,
     path: &str,
 ) -> Result<serde_json::Value, AppError> {
-    let response = session
-        .send_following_redirects(headers(
-            HttpRequest::get(format!("{SPOC_BASE}{path}")),
-            auth,
-        ))
-        .await?;
+    let (response, _) = follow_spoc_redirects(
+        session,
+        headers(HttpRequest::get(format!("{SPOC_BASE}{path}")), auth),
+    )
+    .await?;
     let value = decode(&response)?;
     Ok(homework::content(&value)?.clone())
 }
 
 fn headers(request: HttpRequest, auth: &SpocAuth) -> HttpRequest {
     request
+        .header("User-Agent", DESKTOP_UA)
         .header("Token", &format!("Inco-{}", auth.token))
         .header("RoleCode", &auth.role)
         .header("X-Requested-With", "XMLHttpRequest")
@@ -190,7 +217,7 @@ pub async fn load<T: HttpTransport>(
     let code = term["mrxq"]
         .as_str()
         .filter(|s| !s.is_empty())
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_term_mrxq"))?;
     let query = url::form_urlencoded::Serializer::new(String::new())
         .append_pair("kcmc", "")
         .append_pair("xnxq", code)
@@ -207,30 +234,64 @@ pub async fn load<T: HttpTransport>(
             .unwrap_or_else(|| page.pages.is_some_and(|pages| number < pages));
         for item in page.items {
             if !ids.insert(item.id.clone()) {
-                return Err(AppError::changed());
+                return Err(AppError::with_detail(
+                    ErrorCode::ChangedResponse,
+                    "spoc_dup_item",
+                ));
             }
             items.push(item);
         }
         if !has_next {
-            // Public SPA mycourse/index: getXsList -> queryXskcListPage,
-            // getZhuJiaoList -> queryZjkcListPage (audit 2026-10-21).
+            // Combine all three SPOC course-role signals without letting a
+            // student-scoped `queryKclb` `juese` skip TA verification:
+            // 1. `/kc/queryXskcListPage` + `/kc/queryZjkcListPage` (mycourse/index)
+            // 2. `/kc/queryYhSflx?kcid=...` (coursecenter/index canonical ACL:
+            //    "1"/"6"=teacher, "3"=assistant, "2"=student)
+            // 3. `/jxkj/queryKclb` `juese` ("1"=teacher, "2"=assistant, "3"=student)
             // Classification is optional: errors never erase assignments.
-            // Optional course membership must not hold a complete assignment
-            // list hostage to an unavailable role endpoint.
-            let roles_complete = if let Ok((Ok(students), Ok(assistants))) =
-                tokio::time::timeout(std::time::Duration::from_secs(4), async {
+            let unique_course_ids: Vec<String> = items
+                .iter()
+                .filter_map(|item| item.course_id.clone())
+                .collect::<std::collections::BTreeSet<_>>()
+                .into_iter()
+                .take(30)
+                .collect();
+            let (lists_complete, students, assistants, sflx_roles) =
+                match tokio::time::timeout(std::time::Duration::from_secs(12), async {
                     tokio::join!(
                         course_ids(session, &auth, "/kc/queryXskcListPage"),
                         course_ids(session, &auth, "/kc/queryZjkcListPage"),
+                        query_course_sflx_roles(session, &auth, &unique_course_ids),
                     )
                 })
                 .await
-            {
-                apply_course_roles(&mut items, &students, &assistants);
-                true
-            } else {
-                false
-            };
+                {
+                    Ok((Ok(students), Ok(assistants), sflx)) => (true, students, assistants, sflx),
+                    Ok((Ok(students), Err(_), sflx)) => {
+                        (false, students, std::collections::BTreeSet::new(), sflx)
+                    }
+                    Ok((Err(_), Ok(assistants), sflx)) => {
+                        (false, std::collections::BTreeSet::new(), assistants, sflx)
+                    }
+                    Ok((Err(_), Err(_), sflx)) => (
+                        false,
+                        std::collections::BTreeSet::new(),
+                        std::collections::BTreeSet::new(),
+                        sflx,
+                    ),
+                    Err(_) => (
+                        false,
+                        std::collections::BTreeSet::new(),
+                        std::collections::BTreeSet::new(),
+                        std::collections::BTreeMap::new(),
+                    ),
+                };
+            apply_course_roles_with_sflx(&mut items, &students, &assistants, &sflx_roles);
+            let sflx_complete = !unique_course_ids.is_empty()
+                && unique_course_ids
+                    .iter()
+                    .all(|id| sflx_roles.contains_key(id));
+            let roles_complete = lists_complete || sflx_complete;
             return Ok(homework::HomeworkData {
                 term_code: code.to_owned(),
                 term_name: term["dqxq"].as_str().unwrap_or("").to_owned(),
@@ -242,21 +303,121 @@ pub async fn load<T: HttpTransport>(
     Err(AppError::changed())
 }
 
+async fn query_course_sflx<T: HttpTransport>(
+    session: &Session<T>,
+    auth: &SpocAuth,
+    course_id: &str,
+) -> Option<&'static str> {
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("kcid", course_id)
+        .finish();
+    let value = get(session, auth, &format!("/kc/queryYhSflx?{query}"))
+        .await
+        .ok()?;
+    let raw = match &value {
+        serde_json::Value::String(s) => s.trim().to_owned(),
+        serde_json::Value::Number(n) => n.to_string(),
+        _ => return None,
+    };
+    match raw.as_str() {
+        "1" | "6" => Some("teacher"),
+        "3" => Some("assistant"),
+        "2" => Some("student"),
+        _ => None,
+    }
+}
+
+async fn query_course_sflx_roles<T: HttpTransport>(
+    session: &Session<T>,
+    auth: &SpocAuth,
+    course_ids: &[String],
+) -> std::collections::BTreeMap<String, &'static str> {
+    let mut roles = std::collections::BTreeMap::new();
+    for chunk in course_ids.chunks(4) {
+        match chunk {
+            [a] => {
+                if let Some(role) = query_course_sflx(session, auth, a).await {
+                    roles.insert(a.clone(), role);
+                }
+            }
+            [a, b] => {
+                let (ra, rb) = tokio::join!(
+                    query_course_sflx(session, auth, a),
+                    query_course_sflx(session, auth, b),
+                );
+                for (id, role) in [(a, ra), (b, rb)] {
+                    if let Some(role) = role {
+                        roles.insert(id.clone(), role);
+                    }
+                }
+            }
+            [a, b, c] => {
+                let (ra, rb, rc) = tokio::join!(
+                    query_course_sflx(session, auth, a),
+                    query_course_sflx(session, auth, b),
+                    query_course_sflx(session, auth, c),
+                );
+                for (id, role) in [(a, ra), (b, rb), (c, rc)] {
+                    if let Some(role) = role {
+                        roles.insert(id.clone(), role);
+                    }
+                }
+            }
+            [a, b, c, d] => {
+                let (ra, rb, rc, rd) = tokio::join!(
+                    query_course_sflx(session, auth, a),
+                    query_course_sflx(session, auth, b),
+                    query_course_sflx(session, auth, c),
+                    query_course_sflx(session, auth, d),
+                );
+                for (id, role) in [(a, ra), (b, rb), (c, rc), (d, rd)] {
+                    if let Some(role) = role {
+                        roles.insert(id.clone(), role);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    roles
+}
+
+#[cfg(test)]
 fn apply_course_roles(
     items: &mut [homework::HomeworkItem],
     students: &std::collections::BTreeSet<String>,
     assistants: &std::collections::BTreeSet<String>,
 ) {
+    apply_course_roles_with_sflx(
+        items,
+        students,
+        assistants,
+        &std::collections::BTreeMap::new(),
+    );
+}
+
+fn apply_course_roles_with_sflx(
+    items: &mut [homework::HomeworkItem],
+    students: &std::collections::BTreeSet<String>,
+    assistants: &std::collections::BTreeSet<String>,
+    sflx_roles: &std::collections::BTreeMap<String, &'static str>,
+) {
     for item in items {
-        item.course_role = item.course_id.as_ref().and_then(|id| {
-            if students.contains(id) {
-                Some("student".into())
-            } else if assistants.contains(id) {
-                Some("assistant".into())
-            } else {
-                None
-            }
-        });
+        let Some(id) = item.course_id.as_deref() else {
+            continue;
+        };
+        if let Some(role) = sflx_roles.get(id) {
+            item.course_role = Some((*role).into());
+            continue;
+        }
+        if matches!(item.course_role.as_deref(), Some("assistant" | "teacher")) {
+            continue;
+        }
+        if assistants.contains(id) && !students.contains(id) {
+            item.course_role = Some("assistant".into());
+        } else if students.contains(id) {
+            item.course_role = Some("student".into());
+        }
     }
 }
 
@@ -273,13 +434,19 @@ pub(crate) async fn course_ids<T: HttpTransport>(
             &format!("{path}?pageSize=100&pageNum={page}"),
         )
         .await?;
-        let rows = value["list"].as_array().ok_or_else(AppError::changed)?;
+        let empty = Vec::new();
+        let rows = match value.get("list") {
+            Some(serde_json::Value::Array(list)) => list,
+            Some(serde_json::Value::Null) => &empty,
+            _ => return Err(AppError::changed()),
+        };
         for row in rows {
-            let id = row["kcid"]
-                .as_str()
-                .filter(|id| !id.trim().is_empty())
-                .ok_or_else(AppError::changed)?;
-            ids.insert(id.to_owned());
+            let id = match row.get("kcid") {
+                Some(serde_json::Value::String(id)) if !id.trim().is_empty() => id.clone(),
+                Some(serde_json::Value::Number(num)) => num.to_string(),
+                _ => return Err(AppError::changed()),
+            };
+            ids.insert(id);
         }
         let has_next = match value.get("hasNextPage") {
             Some(serde_json::Value::Bool(next)) => *next,
@@ -319,17 +486,157 @@ pub async fn load_detail<T: HttpTransport>(
     )
 }
 
-fn check_gateway(response: &HttpResponse) -> Result<(), AppError> {
-    if url::Url::parse(&response.final_url).is_ok_and(|url| {
-        url.host_str() == Some(crate::foundation::webvpn::GATEWAY_HOST)
+fn is_gateway_login_url(raw: &str) -> bool {
+    url::Url::parse(raw).is_ok_and(|url| {
+        url.host_str()
+            .is_some_and(|h| h.eq_ignore_ascii_case(crate::foundation::webvpn::GATEWAY_HOST))
             && url.path().trim_end_matches('/').ends_with("/login")
-    }) {
+    })
+}
+
+fn check_gateway(response: &HttpResponse) -> Result<(), AppError> {
+    if is_gateway_login_url(&response.final_url) {
         return Err(AppError::with_detail(
             ErrorCode::AccessPolicyDenied,
             "webvpn_login_required",
         ));
     }
+    if matches!(response.status, 301 | 302 | 303 | 307 | 308) {
+        if let Some(location) = response.header("location") {
+            let trimmed = location.trim();
+            let joined = url::Url::parse(&response.final_url)
+                .and_then(|base| base.join(trimmed))
+                .ok();
+            if is_gateway_login_url(trimmed)
+                || joined.is_some_and(|u| is_gateway_login_url(u.as_str()))
+            {
+                return Err(AppError::with_detail(
+                    ErrorCode::AccessPolicyDenied,
+                    "webvpn_login_required",
+                ));
+            }
+        }
+    }
     Ok(())
+}
+
+/// Resolve a SPOC/SSO GET redirect. Like `evaluation_http` on the same
+/// `spoc.buaa.edu.cn` host, INCO/Spring behind TLS-terminating nginx may emit
+/// `http://spoc.buaa.edu.cn/...` callbacks; safely upgrade only `spoc.buaa.edu.cn`
+/// and `sso.buaa.edu.cn/login` to HTTPS on default ports.
+fn resolve_spoc_redirect(location: &str, base: &str) -> Result<String, AppError> {
+    let resolved =
+        crate::foundation::webvpn::resolve_redirect(location, base).ok_or_else(|| {
+            AppError::with_detail(ErrorCode::ChangedResponse, "spoc_redirect_resolve")
+        })?;
+    if is_gateway_login_url(&resolved) {
+        return Err(AppError::with_detail(
+            ErrorCode::AccessPolicyDenied,
+            "webvpn_login_required",
+        ));
+    }
+    crate::auth::redirect::reject_reported_error(&resolved)?;
+    let mut parsed = url::Url::parse(&resolved)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "spoc_redirect_url"))?;
+    if !parsed.username().is_empty() || parsed.password().is_some() {
+        return Err(AppError::with_detail(
+            ErrorCode::ChangedResponse,
+            "spoc_redirect_userinfo",
+        ));
+    }
+    let allowed = match parsed.scheme() {
+        "https" => {
+            parsed.port_or_known_default() == Some(443)
+                && matches!(
+                    parsed.host_str(),
+                    Some("spoc.buaa.edu.cn" | "sso.buaa.edu.cn")
+                )
+        }
+        "http" => {
+            parsed.port_or_known_default() == Some(80)
+                && match parsed.host_str() {
+                    Some("spoc.buaa.edu.cn") => true,
+                    Some("sso.buaa.edu.cn") => parsed.path() == "/login",
+                    _ => false,
+                }
+        }
+        _ => false,
+    };
+    if !allowed {
+        let tag = match parsed.scheme() {
+            "https" => "spoc_redirect_https_host",
+            "http" => "spoc_redirect_http_host",
+            _ => "spoc_redirect_scheme",
+        };
+        return Err(AppError::with_detail(ErrorCode::ChangedResponse, tag));
+    }
+    if parsed.scheme() == "http" {
+        parsed
+            .set_scheme("https")
+            .map_err(|()| AppError::changed())?;
+        parsed.set_port(None).map_err(|()| AppError::changed())?;
+    }
+    Ok(parsed.into())
+}
+
+async fn follow_spoc_redirects<T: HttpTransport>(
+    session: &Session<T>,
+    initial: HttpRequest,
+) -> Result<(HttpResponse, Option<String>), AppError> {
+    let mut current = initial;
+    let mut seen_token: Option<String> = None;
+    for _ in 0..10 {
+        let negotiation: Vec<_> = current
+            .headers
+            .iter()
+            .filter(|(name, _)| {
+                ["user-agent", "accept", "accept-language"]
+                    .iter()
+                    .any(|allowed| name.eq_ignore_ascii_case(allowed))
+            })
+            .map(|(name, value)| (name.clone(), value.clone()))
+            .collect();
+        let response = session.send_with_fallback(current).await?;
+        check_gateway(&response)?;
+        if let Ok(parsed) = url::Url::parse(&response.final_url) {
+            if parsed.host_str() == Some("spoc.buaa.edu.cn") {
+                if let Some(token) = extract_spoc_token(&parsed) {
+                    seen_token = Some(token);
+                }
+            }
+        }
+        if !(300..400).contains(&response.status) {
+            return Ok((response, seen_token));
+        }
+        let Some(location) = response.header("location") else {
+            return Ok((response, seen_token));
+        };
+        let next = resolve_spoc_redirect(location, &response.final_url)?;
+        if let Ok(parsed) = url::Url::parse(&next) {
+            if parsed.host_str() == Some("spoc.buaa.edu.cn") {
+                if let Some(token) = extract_spoc_token(&parsed) {
+                    seen_token = Some(token);
+                }
+            }
+        }
+        current = HttpRequest::get(next);
+        current.headers.extend(negotiation);
+    }
+    Err(AppError::new(ErrorCode::RedirectLimit))
+}
+
+fn extract_spoc_token(url: &url::Url) -> Option<String> {
+    if let Some((_, value)) = url
+        .query_pairs()
+        .find(|(key, value)| key == "token" && !value.is_empty())
+    {
+        return Some(value.into_owned());
+    }
+    let fragment = url.fragment()?;
+    let (_, query) = fragment.split_once('?')?;
+    url::form_urlencoded::parse(query.as_bytes())
+        .find(|(key, value)| key == "token" && !value.is_empty())
+        .map(|(_, value)| value.into_owned())
 }
 
 #[cfg(test)]
@@ -373,6 +680,17 @@ mod tests {
         assert_eq!(items[1].course_role.as_deref(), Some("assistant"));
         assert_eq!(items[2].course_role, None);
         assert_eq!(items[3].course_role, None);
+
+        // Authoritative role already assigned from `/jxkj/queryKclb` `juese`
+        // must never be overwritten by fallback membership lists.
+        items[1].course_role = Some("assistant".into());
+        let all_students = ["student-course".to_owned(), "assistant-course".to_owned()].into();
+        apply_course_roles(
+            &mut items,
+            &all_students,
+            &std::collections::BTreeSet::new(),
+        );
+        assert_eq!(items[1].course_role.as_deref(), Some("assistant"));
     }
 
     #[tokio::test]
@@ -595,5 +913,54 @@ mod tests {
             );
             assert!(requests[index].url.ends_with("synthetic%2Ba%2Fb%252F"));
         }
+    }
+
+    #[tokio::test]
+    async fn authenticate_upgrades_http_spoc_callback_and_detects_webvpn_login_redirect() {
+        let transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+            HttpResponse::new(302, format!("{SPOC_BASE}/cas"), "").with_header(
+                "Location",
+                "http://spoc.buaa.edu.cn/spocnew/cas?token=fixture-http-token",
+            ),
+            HttpResponse::new(
+                404,
+                "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture-http-token",
+                "",
+            ),
+            HttpResponse::new(
+                200,
+                format!("{SPOC_BASE}/sys/casLogin"),
+                json!({"code": 200, "content": {"rolecode": "01"}}).to_string(),
+            ),
+        ]);
+        let auth = authenticate(&Session::new(transport.clone()))
+            .await
+            .expect("http spoc callback upgraded");
+        assert_eq!(auth.token, "fixture-http-token");
+        assert_eq!(auth.role, "01");
+        assert_eq!(
+            transport.requests()[2].url,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture-http-token"
+        );
+
+        let gateway_transport = MockTransport::with_responses(vec![
+            HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+            HttpResponse::new(302, format!("{SPOC_BASE}/cas"), "")
+                .with_header("Location", "https://d.buaa.edu.cn/login"),
+        ]);
+        let err = authenticate(&Session::new(gateway_transport))
+            .await
+            .expect_err("gateway redirect");
+        assert_eq!(err.code, ErrorCode::AccessPolicyDenied);
+        assert_eq!(err.detail.as_deref(), Some("webvpn_login_required"));
+
+        assert_eq!(
+            resolve_spoc_redirect("http://evil.example/cas?token=x", SPOC_BASE)
+                .expect_err("foreign host")
+                .detail
+                .as_deref(),
+            Some("spoc_redirect_http_host")
+        );
     }
 }

@@ -108,7 +108,6 @@ class CgyyDetailsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppleSection(
     header: const Text('预约信息'),
-    footer: const Text('手机号与参与人仅用于本次学校预约，不保存在本机日志中。'),
     children: [
       CgyyBookingTextField(
         label: '手机号（11 位）',
@@ -190,7 +189,6 @@ class CgyyBookingActionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppleSection(
-    footer: const Text('实验功能，真实预约往返仍需人工验收。提交后需核对学校审批状态。'),
     children: [
       CupertinoButton(
         onPressed: busy || loading || review || !enabled ? null : onSubmit,

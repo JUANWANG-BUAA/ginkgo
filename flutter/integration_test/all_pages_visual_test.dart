@@ -164,6 +164,12 @@ class _VisualSystemSettings implements SystemSettingsService {
 
   @override
   Future<bool> shareProject() async => false;
+
+  @override
+  Future<String> networkStatus() async => 'validated';
+
+  @override
+  Future<bool> openWifiSettings() async => false;
 }
 
 Future<String> _syntheticPng(int width, int height, Color color) async {

@@ -234,6 +234,7 @@ class _LibrarySeatPageState extends State<LibrarySeatPage> {
         child: CustomScrollView(
           controller: scrollController,
           key: const Key('library-seats-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             AppleRefreshPageHeader(
               title: '${widget.slot.start}–${widget.slot.end}',

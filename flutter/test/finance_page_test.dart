@@ -4,8 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/finance.dart';
+import 'package:ginkgo_mirror/application/session_memory_cache.dart';
 import 'package:ginkgo_mirror/features/finance/finance_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 
 class _FakeFinanceGateway implements FinanceIncomeGateway {
   final responses = <Completer<FinanceIncomeRead>>[];
@@ -40,16 +42,17 @@ FinanceIncomeRead _sampleRead() => const FinanceIncomeRead(
 );
 
 void main() {
+  setUp(SessionMemoryCache.shared.clearAll);
+
   testWidgets(
-    'finance incomes load on demand, mask amounts by default and clear on background',
+    'finance incomes auto-load on open, show amounts by default and cache in session memory',
     (tester) async {
+      final prefs = AppPreferences();
+      addTearDown(prefs.dispose);
       final gateway = _FakeFinanceGateway();
-      await tester.pumpWidget(ginkgoApp(home: FinancePage(gateway: gateway)));
-
-      expect(gateway.calls, 0);
-      expect(find.text('尚未查询'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('finance-read')));
+      await tester.pumpWidget(
+        ginkgoApp(preferences: prefs, home: FinancePage(gateway: gateway)),
+      );
       await tester.pump();
       expect(gateway.calls, 1);
 
@@ -57,20 +60,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('助研津贴'), findsOneWidget);
-      expect(find.text('¥ ••••'), findsOneWidget);
-      expect(find.text('¥ 800.50'), findsNothing);
+      expect(find.text('¥ 800.50'), findsOneWidget);
+      expect(find.text('¥ ••••'), findsNothing);
 
       await tester.tap(find.byKey(const Key('finance-toggle')));
       await tester.pump();
-      expect(find.text('¥ 800.50'), findsOneWidget);
+      expect(find.text('¥ ••••'), findsOneWidget);
+      expect(prefs.revealSensitiveAmounts, isFalse);
 
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      // Re-entering uses warm session memory cache without a second fetch.
+      await tester.pumpWidget(ginkgoApp(preferences: prefs, home: const SizedBox()));
+      await tester.pumpWidget(
+        ginkgoApp(preferences: prefs, home: FinancePage(gateway: gateway)),
+      );
       await tester.pump();
-      expect(find.text('助研津贴'), findsNothing);
-      expect(find.text('¥ 800.50'), findsNothing);
-
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pump();
+      expect(find.text('助研津贴'), findsOneWidget);
       expect(gateway.calls, 1);
     },
   );
@@ -78,20 +82,24 @@ void main() {
   testWidgets(
     'distinguishes confirmed empty finance records and discards late responses after gateway swap',
     (tester) async {
+      final prefs = AppPreferences();
+      addTearDown(prefs.dispose);
       final first = _FakeFinanceGateway();
       final second = _FakeFinanceGateway();
-      await tester.pumpWidget(ginkgoApp(home: FinancePage(gateway: first)));
-      await tester.tap(find.byKey(const Key('finance-read')));
+      await tester.pumpWidget(
+        ginkgoApp(preferences: prefs, home: FinancePage(gateway: first)),
+      );
       await tester.pump();
 
-      await tester.pumpWidget(ginkgoApp(home: FinancePage(gateway: second)));
+      await tester.pumpWidget(
+        ginkgoApp(preferences: prefs, home: FinancePage(gateway: second)),
+      );
+      await tester.pump();
       first.responses.single.complete(_sampleRead());
-      await tester.pumpAndSettle();
-      expect(find.text('助研津贴'), findsNothing);
-      expect(second.calls, 0);
-
-      await tester.tap(find.byKey(const Key('finance-read')));
       await tester.pump();
+      expect(find.text('助研津贴'), findsNothing);
+      expect(second.calls, 1);
+
       second.responses.single.complete(
         const FinanceIncomeRead(failure: FailureCode.moduleAuthRequired),
       );

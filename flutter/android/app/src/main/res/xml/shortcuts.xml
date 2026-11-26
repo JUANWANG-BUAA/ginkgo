@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="schedule"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_schedule"
+        android:shortcutLongLabel="@string/shortcut_schedule">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="cn.edu.buaa.ginkgo.ginkgo_mirror"
+            android:targetClass="cn.edu.buaa.ginkgo.ginkgo_mirror.MainActivity">
+            <extra android:name="ginkgo_destination" android:value="schedule" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="checkin"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_checkin"
+        android:shortcutLongLabel="@string/shortcut_checkin">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="cn.edu.buaa.ginkgo.ginkgo_mirror"
+            android:targetClass="cn.edu.buaa.ginkgo.ginkgo_mirror.MainActivity">
+            <extra android:name="ginkgo_destination" android:value="checkin" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="campus_card"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_campus_card"
+        android:shortcutLongLabel="@string/shortcut_campus_card">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="cn.edu.buaa.ginkgo.ginkgo_mirror"
+            android:targetClass="cn.edu.buaa.ginkgo.ginkgo_mirror.MainActivity">
+            <extra android:name="ginkgo_destination" android:value="campus-card" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="library"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_library"
+        android:shortcutLongLabel="@string/shortcut_library">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="cn.edu.buaa.ginkgo.ginkgo_mirror"
+            android:targetClass="cn.edu.buaa.ginkgo.ginkgo_mirror.MainActivity">
+            <extra android:name="ginkgo_destination" android:value="library" />
+        </intent>
+    </shortcut>
+</shortcuts>

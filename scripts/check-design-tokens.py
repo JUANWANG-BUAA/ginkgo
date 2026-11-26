@@ -27,10 +27,10 @@ LIB = ROOT / 'flutter' / 'lib'
 # `BorderRadius.circular(`；注释不计入；`flutter/lib/design/` 与生成物不计入。
 # 用了 token 的写法不计为硬编码。
 BUDGET = {
-    'font_size': 128,
-    'edge_insets': 217,
-    'sized_box': 171,
-    'border_radius': 32,
+    'font_size': 127,
+    'edge_insets': 214,
+    'sized_box': 170,
+    'border_radius': 30,
 }
 
 # 允许的例外：设计系统自身、共享组件与演示/测试替身不在门禁范围内，

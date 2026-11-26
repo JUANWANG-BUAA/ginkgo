@@ -2,15 +2,15 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
-import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
+import 'package:ginkgo_mirror/shared/course_visibility.dart';
+import 'package:ginkgo_mirror/shared/school_timestamp.dart';
+import 'package:ginkgo_mirror/shared/today_time.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_action_row.dart';
-
-import 'package:ginkgo_mirror/shared/today_time.dart';
-import 'package:ginkgo_mirror/shared/school_timestamp.dart';
-
 import 'today_presentation.dart';
 
 /// The exact rows rendered on the dashboard, also used to avoid hiding an
@@ -33,6 +33,10 @@ List<HomeworkItem> todayVisibleHomework(
 }
 
 /// A separate read can finish before or after today's timetable.
+///
+/// Surfaces only active upcoming student assignments in a layered progressive
+/// card; already-overdue archive items stay on the Homework tab instead of
+/// cluttering Today.
 class TodayHomeworkSection extends StatelessWidget {
   const TodayHomeworkSection({
     super.key,
@@ -67,43 +71,36 @@ class TodayHomeworkSection extends StatelessWidget {
             )
             .toList()
           ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
-    final overdue =
-        personal
-            .where(
-              (item) =>
-                  item.status == HomeworkStatus.pending &&
-                  isHomeworkOverdue(item.dueAt, clock),
-            )
-            .toList()
-          ..sort((a, b) => todayCompareDue(a.dueAt, b.dueAt));
     final unknown = personal.where(
       (item) => item.status == HomeworkStatus.unknown,
     );
-    final unknownRole =
-        data?.rolesComplete != true ||
-        personal.any((item) => item.courseRole == null);
     if (data != null &&
         data.rolesComplete == true &&
         section.error == null &&
         pending.isEmpty &&
-        overdue.isEmpty &&
         unknown.isEmpty) {
       return const SizedBox.shrink();
     }
+    final visible = todayVisibleHomework(
+      data,
+      CourseVisibilityScope.of(context),
+      clock,
+    );
     return TodayVisualSection(
       key: const Key('today-homework'),
       header: TodaySectionHeader(
-        icon: CupertinoIcons.book_fill,
-        title: '学校作业',
-        badge: pending.isNotEmpty ? '${pending.length} 项待处理' : null,
+        icon: CupertinoIcons.doc_text_fill,
+        iconColor: GinkgoColors.resourcePurple,
+        title: '待提交作业',
+        badge: pending.isNotEmpty ? '${pending.length} 项' : null,
         actionLabel: '全部',
         onAction: onOpen,
       ),
-      footer: Text(
-        '${data?.termName.trim().isNotEmpty == true ? data!.termName : '学期未确认'} · '
-        '${unknownRole ? '课程身份未全部核对 · ' : ''}'
-        '作业同步：${data?.fetchedAt == null ? '未确认' : schoolTimestampLabel(data!.fetchedAt)}',
-      ),
+      footer: section.error != null
+          ? Text(
+              '作业同步：${data?.fetchedAt == null ? '未确认' : schoolTimestampLabel(data!.fetchedAt)}',
+            )
+          : null,
       children: [
         if (section.loading || section.error != null)
           SectionFeedback(
@@ -127,9 +124,7 @@ class TodayHomeworkSection extends StatelessWidget {
                         ? '作业状态尚未确认'
                         : data.rolesComplete != true
                         ? '作业范围待确认'
-                        : overdue.isEmpty
-                        ? '没有待处理作业'
-                        : '没有未截止作业',
+                        : '没有待处理作业',
                     subtitle: data.rolesComplete == false
                         ? '课程身份未能全部核对，请进入作业复核'
                         : section.error != null
@@ -138,64 +133,56 @@ class TodayHomeworkSection extends StatelessWidget {
                         ? '${unknown.length} 项状态待确认，请进入作业核对'
                         : data.rolesComplete != true
                         ? '尚未确认课程身份范围，请进入作业复核'
-                        : overdue.isNotEmpty
-                        ? '已截止 ${overdue.length} 项 · 进入作业查看'
                         : '打开作业查看完整结果',
                     onTap: onOpen,
                   ),
                 if (pending.isNotEmpty &&
-                    (overdue.isNotEmpty ||
-                        data.rolesComplete != true ||
-                        unknown.isNotEmpty))
+                    (data.rolesComplete == false || unknown.isNotEmpty))
                   TodayActionRow(
                     summary: true,
                     title: data.rolesComplete == false
                         ? '作业结果不完整'
-                        : unknown.isNotEmpty
-                        ? '作业状态尚未确认'
-                        : '有已截止作业',
+                        : '作业状态尚未确认',
                     subtitle: [
                       if (unknown.isNotEmpty) '${unknown.length} 项状态待确认',
-                      if (data.rolesComplete != true) '课程身份范围未全部核对',
-                      if (overdue.isNotEmpty) '已截止 ${overdue.length} 项',
+                      if (data.rolesComplete == false) '课程身份范围未全部核对',
                       '进入作业复核',
                     ].join(' · '),
                     onTap: onOpen,
                   ),
-                for (final item in todayVisibleHomework(
-                  data,
-                  CourseVisibilityScope.of(context),
-                  clock,
-                )) ...[
-                  const TodayVisualDivider(),
-                  TodayActionRow(
-                    key: Key('today-homework-item-${item.id}'),
-                    title: item.title,
-                    subtitle: item.courseName,
-                    status: _statusLabel(item, clock),
-                    statusColor: homeworkDeadlineTint(
-                      item.dueAt,
-                      clock,
-                    ).resolveFrom(context),
+                for (var i = 0; i < visible.length; i++) ...[
+                  if (i > 0 ||
+                      (pending.isNotEmpty &&
+                          (data.rolesComplete == false || unknown.isNotEmpty)))
+                    const TodayVisualDivider(),
+                  GinkgoProgressiveRow(
+                    key: Key('today-homework-item-${visible[i].id}'),
+                    emphasized: i == 0,
+                    title: visible[i].title,
+                    subtitle: visible[i].courseName,
+                    badgeLabel: homeworkCountdownBadge(visible[i].dueAt, clock),
+                    badgeIcon: CupertinoIcons.clock_fill,
+                    meta: visible[i].dueAt?.trim().isNotEmpty == true
+                        ? homeworkDueSummary(visible[i].dueAt, clock)
+                        : null,
+                    accent: homeworkDeadlineTint(visible[i].dueAt, clock),
                     onTap: onOpenItem == null
                         ? onOpen
-                        : () => onOpenItem!(item),
+                        : () => onOpenItem!(visible[i]),
                   ),
                 ],
-                if (pending.length > 3)
+                if (pending.length > 3) ...[
+                  const TodayVisualDivider(),
                   TodayActionRow(
                     summary: true,
-                    title: '另有 ${pending.length - 3} 项待处理',
+                    title: '还有 ${pending.length - 3} 项待提交',
                     onTap: onOpen,
                   ),
+                ],
               ],
             ),
           ),
       ],
     );
-  }
-
-  String _statusLabel(HomeworkItem item, DateTime clock) {
-    return homeworkCompactDeadline(item.dueAt, clock);
   }
 }

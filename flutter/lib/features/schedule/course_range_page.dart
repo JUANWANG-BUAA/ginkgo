@@ -11,10 +11,12 @@ class CourseRangePage extends StatelessWidget {
     required this.preferences,
     required this.system,
     required this.courses,
+    this.courseRoles = const {},
   });
   final CourseVisibility preferences;
   final String system;
   final Map<String, String> courses;
+  final Map<String, String> courseRoles;
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: preferences,
@@ -28,13 +30,14 @@ class CourseRangePage extends StatelessWidget {
           children: [
             ScheduleSection(
               title: '作为我的学生课程',
-              footer: const Text(
-                '关闭你担任助教或教师的课程后，主列表和个人统计会将其收起；可随时重新开启。此设置只影响本机当前账号，不修改学校选课或身份。不同系统分别设置。',
-              ),
+              footer: const Text('关闭非个人课程后，主列表和统计会将其收起，可随时恢复。'),
               children: [
                 for (final course in courses.entries)
                   AppleListTile(
                     title: Text(course.value),
+                    subtitle: courseRoles[course.key] == null
+                        ? null
+                        : Text(courseRoles[course.key]!),
                     trailing: CupertinoSwitch(
                       key: ValueKey('course-range-${course.key}'),
                       value: !preferences.hidden(system, course.key),

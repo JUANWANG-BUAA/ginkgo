@@ -3,13 +3,17 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/shared/checkin_sessions.dart';
+import 'package:ginkgo_mirror/shared/checkin_visibility.dart';
 import 'package:ginkgo_mirror/shared/reminder_rules.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_loading.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_qr_sheet.dart';
 import 'package:ginkgo_mirror/features/checkin/checkin_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_modal_sheet.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/diagnostic_log.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
@@ -53,8 +57,7 @@ class _CheckInPageState extends State<CheckInPage> {
     range = CourseVisibilityScope.of(context);
   }
 
-  String courseKey(CheckInCourse course) =>
-      course.courseId ?? course.courseNum ?? course.id;
+  String courseKey(CheckInCourse course) => checkinCourseKey(course);
   int requestSerial = 0;
   int contextGeneration = 0;
   late DateTime selectedDate;
@@ -148,8 +151,11 @@ class _CheckInPageState extends State<CheckInPage> {
     await load(force: true);
   }
 
-  String readFailureMessage(FailureCode code) {
-    if (code != FailureCode.moduleAuthRequired) return failureMessage(code);
+  String readFailureMessage(FailureCode code, String? detail) {
+    if (code != FailureCode.moduleAuthRequired ||
+        detail == 'webvpn_route_login_required') {
+      return failureMessage(code, detail: detail);
+    }
     DiagnosticLog.shared.record(code, showHint: false);
     return 'iClass 认证尚未完成，请重试签到查询。这不代表账号已退出。';
   }
@@ -178,7 +184,7 @@ class _CheckInPageState extends State<CheckInPage> {
         if (result.failure == null || result.stale) data = result;
         final failure = result.failure;
         readIssue = failure != null
-            ? readFailureMessage(failure)
+            ? readFailureMessage(failure, result.failureDetail)
             : result.stale
             ? '签到状态尚未更新'
             : null;
@@ -215,7 +221,7 @@ class _CheckInPageState extends State<CheckInPage> {
         : schoolDateWeekdayLabel(parsedDate);
     qrOpen = true;
     try {
-      await showCupertinoModalPopup<void>(
+      await showGinkgoModalSheet<void>(
         context: context,
         builder: (_) => CheckinQrSheet(
           course: course,
@@ -278,7 +284,6 @@ class _CheckInPageState extends State<CheckInPage> {
           children: [
             if (widget.history)
               AppleSection(
-                footer: const Text('按日期查询；未签到和无课程均不自动判定为缺勤。'),
                 children: [
                   Column(
                     children: [
@@ -319,7 +324,12 @@ class _CheckInPageState extends State<CheckInPage> {
                   AppleListTile(
                     key: const Key('checkin-history'),
                     title: const Text('历史日期查询'),
-                    leading: const Icon(CupertinoIcons.calendar),
+                    leading: const GinkgoIconTile(
+                      icon: CupertinoIcons.calendar,
+                      size: GinkgoIconTokens.md,
+                      iconSize: GinkgoIconTokens.glyphMd,
+                      color: GinkgoColors.accent,
+                    ),
                     trailing: const CupertinoListTileChevron(),
                     onTap: () => Navigator.of(context).push(
                       CupertinoPageRoute<void>(
@@ -331,6 +341,36 @@ class _CheckInPageState extends State<CheckInPage> {
                       ),
                     ),
                   ),
+                  if (range != null &&
+                      data != null &&
+                      data!.courses.isNotEmpty)
+                    AppleListTile(
+                      title: const Text('我的课程范围'),
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.slider_horizontal_3,
+                        size: GinkgoIconTokens.md,
+                        iconSize: GinkgoIconTokens.glyphMd,
+                        color: GinkgoColors.resourceBlue,
+                      ),
+                      subtitle: Text(
+                        _hiddenCount(data!) == 0
+                            ? '管理学生课程与助教 / 教师课程'
+                            : '已收起 ${_hiddenCount(data!)} 节非个人课程',
+                      ),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => CourseRangePage(
+                            preferences: range!,
+                            system: 'iclass',
+                            courses: {
+                              for (final item in data!.courses)
+                                courseKey(item): item.courseName,
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             if (readIssue != null)
@@ -384,6 +424,10 @@ class _CheckInPageState extends State<CheckInPage> {
     ),
   );
 
+  int _hiddenCount(CheckInResponse source) => source.courses
+      .where((course) => range?.hidden('iclass', courseKey(course)) ?? false)
+      .length;
+
   List<Widget> _content(CheckInResponse data) {
     final original = data;
     final courses = original.courses
@@ -411,11 +455,17 @@ class _CheckInPageState extends State<CheckInPage> {
         .length;
     final notSigned = sessions.length - signed - unknown;
     return [
-      if (range != null && original.courses.isNotEmpty)
+      if (widget.history && range != null && original.courses.isNotEmpty)
         AppleSection(
           children: [
             AppleListTile(
               title: const Text('我的课程范围'),
+              leading: const GinkgoIconTile(
+                icon: CupertinoIcons.slider_horizontal_3,
+                size: GinkgoIconTokens.md,
+                iconSize: GinkgoIconTokens.glyphMd,
+                color: GinkgoColors.resourceBlue,
+              ),
               subtitle: Text(
                 courses.length == original.courses.length
                     ? '管理学生课程与助教 / 教师课程'
@@ -469,7 +519,6 @@ class _CheckInPageState extends State<CheckInPage> {
         ),
         AppleSection(
           header: Text(widget.history ? '该日期课程' : '当天课程'),
-          footer: const Text('来源：iclass。记录不一致时需先核实。'),
           children: [
             for (final course in data.courses)
               CheckinCourseRow(

@@ -527,8 +527,7 @@ class _LearningCoursePageState extends State<LearningCoursePage> {
               )
             else
               AppleSection(
-                header: const Text('测验（只读）'),
-                footer: const Text('仅展示信息，不开始、作答或提交测验；未知时间或个人得分不会推测。'),
+                header: const Text('测验'),
                 children: [
                   if (hasContext &&
                       columns.value?.data

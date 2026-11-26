@@ -77,13 +77,13 @@
     - `final void Function(String title, bool expanded) onExpanded;`  <sub>:130</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:136</sub>
 - `class GraduateProfileSection extends StatelessWidget` — The student record fields the school returned.
-  <sub>class · features/graduate/graduate_sections.dart:191</sub>
-    - `const GraduateProfileSection({super.key, required this.section});`  <sub>:192</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:197</sub>
+  <sub>class · features/graduate/graduate_sections.dart:184</sub>
+    - `const GraduateProfileSection({super.key, required this.section});`  <sub>:185</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:190</sub>
 - `class GraduateProfileView extends StatelessWidget` — The student record lens: the notices, the fields the school returned and
-  <sub>class · features/graduate/graduate_sections.dart:208</sub>
-    - `const GraduateProfileView({ super.key, required this.sections, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:209</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:225</sub>
+  <sub>class · features/graduate/graduate_sections.dart:201</sub>
+    - `const GraduateProfileView({ super.key, required this.sections, required this.loading, required this.hasSections, required this.error, required this.notice, required this.onRetry, });`  <sub>:202</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:218</sub>
 
 ## features/graduate/graduate_widgets.dart
 

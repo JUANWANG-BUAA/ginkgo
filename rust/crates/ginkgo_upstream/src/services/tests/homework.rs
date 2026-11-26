@@ -47,6 +47,7 @@ async fn homework_full_read_chain_caches_list_and_reads_detail() {
             "assistant-courses",
             envelope(serde_json::json!({"list":[],"hasNextPage":false})),
         ),
+        HttpResponse::new(200, "sflx-c1", envelope(serde_json::json!("2"))),
     ]);
     responses.extend(spoc_auth());
     responses.extend([
@@ -150,6 +151,7 @@ async fn homework_keeps_assignments_when_course_role_lookup_fails() {
             "assistant-courses",
             envelope(serde_json::json!({"list":[],"hasNextPage":false})),
         ),
+        HttpResponse::new(503, "sflx-c1", "unavailable"),
     ]);
     let (service, _) = build_service(responses, MemoryVault::default());
     service
@@ -162,6 +164,80 @@ async fn homework_keeps_assignments_when_course_role_lookup_fails() {
         .expect("assignments remain available");
     assert!(!list.data.roles_complete);
     assert_eq!(list.data.items.len(), 2);
+}
+
+#[tokio::test]
+async fn homework_query_yh_sflx_classifies_ta_even_when_student_lists_include_course() {
+    use crate::adapters::homework_http::SPOC_BASE;
+    let envelope = |content: Value| serde_json::json!({"code":200,"content":content}).to_string();
+    let mut responses = login_chain("sy2501001", "fixture");
+    responses.extend([
+        HttpResponse::new(200, "https://spoc.buaa.edu.cn/spocnew/", "spa"),
+        HttpResponse::new(
+            404,
+            "https://spoc.buaa.edu.cn/spocnew/cas?token=fixture",
+            "callback",
+        ),
+        HttpResponse::new(
+            200,
+            format!("{SPOC_BASE}/sys/casLogin"),
+            envelope(serde_json::json!({"rolecode":"01"})),
+        ),
+        HttpResponse::new(
+            200,
+            "term",
+            envelope(serde_json::json!({"mrxq":"2026-20271","dqxq":"2026年秋季学期"})),
+        ),
+        HttpResponse::new(
+            200,
+            "courses",
+            envelope(serde_json::json!([
+                {"kcid":"c-stu","kcmc":"学生课程","juese":"3"},
+                {"kcid":"c-ta","kcmc":"助教课程","juese":"3"}
+            ])),
+        ),
+        HttpResponse::new(
+            200,
+            "page",
+            envelope(serde_json::json!({
+                "pageNum": 1,
+                "pages": 1,
+                "hasNextPage": false,
+                "list": [
+                    {"zyid":"a","zymc":"我的作业","tjzt":"0","sskcid":"c-stu","kcmc":"学生课程"},
+                    {"zyid":"b","zymc":"助教课程作业","tjzt":"0","sskcid":"c-ta","kcmc":"助教课程"}
+                ]
+            })),
+        ),
+        HttpResponse::new(
+            200,
+            "student-courses",
+            envelope(
+                serde_json::json!({"list":[{"kcid":"c-stu"},{"kcid":"c-ta"}],"hasNextPage":false}),
+            ),
+        ),
+        HttpResponse::new(
+            200,
+            "assistant-courses",
+            envelope(serde_json::json!({"list":[{"kcid":"c-ta"}],"hasNextPage":false})),
+        ),
+        // BTreeSet order: c-stu then c-ta. queryYhSflx returns "2" (student) and "3" (assistant).
+        HttpResponse::new(200, "sflx-c-stu", envelope(serde_json::json!("2"))),
+        HttpResponse::new(200, "sflx-c-ta", envelope(serde_json::json!("3"))),
+    ]);
+    let (service, transport) = build_service(responses, MemoryVault::default());
+    service
+        .sign_in("sy2501001", "pa+ss/word", None, true)
+        .await
+        .expect("login");
+    let list = service.load_homework(false).await.expect("list");
+    assert!(list.data.roles_complete);
+    assert_eq!(list.data.items[0].course_role.as_deref(), Some("student"));
+    assert_eq!(list.data.items[1].course_role.as_deref(), Some("assistant"));
+    assert!(transport
+        .requests()
+        .iter()
+        .any(|r| r.url.contains("/kc/queryYhSflx?kcid=c-ta")));
 }
 
 #[tokio::test]

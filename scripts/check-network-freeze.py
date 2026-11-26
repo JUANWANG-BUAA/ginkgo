@@ -14,6 +14,8 @@ MANIFEST = "docs/network-freeze.json"
 APPROVED_REVISIONS = {
     "rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs":
         "87bc2392af0f25cb94b14da9eed986bf957bcba3a7dc65450bc05b2a4aecec61",
+    "rust/crates/ginkgo_upstream/src/auth/uc.rs":
+        "3c3657f974ffb7d7275c241dd7cdc83efc973a2d9fc88774145780860a48707d",
     "rust/crates/ginkgo_upstream/src/foundation/cookie.rs":
         "638de5679628e9c8d8c1df94a8e3e5fa8d1e1100384c4bb97c1e58462127787d",
     "rust/crates/ginkgo_upstream/src/services/session_service/session_source.rs":

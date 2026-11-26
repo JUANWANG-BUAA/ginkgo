@@ -492,7 +492,7 @@ void main() {
       ),
       size: const Size(430, 932),
     );
-    expect(find.text('正在读取时段…'), findsOneWidget);
+    expect(find.text('正在进入座位列表…'), findsOneWidget);
     service.slotsPending.complete(const LibrarySlotsResponse(slots: []));
     await tester.pumpAndSettle();
 

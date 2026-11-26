@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -21,11 +22,15 @@ class ScheduleGrid extends StatefulWidget {
     super.key,
     required this.courses,
     required this.onCourseTap,
+    this.onConflictTap,
+    this.onSwipeWeek,
     this.weekStart,
   });
   final List<ScheduleCourse> courses;
   final String? weekStart;
   final ValueChanged<ScheduleCourse> onCourseTap;
+  final ValueChanged<List<ScheduleCourse>>? onConflictTap;
+  final ValueChanged<int>? onSwipeWeek;
 
   @override
   State<ScheduleGrid> createState() => _ScheduleGridState();
@@ -34,11 +39,14 @@ class ScheduleGrid extends StatefulWidget {
 class _ScheduleGridState extends State<ScheduleGrid> {
   final horizontalScroll = ScrollController();
   late ScheduleGridLayout layout;
+  late List<List<ScheduleCourse>> clusters;
+  double _swipeDx = 0;
 
   @override
   void initState() {
     super.initState();
     layout = ScheduleGridLayout.of(widget.courses);
+    clusters = _clusterOverlaps(widget.courses);
   }
 
   @override
@@ -52,7 +60,39 @@ class _ScheduleGridState extends State<ScheduleGrid> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.courses, widget.courses)) {
       layout = ScheduleGridLayout.of(widget.courses);
+      clusters = _clusterOverlaps(widget.courses);
     }
+  }
+
+  static List<List<ScheduleCourse>> _clusterOverlaps(
+    List<ScheduleCourse> courses,
+  ) {
+    final byDay = <int, List<ScheduleCourse>>{};
+    for (final c in courses) {
+      byDay.putIfAbsent(c.day, () => []).add(c);
+    }
+    final result = <List<ScheduleCourse>>[];
+    for (final dayCourses in byDay.values) {
+      dayCourses.sort((a, b) {
+        final s = a.startSection.compareTo(b.startSection);
+        return s != 0 ? s : a.endSection.compareTo(b.endSection);
+      });
+      List<ScheduleCourse>? current;
+      var currentMaxEnd = -1;
+      for (final course in dayCourses) {
+        if (current == null || course.startSection > currentMaxEnd) {
+          current = [course];
+          result.add(current);
+          currentMaxEnd = course.endSection;
+        } else {
+          current.add(course);
+          if (course.endSection > currentMaxEnd) {
+            currentMaxEnd = course.endSection;
+          }
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -124,37 +164,51 @@ class _ScheduleGridState extends State<ScheduleGrid> {
                     dark: dark,
                   ),
                 ),
-              for (final course in widget.courses)
-                Positioned(
-                  left:
-                      scheduleGridAxisWidth +
-                      (course.day - 1) * columnWidth +
-                      (layout.placements[course.id]?.lane ?? 0) *
-                          columnWidth /
-                          (layout.placements[course.id]?.count ?? 1) +
-                      1.5,
-                  top:
-                      scheduleGridHeaderHeight +
-                      (course.startSection - 1) * scheduleGridCellHeight +
-                      1.5,
-                  width:
-                      columnWidth / (layout.placements[course.id]?.count ?? 1) -
-                      3,
-                  height:
-                      (course.endSection - course.startSection + 1) *
-                          scheduleGridCellHeight -
-                      3,
-                  child: ScheduleGridCourseBlock(
-                    course: course,
-                    onTap: () => widget.onCourseTap(course),
-                  ),
-                ),
+              for (final cluster in clusters)
+                () {
+                  final primaryCourse = cluster.first;
+                  final minStart = cluster.fold<int>(
+                    primaryCourse.startSection,
+                    (v, c) => math.min(v, c.startSection),
+                  );
+                  final maxEnd = cluster.fold<int>(
+                    primaryCourse.endSection,
+                    (v, c) => math.max(v, c.endSection),
+                  );
+                  return Positioned(
+                    left:
+                        scheduleGridAxisWidth +
+                        (primaryCourse.day - 1) * columnWidth +
+                        1.5,
+                    top:
+                        scheduleGridHeaderHeight +
+                        (minStart - 1) * scheduleGridCellHeight +
+                        1.5,
+                    width: columnWidth - 3,
+                    height:
+                        (maxEnd - minStart + 1) * scheduleGridCellHeight - 3,
+                    child: ScheduleGridCourseBlock(
+                      course: primaryCourse,
+                      overlapCount: cluster.length,
+                      onTap: () {
+                        if (cluster.length > 1 && widget.onConflictTap != null) {
+                          HapticFeedback.selectionClick();
+                          widget.onConflictTap!(cluster);
+                        } else {
+                          widget.onCourseTap(primaryCourse);
+                        }
+                      },
+                    ),
+                  );
+                }(),
             ],
           ),
         ),
       );
 
       final axis = _timeAxis(cardBg, headerBg, monthLabel, sectionCount);
+      final fitsViewport = totalWidth <= constraints.maxWidth + 0.5;
+      final fullWeekStack = Stack(children: [grid, axis]);
 
       return DecoratedBox(
         decoration: BoxDecoration(
@@ -167,8 +221,24 @@ class _ScheduleGridState extends State<ScheduleGrid> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(GinkgoRadii.group),
-          child: totalWidth <= constraints.maxWidth + 0.5
-              ? Stack(children: [grid, axis])
+          child: fitsViewport
+              ? (widget.onSwipeWeek == null
+                    ? fullWeekStack
+                    : GestureDetector(
+                        key: const Key('schedule-grid-swipe'),
+                        behavior: HitTestBehavior.translucent,
+                        onHorizontalDragStart: (_) => _swipeDx = 0,
+                        onHorizontalDragUpdate: (details) =>
+                            _swipeDx += details.delta.dx,
+                        onHorizontalDragEnd: (details) {
+                          final v = details.primaryVelocity ?? 0;
+                          if (_swipeDx.abs() < 56 && v.abs() < 280) return;
+                          final delta = (_swipeDx < 0 || v < -280) ? 1 : -1;
+                          HapticFeedback.selectionClick();
+                          widget.onSwipeWeek!(delta);
+                        },
+                        child: fullWeekStack,
+                      ))
               : Stack(
                   children: [
                     SingleChildScrollView(

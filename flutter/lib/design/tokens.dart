@@ -6,3 +6,4 @@ export 'package:ginkgo_mirror/design/tokens/layout.dart';
 export 'package:ginkgo_mirror/design/tokens/motion.dart';
 export 'package:ginkgo_mirror/design/tokens/opacity.dart';
 export 'package:ginkgo_mirror/design/tokens/elevation.dart';
+export 'package:ginkgo_mirror/design/tokens/components.dart';

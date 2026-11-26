@@ -390,6 +390,11 @@ class _LoginPageState extends State<LoginPage> {
                                   ? null
                                   : _changeRoute,
                             ),
+                            Container(
+                              height: GinkgoSpacing.hairline,
+                              margin: GinkgoSpacing.edgeInsetsPage,
+                              color: GinkgoSurfaceTokens.dividerColor(context),
+                            ),
                             _field(
                               key: const Key('login-account'),
                               controller: account,
@@ -436,13 +441,6 @@ class _LoginPageState extends State<LoginPage> {
                                   refresh: true,
                                 ),
                               ),
-                            Container(
-                              height: GinkgoSpacing.hairline,
-                              margin: const EdgeInsets.only(left: 48),
-                              color: CupertinoColors.separator.resolveFrom(
-                                context,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -499,9 +497,17 @@ class _LoginPageState extends State<LoginPage> {
                                 child: const GinkgoActivity(size: 17),
                               ),
                             )
-                          : const Text(
+                          : Text(
                               '登录',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                              style: GinkgoTypography.headline.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoDynamicColor.resolve(
+                                  CupertinoTheme.of(
+                                    context,
+                                  ).primaryContrastingColor,
+                                  context,
+                                ),
+                              ),
                             ),
                     ),
                     const SizedBox(height: GinkgoSpacing.md),

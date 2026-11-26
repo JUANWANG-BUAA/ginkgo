@@ -66,22 +66,19 @@ class FinanceInstrumentPanel extends StatelessWidget {
           fillRatio: null,
           palette: LiquidPalette.violet,
           scaleTicks: ['- 75%', '- 50%', '- 25%'],
-          footer: '按需只读',
+          footer: '发放',
           semanticLabel: '财务收入实发比例',
         ),
-        title: '学生财务发放遥测',
+        title: '财务发放',
         statusLabel: statusLabel,
         statusTone: statusTone,
         headline: busy
-            ? '正在查询财务发放记录…'
+            ? '正在查询发放记录…'
             : failure != null
             ? '本次查询未成功'
-            : '待读取个人收入流水',
-        subheadline: '不落盘保存 · 自动剥离银行卡与证件号',
-        meters: const [
-          TelemetryMeterData(label: '数据留存', trailing: '仅内存 · 离页清除'),
-          TelemetryMeterData(label: '金额保护', trailing: '默认遮挡'),
-        ],
+            : '正在准备数据',
+        subheadline: '',
+        meters: const [],
       );
     }
 

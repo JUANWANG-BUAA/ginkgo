@@ -33,7 +33,6 @@ class TodayActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = CupertinoTheme.of(context).primaryColor;
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 48),
       child: Padding(
@@ -114,13 +113,13 @@ class TodayActionRow extends StatelessWidget {
     final cardTint = statusColor ?? accent;
     final surface = emphasized
         ? Container(
-            decoration: BoxDecoration(
-              color: cardTint.withValues(alpha: isDark ? 0.14 : 0.08),
-              borderRadius: BorderRadius.circular(GinkgoRadii.compact),
-              border: Border.all(
-                color: cardTint.withValues(alpha: isDark ? 0.26 : 0.18),
-                width: 1.0,
-              ),
+            decoration: GinkgoSurfaceTokens.cardDecoration(
+              context,
+              radius: GinkgoSurfaceTokens.innerCardRadius,
+              accent: cardTint,
+              tinted: true,
+              emphasized: true,
+              elevated: false,
             ),
             margin: GinkgoSpacing.edgeInsetsFocusMargin,
             child: content,

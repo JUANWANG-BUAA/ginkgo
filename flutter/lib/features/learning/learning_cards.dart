@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 import 'learning_widgets.dart';
@@ -42,109 +43,81 @@ class LearningCourseCard extends StatelessWidget {
   final VoidCallback onTap;
 
   static const double _avatarSize = 44.0;
-  static const double _hairline = 0.75;
-  static const double _minTouchTarget = 48.0;
 
   @override
   Widget build(BuildContext context) {
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final accent = learningCourseAccent('${course.id}:${course.name}');
-    final surface = CupertinoColors.secondarySystemGroupedBackground
-        .resolveFrom(context);
-    final border = accent.withValues(alpha: dark ? 0.28 : 0.16);
     final labelColor = CupertinoColors.label.resolveFrom(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
 
     final hasTeacher = presentText(course.teacher);
     final hasTerm = presentText(course.term);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
+    return GinkgoCard(
+      margin: const EdgeInsets.fromLTRB(
         GinkgoSpacing.pageInset,
         GinkgoSpacing.sm,
         GinkgoSpacing.pageInset,
         GinkgoSpacing.xs,
       ),
-      child: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(_minTouchTarget, _minTouchTarget),
-        onPressed: onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(GinkgoRadii.group),
-            border: Border.all(color: border, width: _hairline),
-            boxShadow: dark
-                ? null
-                : [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.06),
-                      blurRadius: GinkgoSpacing.md,
-                      offset: const Offset(0, GinkgoSpacing.xs),
-                    ),
-                  ],
+      padding: const EdgeInsets.all(GinkgoSpacing.pageInset),
+      accent: accent,
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _CourseMonogramBadge(
+            letter: _courseMonogram(course.name),
+            accent: accent,
+            size: _avatarSize,
+            dark: dark,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(GinkgoSpacing.pageInset),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+          const SizedBox(width: GinkgoSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _CourseMonogramBadge(
-                  letter: _courseMonogram(course.name),
-                  accent: accent,
-                  size: _avatarSize,
-                  dark: dark,
+                Text(
+                  course.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GinkgoTypography.headline.copyWith(color: labelColor),
                 ),
-                const SizedBox(width: GinkgoSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (hasTeacher || hasTerm) ...[
+                  const SizedBox(height: GinkgoSpacing.xs),
+                  Wrap(
+                    spacing: GinkgoSpacing.sm,
+                    runSpacing: GinkgoSpacing.xs,
                     children: [
-                      Text(
-                        course.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GinkgoTypography.headline.copyWith(
-                          color: labelColor,
+                      if (hasTeacher)
+                        _MetaPill(
+                          icon: CupertinoIcons.person_fill,
+                          text: course.teacher!,
+                          color: accent,
+                          dark: dark,
                         ),
-                      ),
-                      if (hasTeacher || hasTerm) ...[
-                        const SizedBox(height: GinkgoSpacing.xs),
-                        Wrap(
-                          spacing: GinkgoSpacing.sm,
-                          runSpacing: GinkgoSpacing.xs,
-                          children: [
-                            if (hasTeacher)
-                              _MetaPill(
-                                icon: CupertinoIcons.person_fill,
-                                text: course.teacher!,
-                                color: accent,
-                                dark: dark,
-                              ),
-                            if (hasTerm)
-                              _MetaPill(
-                                icon: CupertinoIcons.calendar,
-                                text: course.term!,
-                                color: secondary,
-                                dark: dark,
-                                neutral: true,
-                              ),
-                          ],
+                      if (hasTerm)
+                        _MetaPill(
+                          icon: CupertinoIcons.calendar,
+                          text: course.term!,
+                          color: secondary,
+                          dark: dark,
+                          neutral: true,
                         ),
-                      ],
                     ],
                   ),
-                ),
-                const SizedBox(width: GinkgoSpacing.sm),
-                Icon(
-                  CupertinoIcons.chevron_forward,
-                  size: GinkgoSpacing.pageInset,
-                  color: secondary,
-                ),
+                ],
               ],
             ),
           ),
-        ),
+          const SizedBox(width: GinkgoSpacing.sm),
+          Icon(
+            CupertinoIcons.chevron_forward,
+            size: GinkgoIconTokens.chevron,
+            color: secondary,
+          ),
+        ],
       ),
     );
   }

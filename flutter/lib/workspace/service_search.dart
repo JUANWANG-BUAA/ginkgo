@@ -149,12 +149,12 @@ ServiceDescriptor _destinationDescriptor(WorkspaceDestination destination) {
         : switch (id) {
             'network-diagnostics' => '查看各模块实时可用性、缓存与响应耗时',
             'library' => '图书馆座位及公开书目入口',
-            'library-loans' => '按需读取本人借阅',
-            'shuttle' => '学校公布的计划时刻',
-            'campus-card' => '按需查看校园卡余额',
-            'network-account' => '按需查看网费余额、校园网流量与门户指标',
-            'finance-incomes' => '按需查看助研津贴、助学金与劳务费记录',
-            'teaching-evaluation' => '只读检查本学期课程评教完成状态',
+            'library-loans' => '查看本人借阅与应还日期',
+            'shuttle' => '校车时刻表与班次',
+            'campus-card' => '查看校园卡余额',
+            'network-account' => '查看网费余额与校园网流量',
+            'finance-incomes' => '查看助研津贴、助学金与劳务费记录',
+            'teaching-evaluation' => '查看本学期课程评教进度',
             'undergraduate' => '本科课表、考试安排、绩点总览与 BYXT 官网入口',
             'campus-activities' => '学校官网讲座与演出，含活动时间和地点',
             _ => '打开${destination.title}',
@@ -239,15 +239,6 @@ class ServiceSearchContent extends StatelessWidget {
             controller: controller,
             placeholder: '搜索服务名称或别名',
             onChanged: onChanged,
-          ),
-        ),
-        Padding(
-          padding: GinkgoSpacing.edgeInsetsPage,
-          child: Text(
-            '搜索服务，不检索个人记录；未收录的服务不会出现在结果中。',
-            style: GinkgoTypography.footnote.copyWith(
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            ),
           ),
         ),
         if (showResults && matches.isEmpty)

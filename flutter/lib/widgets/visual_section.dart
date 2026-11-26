@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 /// A quiet inset rule for rows nested inside a reveal animation.
 class TodayVisualDivider extends StatelessWidget {
@@ -11,9 +12,7 @@ class TodayVisualDivider extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: GinkgoSpacing.edgeInsetsPage,
     child: ColoredBox(
-      color: CupertinoColors.separator
-          .resolveFrom(context)
-          .withValues(alpha: 0.16),
+      color: GinkgoSurfaceTokens.dividerColor(context),
       child: const SizedBox(
         height: GinkgoSpacing.hairline,
         width: double.infinity,
@@ -70,6 +69,7 @@ class TodaySectionHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
+    this.iconColor,
     this.badge,
     this.actionLabel,
     this.actionKey,
@@ -78,6 +78,7 @@ class TodaySectionHeader extends StatelessWidget {
 
   final String title;
   final IconData? icon;
+  final Color? iconColor;
   final String? badge;
   final String? actionLabel;
   final Key? actionKey;
@@ -91,64 +92,70 @@ class TodaySectionHeader extends StatelessWidget {
         ? CupertinoButton(
             key: actionKey,
             padding: EdgeInsets.zero,
-            minimumSize: const Size(48, 48),
+            minimumSize: GinkgoButtonTokens.minTarget,
             onPressed: onAction,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   actionLabel!,
-                  style: TextStyle(
-                    fontSize: GinkgoTypography.footnote.fontSize,
-                    fontWeight: FontWeight.w500,
+                  style: GinkgoTypography.footnote.copyWith(
+                    fontWeight: FontWeight.w600,
                     color: accent,
                   ),
                 ),
                 const SizedBox(width: GinkgoSpacing.opticalIconInset),
-                Icon(CupertinoIcons.chevron_forward, size: 13, color: accent),
+                Icon(
+                  CupertinoIcons.chevron_forward,
+                  size: GinkgoIconTokens.chevron,
+                  color: accent,
+                ),
               ],
             ),
           )
         : null;
 
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: GinkgoSpacing.sm,
-      runSpacing: GinkgoSpacing.xs,
-      children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: GinkgoSpacing.small,
-          children: [
-            if (icon != null)
-              Icon(
-                icon,
-                size: 16,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: GinkgoTypography.subheadline.fontSize,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.label.resolveFrom(context),
-                letterSpacing: -0.2,
-              ),
-            ),
-            if (badge != null)
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: GinkgoSpacing.sm,
+        runSpacing: GinkgoSpacing.xs,
+        children: [
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: GinkgoSpacing.sm,
+            children: [
+              if (icon != null)
+                GinkgoIconTile(
+                  icon: icon!,
+                  size: GinkgoIconTokens.sm,
+                  iconSize: GinkgoIconTokens.glyphSm,
+                  color:
+                      iconColor ??
+                      CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
               Text(
-                badge!,
-                style: TextStyle(
-                  fontSize: GinkgoTypography.footnote.fontSize,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                title,
+                style: GinkgoTypography.callout.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: CupertinoColors.label.resolveFrom(context),
                 ),
               ),
-          ],
-        ),
-        ?action,
-      ],
+              if (badge != null)
+                Text(
+                  badge!,
+                  style: GinkgoTypography.footnote.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+            ],
+          ),
+          ?action,
+        ],
+      ),
     );
   }
 }

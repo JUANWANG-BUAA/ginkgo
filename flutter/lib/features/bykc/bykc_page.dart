@@ -337,7 +337,6 @@ class _BykcPageState extends State<BykcPage> {
             section: '学业',
             subtitle: '查看活动、课程与个人记录',
             icon: CupertinoIcons.book_solid,
-            previousPageTitle: '工作台',
             border: null,
             trailing: AppleToolbarButton(
               label: '刷新博雅',

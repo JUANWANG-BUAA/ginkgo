@@ -45,7 +45,7 @@ class LibraryBentoGrid extends StatelessWidget {
         _BentoTileData(
           key: const Key('library-loans-entry'),
           title: '本人借阅',
-          subtitle: '按需查在借与到期日',
+          subtitle: '查看在借书目与应还日期',
           icon: CupertinoIcons.bookmark_fill,
           color: GinkgoColors.resourcePurple,
           onTap: onOpenLoans!,

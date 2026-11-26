@@ -218,15 +218,8 @@ void main() {
         );
       }
       if (entry.$2 == LibraryLoansPage) {
-        expect(find.text('合成借阅示例'), findsNothing);
-        expect(
-          find.byKey(const Key('library-loans-first-read')),
-          findsOneWidget,
-        );
-        expect(find.byKey(const Key('library-loans-read')), findsNothing);
-        await tester.tap(find.byKey(const Key('library-loans-first-read')));
-        await tester.pumpAndSettle();
         expect(find.text('合成借阅示例'), findsOneWidget);
+        expect(find.byKey(const Key('library-loans-read')), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     });

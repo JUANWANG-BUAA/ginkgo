@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/application/cgyy_commands.dart';
@@ -34,7 +35,7 @@ class _CgyyCaptchaPageState extends State<CgyyCaptchaPage> {
   Uint8List? background, piece;
   double width = 310, height = 155, pieceWidth = 60, pieceHeight = 155, x = 0;
   String? error;
-  bool busy = false, attempted = false, dragged = false, allowExit = false;
+  bool busy = false, attempted = false, dragged = false, dragging = false, allowExit = false;
   @override
   void initState() {
     super.initState();
@@ -152,7 +153,7 @@ class _CgyyCaptchaPageState extends State<CgyyCaptchaPage> {
   Widget build(BuildContext context) => PopScope<CgyyActionResult>(
     canPop: allowExit,
     onPopInvokedWithResult: (didPop, result) {
-      if (!didPop && !busy) exit();
+      if (!didPop && !busy && !dragging) exit();
     },
     child: CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -213,21 +214,32 @@ class _CgyyCaptchaPageState extends State<CgyyCaptchaPage> {
                     ),
                   ),
                 if (background != null)
-                  Semantics(
-                    label: '拼图横向位置',
-                    child: SizedBox(
-                      height: 48,
-                      child: CupertinoSlider(
-                        value: x,
-                        min: 0,
-                        max: width - pieceWidth,
-                        onChanged: busy || attempted || error != null
-                            ? null
-                            : (value) => setState(() {
-                                x = value;
-                              }),
-                        onChangeEnd: (value) =>
-                            setState(() => dragged = value.round() > 0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: GinkgoSpacing.xl,
+                    ),
+                    child: Semantics(
+                      label: '拼图横向位置',
+                      child: SizedBox(
+                        height: AppleDesign.rowHeight,
+                        child: CupertinoSlider(
+                          value: x,
+                          min: 0,
+                          max: width - pieceWidth,
+                          onChangeStart: (_) => setState(() => dragging = true),
+                          onChanged: busy || attempted || error != null
+                              ? null
+                              : (value) => setState(() {
+                                  x = value;
+                                }),
+                          onChangeEnd: (value) {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              dragging = false;
+                              dragged = value.round() > 0;
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ),

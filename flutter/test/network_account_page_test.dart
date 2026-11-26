@@ -4,8 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/network_account.dart';
+import 'package:ginkgo_mirror/application/session_memory_cache.dart';
 import 'package:ginkgo_mirror/features/network_account/network_account_page.dart';
 import 'package:ginkgo_mirror/main.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 
 class _FakeNetworkGateway implements NetworkAccountGateway {
   final responses = <Completer<NetworkAccountRead>>[];
@@ -21,16 +23,20 @@ class _FakeNetworkGateway implements NetworkAccountGateway {
 }
 
 void main() {
+  setUp(SessionMemoryCache.shared.clearAll);
+
   testWidgets(
-    'reads portal metrics and traffic on demand, masks net fee and clears on background',
+    'auto-reads portal metrics and traffic on open, shows net fee by default and caches in session memory',
     (tester) async {
+      final prefs = AppPreferences();
+      addTearDown(prefs.dispose);
       final gateway = _FakeNetworkGateway();
       await tester.pumpWidget(
-        ginkgoApp(home: NetworkAccountPage(gateway: gateway)),
+        ginkgoApp(
+          preferences: prefs,
+          home: NetworkAccountPage(gateway: gateway),
+        ),
       );
-
-      expect(gateway.calls, 0);
-      await tester.tap(find.byKey(const Key('network-account-read')));
       await tester.pump();
       expect(gateway.calls, 1);
 
@@ -56,33 +62,46 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('¥ ••••'), findsOneWidget);
-      expect(find.text('¥ 42.80'), findsNothing);
+      expect(find.text('¥ 42.80'), findsOneWidget);
+      expect(find.text('¥ ••••'), findsNothing);
       expect(find.text('学生校园网'), findsOneWidget);
       expect(find.textContaining('含 1 个套餐'), findsOneWidget);
-      expect(find.text('88.5 G'), findsOneWidget);
+      expect(find.text('待还图书'), findsNothing);
+      expect(find.text('未读校内邮件'), findsNothing);
+      expect(find.text('云盘空间'), findsNothing);
       expect(find.text('充值'), findsNothing);
 
       await tester.tap(find.byKey(const Key('network-account-toggle')));
       await tester.pump();
-      expect(find.text('¥ 42.80'), findsOneWidget);
+      expect(find.text('¥ ••••'), findsOneWidget);
+      expect(prefs.revealSensitiveAmounts, isFalse);
 
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      // Re-entering the page uses the warm session memory cache without a cold start.
+      await tester.pumpWidget(ginkgoApp(preferences: prefs, home: const SizedBox()));
+      await tester.pumpWidget(
+        ginkgoApp(
+          preferences: prefs,
+          home: NetworkAccountPage(gateway: gateway),
+        ),
+      );
       await tester.pump();
-      expect(find.text('¥ 42.80'), findsNothing);
-      expect(find.text('学生校园网'), findsNothing);
+      expect(find.text('学生校园网'), findsOneWidget);
+      expect(gateway.calls, 1);
     },
   );
 
   testWidgets(
     'renders partial success when traffic succeeds but portal requires auth',
     (tester) async {
+      final prefs = AppPreferences();
+      addTearDown(prefs.dispose);
       final gateway = _FakeNetworkGateway();
       await tester.pumpWidget(
-        ginkgoApp(home: NetworkAccountPage(gateway: gateway)),
+        ginkgoApp(
+          preferences: prefs,
+          home: NetworkAccountPage(gateway: gateway),
+        ),
       );
-
-      await tester.tap(find.byKey(const Key('network-account-read')));
       await tester.pump();
       gateway.responses.single.complete(
         const NetworkAccountRead(

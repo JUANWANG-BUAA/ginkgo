@@ -360,7 +360,6 @@ class _HomeworkFilesPanelState extends State<HomeworkFilesPanel> {
     final d = data;
     return AppleSection(
       header: const Text('附件与提交'),
-      footer: const Text('上传不等于提交。提交前仍须核对课程、作业与最终文件；结果未知时仅回查。真实学校写入尚待验收。'),
       children: [
         if (message != null)
           CupertinoListTile(title: Text(message!, maxLines: 8)),

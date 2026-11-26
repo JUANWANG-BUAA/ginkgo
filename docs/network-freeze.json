@@ -5,6 +5,7 @@
   "authorization_record": "docs/_audit/2026-11-03-background-reminders-and-recovery.md",
   "authorized_revisions": {
     "rust/crates/ginkgo_upstream/src/auth/session/automatic_route.rs": "87bc2392af0f25cb94b14da9eed986bf957bcba3a7dc65450bc05b2a4aecec61",
+    "rust/crates/ginkgo_upstream/src/auth/uc.rs": "3c3657f974ffb7d7275c241dd7cdc83efc973a2d9fc88774145780860a48707d",
     "rust/crates/ginkgo_upstream/src/foundation/cookie.rs": "638de5679628e9c8d8c1df94a8e3e5fa8d1e1100384c4bb97c1e58462127787d",
     "rust/crates/ginkgo_upstream/src/services/session_service/session_source.rs": "d0e3d91bc05cd7324c5d9c8d08eb9b11b82070a92323fa4dfdcb068c2ccd079e",
     "scripts/check-session-regressions.py": "949d6ab2a6ed47daa6a3e4f7b00d1689f1f64b3d5cf6b60cb7ed6c86748ff93c"

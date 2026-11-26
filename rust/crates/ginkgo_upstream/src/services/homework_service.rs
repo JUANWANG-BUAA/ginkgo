@@ -73,6 +73,14 @@ impl<T: HttpTransport + Send + Sync, V: CredentialVault> HomeworkSource for Scho
                 let mut result = homework_http::load_detail(&self.session, id).await;
                 if result
                     .as_ref()
+                    .is_err_and(|e| e.detail.as_deref() == Some("webvpn_login_required"))
+                {
+                    result = match self.ensure_webvpn_session().await {
+                        Ok(()) => homework_http::load_detail(&self.session, id).await,
+                        Err(error) => Err(error),
+                    };
+                } else if result
+                    .as_ref()
                     .is_err_and(|e| e.code == ErrorCode::SessionExpired)
                 {
                     result = match self.silent_login().await {

@@ -23,9 +23,9 @@ class LoginRouteSelector extends StatelessWidget {
       'webVpn': Text('仅 WebVPN'),
     };
     return Padding(
-      padding: const EdgeInsets.only(top: GinkgoSpacing.md),
+      padding: GinkgoSpacing.edgeInsetsCard,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             '网络路线',
@@ -33,6 +33,7 @@ class LoginRouteSelector extends StatelessWidget {
               color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
+          const SizedBox(height: GinkgoSpacing.sm),
           LayoutBuilder(
             builder: (context, constraints) {
               final expanded =

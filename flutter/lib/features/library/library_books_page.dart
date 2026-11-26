@@ -120,6 +120,7 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
       child: SafeArea(
         child: CustomScrollView(
           key: const Key('library-books-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             const AppleRefreshPageHeader(
               title: '查书目与馆藏',
@@ -210,7 +211,6 @@ class _LibraryBooksPageState extends State<LibraryBooksPage> {
                 if (items != null && items.isNotEmpty)
                   AppleSection(
                     header: const Text('书目'),
-                    footer: const Text('打开单条书目查看复本与馆藏地。'),
                     children: [
                       for (final (index, hit) in items.indexed)
                         LibraryBookCard(

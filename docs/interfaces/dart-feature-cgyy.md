@@ -53,13 +53,13 @@
     - `const CgyyDetailsSection({ super.key, required this.purposes, required this.purposeId, required this.phone, required this.theme, required this.content, required this.joiners, required this.participantCount, required this.philosophy, required this.offSchool, required this.onSelectPurpose, required this.onStepParticipant, required this.onTogglePhilosophy, required this.onToggleOffSchool, this.enabled = true, });`  <sub>:80</sub>
     - `Widget build(BuildContext context) => …`  <sub>:109</sub>
 - `class CgyyNoticeSection extends StatelessWidget` — A short guidance line shown after the form acted on the user.
-  <sub>class · features/cgyy/cgyy_booking_form.dart:161</sub>
-    - `const CgyyNoticeSection({super.key, required this.message});`  <sub>:162</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:166</sub>
+  <sub>class · features/cgyy/cgyy_booking_form.dart:160</sub>
+    - `const CgyyNoticeSection({super.key, required this.message});`  <sub>:161</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:165</sub>
 - `class CgyyBookingActionsSection extends StatelessWidget` — The actions of the booking form. Only one write path is offered and the
-  <sub>class · features/cgyy/cgyy_booking_form.dart:178</sub>
-    - `const CgyyBookingActionsSection({ super.key, required this.busy, required this.loading, required this.review, required this.enabled, required this.onSubmit, required this.onLeave, });`  <sub>:179</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:192</sub>
+  <sub>class · features/cgyy/cgyy_booking_form.dart:177</sub>
+    - `const CgyyBookingActionsSection({ super.key, required this.busy, required this.loading, required this.review, required this.enabled, required this.onSubmit, required this.onLeave, });`  <sub>:178</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:191</sub>
 
 ## features/cgyy/cgyy_booking_page.dart
 
@@ -85,9 +85,9 @@
 ## features/cgyy/cgyy_captcha_page.dart
 
 - `class CgyyCaptchaPage extends StatefulWidget` — School jigsaw verification. The drag is performed manually by the user;
-  <sub>class · features/cgyy/cgyy_captcha_page.dart:17</sub>
-    - `const CgyyCaptchaPage({ super.key, required this.gateway, required this.challenge, required this.summary, required this.consumedChallenges, });`  <sub>:18</sub>
-    - `State<CgyyCaptchaPage> createState() => …`  <sub>:30</sub>
+  <sub>class · features/cgyy/cgyy_captcha_page.dart:18</sub>
+    - `const CgyyCaptchaPage({ super.key, required this.gateway, required this.challenge, required this.summary, required this.consumedChallenges, });`  <sub>:19</sub>
+    - `State<CgyyCaptchaPage> createState() => …`  <sub>:31</sub>
 
 ## features/cgyy/cgyy_day_page.dart
 
@@ -99,9 +99,9 @@
 ## features/cgyy/cgyy_day_view.dart
 
 - `class CgyyWriteGuardSection extends StatelessWidget` — The local write protection banner. It stays visible while the last write
-  <sub>class · features/cgyy/cgyy_day_view.dart:13</sub>
-    - `const CgyyWriteGuardSection({ super.key, required this.guardKnown, required this.enabled, required this.onReview, });`  <sub>:14</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:24</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:14</sub>
+    - `const CgyyWriteGuardSection({ super.key, required this.guardKnown, required this.enabled, required this.onReview, });`  <sub>:15</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:25</sub>
 - `class CgyySiteQuerySection extends StatelessWidget` — The queried venue and the day the slots belong to.
   <sub>class · features/cgyy/cgyy_day_view.dart:45</sub>
     - `const CgyySiteQuerySection({ super.key, required this.site, required this.date, required this.enabled, required this.onChooseDate, });`  <sub>:46</sub>
@@ -111,19 +111,19 @@
     - `const CgyyBookingEntrySection({ super.key, required this.enabled, required this.onTap, });`  <sub>:105</sub>
     - `Widget build(BuildContext context) => …`  <sub>:114</sub>
 - `List<Widget> cgyyDaySlots(BuildContext context, CgyyDay day) => …` — The heading and one section per space of the queried day. A slot is shown
-  <sub>function · features/cgyy/cgyy_day_view.dart:130</sub>
+  <sub>function · features/cgyy/cgyy_day_view.dart:129</sub>
 - `class CgyyOrderListSection extends StatelessWidget` — The most recent bookings the school returned.
-  <sub>class · features/cgyy/cgyy_day_view.dart:172</sub>
-    - `const CgyyOrderListSection({ super.key, required this.orders, required this.onOpen, });`  <sub>:173</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:182</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:171</sub>
+    - `const CgyyOrderListSection({ super.key, required this.orders, required this.onOpen, });`  <sub>:172</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:181</sub>
 - `class CgyyOrderManageSection extends StatelessWidget` — The bookings that may still be cancelled. The school decides which ones
-  <sub>class · features/cgyy/cgyy_day_view.dart:209</sub>
-    - `const CgyyOrderManageSection({ super.key, required this.orders, required this.enabled, required this.onCancel, });`  <sub>:210</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:221</sub>
+  <sub>class · features/cgyy/cgyy_day_view.dart:208</sub>
+    - `const CgyyOrderManageSection({ super.key, required this.orders, required this.enabled, required this.onCancel, });`  <sub>:209</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:220</sub>
 - `Future<DateTime?> cgyyPickDate(BuildContext context, DateTime initial) async {…}` — The date picker of the day page. Returns the picked date, or null when the
-  <sub>function · features/cgyy/cgyy_day_view.dart:239</sub>
+  <sub>function · features/cgyy/cgyy_day_view.dart:237</sub>
 - `String cgyyDisplayDate(String value) {…}` — The school date plus its weekday, shown wherever a raw date is presented.
-  <sub>function · features/cgyy/cgyy_day_view.dart:287</sub>
+  <sub>function · features/cgyy/cgyy_day_view.dart:285</sub>
 
 ## features/cgyy/cgyy_gateway.dart
 

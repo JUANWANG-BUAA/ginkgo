@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
+import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'today_action_row.dart';
@@ -64,7 +66,6 @@ class TodayTasksSection extends StatelessWidget {
     if (data != null &&
         pending.isEmpty &&
         linked.isEmpty &&
-        completed.isEmpty &&
         section.error == null) {
       return const SizedBox.shrink();
     }
@@ -77,13 +78,6 @@ class TodayTasksSection extends StatelessWidget {
         badge: pending.isNotEmpty ? '${pending.length} 项未完成' : null,
         actionLabel: '全部',
         onAction: () => onOpen(null),
-      ),
-      footer: Text(
-        data == null
-            ? '仅保存于本机 · 不代表学校作业提交状态'
-            : '本机读取 ${data.loadedAt.month}月${data.loadedAt.day}日 '
-                  '${data.loadedAt.hour.toString().padLeft(2, '0')}:${data.loadedAt.minute.toString().padLeft(2, '0')}'
-                  ' · 本地完成不代表学校作业已提交',
       ),
       children: [
         if (section.loading || section.error != null)
@@ -112,15 +106,21 @@ class TodayTasksSection extends StatelessWidget {
               title: '保留上次读取的待办',
               subtitle: '显示上次读取结果，请重试确认。',
             ),
-          for (final (index, task) in visible.indexed)
+          for (final (index, task) in visible.indexed) ...[
+            if (index > 0 || (pending.isNotEmpty && section.error != null))
+              const TodayVisualDivider(),
             _row(context, task, isPriority: index == 0),
-          if (pending.length > visible.length)
+          ],
+          if (pending.length > visible.length) ...[
+            const TodayVisualDivider(),
             TodayActionRow(
               summary: true,
               title: '另有 ${pending.length - visible.length} 项未完成',
               onTap: () => onOpen(null),
             ),
-          if (linked.isNotEmpty)
+          ],
+          if (linked.isNotEmpty) ...[
+            const TodayVisualDivider(),
             TodayActionRow(
               key: const Key('today-tasks-linked-note'),
               summary: true,
@@ -128,12 +128,15 @@ class TodayTasksSection extends StatelessWidget {
               subtitle: '已在学校作业区显示，不在此重复；可在待办页查看',
               onTap: () => onOpen(null),
             ),
-          if (completed.isNotEmpty)
+          ],
+          if (completed.isNotEmpty) ...[
+            const TodayVisualDivider(),
             TodayActionRow(
               summary: true,
               title: '已完成 ${completed.length} 项',
-              subtitle: '已收起，可在个人待办中查看',
+              onTap: () => onOpen(null),
             ),
+          ],
         ],
         if (data == null && !section.loading)
           TodayActionRow(title: '打开个人待办', onTap: () => onOpen(null)),
@@ -146,16 +149,22 @@ class TodayTasksSection extends StatelessWidget {
     LocalTaskRecord task, {
     bool isPriority = false,
   }) {
+    final hasDue = task.due.trim().isNotEmpty;
     final status = _taskStatus(task);
-    final tint = homeworkDeadlineTint(task.due, now).resolveFrom(context);
-    return TodayActionRow(
+    final tint = hasDue
+        ? homeworkDeadlineTint(task.due, now)
+        : AppleDesign.statusInactive;
+    return GinkgoProgressiveRow(
       key: Key('today-task-${task.id}'),
       emphasized: isPriority,
       title: task.title,
-      status: status,
-      statusColor: task.due.trim().isEmpty ? null : tint,
+      badgeLabel: status,
+      badgeIcon: hasDue
+          ? CupertinoIcons.clock_fill
+          : CupertinoIcons.checkmark_square_fill,
+      accent: tint,
       subtitle: task.sourceAssignmentId == null
-          ? '个人事项 · 未完成'
+          ? '个人事项'
           : '本机待办 · 来自学校作业',
       onTap: () => onOpen(task.id),
     );

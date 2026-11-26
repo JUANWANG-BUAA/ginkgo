@@ -31,6 +31,14 @@ class CourseRoleService extends ControlledService {
             status: HomeworkStatus.pending,
           ),
           HomeworkItem(
+            id: 'teacher',
+            courseId: 'teacher-course',
+            courseRole: 'teacher',
+            courseName: '合成教师课程',
+            title: '教师作业',
+            status: HomeworkStatus.pending,
+          ),
+          HomeworkItem(
             id: 'unknown',
             courseId: 'unknown-course',
             courseName: '合成未知课程',
@@ -58,7 +66,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('待完成 2'), findsOneWidget);
+      expect(find.text('待提交 2'), findsOneWidget);
       expect(find.text('2 项作业'), findsOneWidget);
       expect(
         tester.getTopLeft(find.byKey(const Key('homework-filter-pending'))).dy,
@@ -67,8 +75,8 @@ void main() {
       expect(find.textContaining('筛选计数仅包含个人课程'), findsOneWidget);
       await tester.tap(find.byType(CupertinoSwitch));
       await tester.pumpAndSettle();
-      expect(find.text('待完成 2'), findsOneWidget);
-      expect(find.text('3 项作业'), findsOneWidget);
+      expect(find.text('待提交 2'), findsOneWidget);
+      expect(find.text('4 项作业'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byKey(const Key('homework-assistant')),
         200,

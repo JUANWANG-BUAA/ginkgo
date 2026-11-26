@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 /// One clock above the tabs' inactive TickerModes. Only the original incoming
 /// and outgoing pages paint during a turn; their Navigators are never copied.
@@ -224,15 +225,20 @@ class _WorkspaceTabScaffoldState extends State<WorkspaceTabScaffold> {
                 if (_drag.abs() < 48) return;
                 final rtl = Directionality.of(context) == TextDirection.rtl;
                 final step = (_drag < 0) != rtl ? 1 : -1;
-                widget.controller.index = (selected + step).clamp(
+                final nextIndex = (selected + step).clamp(
                   0,
                   widget.tabBar.items.length - 1,
                 );
+                if (nextIndex != selected) {
+                  HapticFeedback.selectionClick();
+                  widget.controller.index = nextIndex;
+                }
               },
               child: MediaQuery.withNoTextScaling(
                 child: widget.tabBar.copyWith(
                   currentIndex: selected,
                   onTap: (index) {
+                    if (index != selected) HapticFeedback.selectionClick();
                     widget.controller.index = index;
                     widget.tabBar.onTap?.call(index);
                   },

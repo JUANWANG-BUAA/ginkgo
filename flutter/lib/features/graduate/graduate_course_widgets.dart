@@ -151,7 +151,6 @@ class GraduateCourseDetails extends StatelessWidget {
           ),
           AppleSection(
             header: const Text('学校执行报告'),
-            footer: const Text('完成状态以学校执行报告为准，课程池中的课程不代表全部必修。'),
             children: [AcademicFactRow(label: '原始记录', value: entry.row.detail)],
           ),
           const SizedBox(height: 24),

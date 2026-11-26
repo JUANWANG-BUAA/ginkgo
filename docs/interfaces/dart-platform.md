@@ -9,28 +9,28 @@
 
 - `enum UpdateDownloadSource`
   <sub>enum · platform/android_update_controller.dart:12</sub>
-    - `const UpdateDownloadSource(this.label);`  <sub>:17</sub>
+    - `const UpdateDownloadSource(this.label);`  <sub>:18</sub>
 - `enum UpdateDownloadPhase { idle, downloading, paused, verifying, ready, failed }`
-  <sub>enum · platform/android_update_controller.dart:21</sub>
+  <sub>enum · platform/android_update_controller.dart:22</sub>
 - `typedef UpdateRoot = Future<Directory> Function();`
-  <sub>typedef · platform/android_update_controller.dart:23</sub>
-- `typedef ApkInstaller = Future<String> Function(AndroidDownload asset);`
   <sub>typedef · platform/android_update_controller.dart:24</sub>
+- `typedef ApkInstaller = Future<String> Function(AndroidDownload asset);`
+  <sub>typedef · platform/android_update_controller.dart:25</sub>
 - `class AndroidUpdateController extends ChangeNotifier`
-  <sub>class · platform/android_update_controller.dart:29</sub>
-    - `static final shared = AndroidUpdateController();`  <sub>:38</sub>
-    - `final HttpClient Function() _newClient;`  <sub>:40</sub>
-    - `UpdateDownloadPhase phase = UpdateDownloadPhase.idle;`  <sub>:53</sub>
-    - `UpdateDownloadSource source = UpdateDownloadSource.automatic;`  <sub>:54</sub>
-    - `int received = 0;`  <sub>:56</sub>
-    - `bool installing = false;`  <sub>:60</sub>
-    - `bool get busy => …`  <sub>:61</sub>
-    - `double get progress => …`  <sub>:62</sub>
-    - `void selectSource(UpdateDownloadSource value) {…}`  <sub>:64</sub>
-    - `String get sizeLabel => …`  <sub>:70</sub>
-    - `void pause() {…}`  <sub>:79</sub>
-    - `Future<void> download(AndroidDownload next) async {…}`  <sub>:85</sub>
-    - `Future<void> install() async {…}`  <sub>:279</sub>
+  <sub>class · platform/android_update_controller.dart:30</sub>
+    - `static final shared = AndroidUpdateController();`  <sub>:39</sub>
+    - `final HttpClient Function() _newClient;`  <sub>:41</sub>
+    - `UpdateDownloadPhase phase = UpdateDownloadPhase.idle;`  <sub>:54</sub>
+    - `UpdateDownloadSource source = UpdateDownloadSource.automatic;`  <sub>:55</sub>
+    - `int received = 0;`  <sub>:57</sub>
+    - `bool installing = false;`  <sub>:61</sub>
+    - `bool get busy => …`  <sub>:62</sub>
+    - `double get progress => …`  <sub>:63</sub>
+    - `void selectSource(UpdateDownloadSource value) {…}`  <sub>:65</sub>
+    - `String get sizeLabel => …`  <sub>:71</sub>
+    - `void pause() {…}`  <sub>:80</sub>
+    - `Future<void> download(AndroidDownload next) async {…}`  <sub>:86</sub>
+    - `Future<void> install() async {…}`  <sub>:283</sub>
 
 ## platform/external_links.dart
 
@@ -46,23 +46,27 @@
     - `Future<bool> openNotifications();`  <sub>:10</sub>
     - `Future<bool> openAppSettings();`  <sub>:11</sub>
     - `Future<bool> shareProject();`  <sub>:12</sub>
+    - `Future<String> networkStatus();`  <sub>:13</sub>
+    - `Future<bool> openWifiSettings();`  <sub>:14</sub>
 - `class BackgroundReminderStatus`
-  <sub>class · platform/system_settings_service.dart:15</sub>
-    - `const BackgroundReminderStatus({ required this.enabled, required this.scheduled, required this.status, this.lastRun, });`  <sub>:16</sub>
+  <sub>class · platform/system_settings_service.dart:17</sub>
+    - `const BackgroundReminderStatus({ required this.enabled, required this.scheduled, required this.status, this.lastRun, });`  <sub>:18</sub>
 - `abstract interface class BackgroundReminderStatusService`
-  <sub>class · platform/system_settings_service.dart:27</sub>
-    - `Future<BackgroundReminderStatus> backgroundReminderStatus();`  <sub>:28</sub>
+  <sub>class · platform/system_settings_service.dart:29</sub>
+    - `Future<BackgroundReminderStatus> backgroundReminderStatus();`  <sub>:30</sub>
 - `class NativeSystemSettingsService`
-  <sub>class · platform/system_settings_service.dart:31</sub>
-    - `const NativeSystemSettingsService();`  <sub>:33</sub>
-    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/system');`  <sub>:34</sub>
-    - `bool get isAndroid => …`  <sub>:36</sub>
-    - `Future<BackgroundReminderStatus> backgroundReminderStatus() async {…}`  <sub>:38</sub>
-    - `Future<String> notificationPermission() async => …`  <sub>:60</sub>
-    - `Future<String> requestNotifications() async => …`  <sub>:65</sub>
-    - `Future<bool> openNotifications() async => …`  <sub>:69</sub>
-    - `Future<bool> openAppSettings() async => …`  <sub>:74</sub>
-    - `Future<bool> shareProject() async {…}`  <sub>:79</sub>
+  <sub>class · platform/system_settings_service.dart:33</sub>
+    - `const NativeSystemSettingsService();`  <sub>:35</sub>
+    - `static const channel = MethodChannel('cn.edu.buaa.ginkgo/system');`  <sub>:36</sub>
+    - `bool get isAndroid => …`  <sub>:38</sub>
+    - `Future<BackgroundReminderStatus> backgroundReminderStatus() async {…}`  <sub>:40</sub>
+    - `Future<String> notificationPermission() async => …`  <sub>:62</sub>
+    - `Future<String> requestNotifications() async => …`  <sub>:67</sub>
+    - `Future<bool> openNotifications() async => …`  <sub>:71</sub>
+    - `Future<bool> openAppSettings() async => …`  <sub>:76</sub>
+    - `Future<bool> shareProject() async {…}`  <sub>:81</sub>
+    - `Future<String> networkStatus() async => …`  <sub>:92</sub>
+    - `Future<bool> openWifiSettings() async => …`  <sub>:97</sub>
 
 ## platform/update_download_section.dart
 
@@ -77,13 +81,14 @@
   <sub>class · platform/update_gate.dart:13</sub>
     - `const UpdateGate({required this.minBuild, this.message, this.releasesUrl});`  <sub>:14</sub>
     - `static const manifestUrl = 'https://juanwang-buaa.github.io/ginkgo/update-gate.json';`  <sub>:25</sub>
-    - `static const defaultReleasesUrl = 'https://github.com/JUANWANG-BUAA/ginkgo/releases';`  <sub>:27</sub>
-    - `static UpdateGate? parse(String body) {…}` — 解析清单；结构不符合预期时视为“没有清单”，不阻塞启动。  <sub>:49</sub>
-    - `static Future<UpdateGate?> fetch({ HttpClient? client, Duration timeout = const Duration(milliseconds: 1800), }) async {…}` — 拉取清单；任何网络/解析错误都返回 null，由调用方放行。  <sub>:73</sub>
-    - `bool blocks(int buildNumber) => …`  <sub>:93</sub>
-    - `Uri get releasesUri => …`  <sub>:95</sub>
+    - `static const mirrorManifestUrl = 'https://gh-proxy.com/https://juanwang-buaa.github.io/ginkgo/update-gate.json';`  <sub>:27</sub>
+    - `static const defaultReleasesUrl = 'https://github.com/JUANWANG-BUAA/ginkgo/releases';`  <sub>:29</sub>
+    - `static UpdateGate? parse(String body) {…}` — 解析清单；结构不符合预期时视为“没有清单”，不阻塞启动。  <sub>:51</sub>
+    - `static Future<UpdateGate?> fetch({ HttpClient? client, Duration timeout = const Duration(milliseconds: 1800), }) async {…}` — 拉取清单；任何网络/解析错误都返回 null，由调用方放行。  <sub>:75</sub>
+    - `bool blocks(int buildNumber) => …`  <sub>:101</sub>
+    - `Uri get releasesUri => …`  <sub>:103</sub>
 - `class UpdateRequiredPage extends StatelessWidget` — 低于最低版本时替代工作区的更新页；不提供“跳过”，避免旧客户端继续写上游。
-  <sub>class · platform/update_gate.dart:99</sub>
-    - `const UpdateRequiredPage({ super.key, required this.gate, required this.onRetry, this.installedVersion, });`  <sub>:100</sub>
-    - `final Future<void> Function() onRetry;`  <sub>:109</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:112</sub>
+  <sub>class · platform/update_gate.dart:107</sub>
+    - `const UpdateRequiredPage({ super.key, required this.gate, required this.onRetry, this.installedVersion, });`  <sub>:108</sub>
+    - `final Future<void> Function() onRetry;`  <sub>:117</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:120</sub>

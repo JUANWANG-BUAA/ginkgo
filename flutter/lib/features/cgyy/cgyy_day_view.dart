@@ -4,6 +4,7 @@ import 'package:ginkgo_mirror/widgets/academic_widgets.dart';
 import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_modal_sheet.dart';
 
 import 'cgyy_models.dart';
 import 'cgyy_widgets.dart';
@@ -23,7 +24,6 @@ class CgyyWriteGuardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppleSection(
     header: const Text('写入保护'),
-    footer: const Text('预约记录出现不代表审批通过。核实前不会再次预约或取消。'),
     children: [
       Padding(
         padding: const EdgeInsets.all(16),
@@ -112,7 +112,6 @@ class CgyyBookingEntrySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppleSection(
-    footer: const Text('提交前重新核对空档；实验写入功能，需手动验证并确认。'),
     children: [
       AppleListTile(
         leading: const Icon(CupertinoIcons.calendar_badge_plus),
@@ -220,7 +219,6 @@ class CgyyOrderManageSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppleSection(
     header: const Text('预约管理'),
-    footer: const Text('取消前会核对订单状态及开始前 4 小时限制；不符合条件不会发送请求。'),
     children: [
       for (final order in orders)
         if (order.canCancel)
@@ -238,7 +236,7 @@ class CgyyOrderManageSection extends StatelessWidget {
 /// user dismisses the sheet.
 Future<DateTime?> cgyyPickDate(BuildContext context, DateTime initial) async {
   var draft = initial;
-  final confirmed = await showCupertinoModalPopup<bool>(
+  final confirmed = await showGinkgoModalSheet<bool>(
     context: context,
     builder: (context) => Container(
       height: 310,

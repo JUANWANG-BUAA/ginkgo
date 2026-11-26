@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -5,8 +7,10 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/application/contracts.dart'
     show RouteChoice, SessionResponse, SessionState, FailureCode;
+import 'package:ginkgo_mirror/application/session_reauth.dart';
 import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
+import 'package:ginkgo_mirror/infrastructure/offline_cache_store.dart';
 import 'package:ginkgo_mirror/features/auth/login_page.dart';
 import 'package:ginkgo_mirror/features/auth/session_recovery_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_auth_challenge.dart';
@@ -23,6 +27,7 @@ import 'package:ginkgo_mirror/infrastructure/checkin_qr_saver.dart';
 import 'package:ginkgo_mirror/infrastructure/homework_file_io.dart';
 import 'package:ginkgo_mirror/infrastructure/learning_file_actions.dart';
 import 'package:ginkgo_mirror/infrastructure/maintenance_service.dart';
+import 'package:ginkgo_mirror/platform/system_settings_service.dart';
 import 'package:ginkgo_mirror/platform/update_gate.dart';
 import 'package:ginkgo_mirror/workspace/workspace_shell.dart';
 
@@ -44,11 +49,15 @@ Future<void> main() async {
     reader: preferenceStore.read,
   );
   await preferences.restore();
+  final initialHint = preferences.explicitSignOut || preferences.readFailed
+      ? null
+      : await OfflineCacheStore.shared.readSessionHint();
   try {
     await initializeMirrorRuntime();
     runApp(
       GinkgoRoot(
         preferences: preferences,
+        initialSessionHint: initialHint,
         loadUpdateGate: UpdateGate.fetch,
         startupUpdates: const NativeMaintenanceService(),
       ),
@@ -76,6 +85,8 @@ Future<void> main() async {
 /// The workspace itself stays a plain widget so page tests can inject a fake
 /// service without touching Rust or a keychain.
 /// The platform actions the pages may use, bound once for the whole app.
+const _systemSettings = NativeSystemSettingsService();
+
 final _platformActions = PlatformActions(
   learningFileSaver: saveLearningFile,
   homeworkFilePicker: pickHomeworkFile,
@@ -83,6 +94,8 @@ final _platformActions = PlatformActions(
   checkinQrSaver: saveCheckinQrPng,
   checkinQrHelper: AndroidCheckinQrQuickHelper.shared,
   maintenance: const NativeMaintenanceService(),
+  networkStatus: _systemSettings.networkStatus,
+  openWifiSettings: _systemSettings.openWifiSettings,
 );
 
 class GinkgoRoot extends StatefulWidget {
@@ -91,6 +104,7 @@ class GinkgoRoot extends StatefulWidget {
     this.liveService = const NativeMirrorService(),
     this.demoService = const DemoMirrorService(),
     this.preferences,
+    this.initialSessionHint,
     this.loadUpdateGate,
     this.startupUpdates,
     this.challengeGateway,
@@ -98,6 +112,7 @@ class GinkgoRoot extends StatefulWidget {
   final MirrorService liveService;
   final MirrorService demoService;
   final AppPreferences? preferences;
+  final OfflineSessionHint? initialSessionHint;
   final AuthChallengeGateway? challengeGateway;
 
   /// Null preserves explicitly offline/test compositions. Production checks once.
@@ -122,14 +137,24 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   bool _restorePending = false;
   Future<void>? _pendingRevocation;
   UpdateGate? blockingGate;
-  bool gateResolved = false;
   String? installedVersion;
   StartupUpdateController? startupUpdate;
+  WorkspaceOfflineState _offlineState = WorkspaceOfflineState.online;
+  String? _offlineMessage;
+  bool _offlineReauthNeeded = false;
 
   @override
   void initState() {
     super.initState();
-    // Let the startup page paint before touching JNI/Keystore/network work.
+    final hint = widget.initialSessionHint;
+    if (hint != null &&
+        !_preferences.explicitSignOut &&
+        !_preferences.readFailed) {
+      session = hint.toPlaceholderSession();
+      stage = _Stage.signedIn;
+      _offlineState = WorkspaceOfflineState.syncing;
+    }
+    // Let the first frame paint before touching JNI/Keystore/network work.
     final updates = widget.startupUpdates;
     if (updates != null) startupUpdate = StartupUpdateController(updates);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -146,7 +171,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     super.dispose();
   }
 
-  /// 最低版本门禁失败或不可达时放行；只有明确要求且低于最低 build 才阻塞。
+  /// 最低版本门禁失败或不可达时放行；仅命中最低 build 时立即拦截，不阻塞冷启动首屏。
   Future<void> checkUpdateGate() async {
     final loader = widget.loadUpdateGate;
     if (loader == null) return;
@@ -166,7 +191,6 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       blockingGate = gate != null && build != null && gate.blocks(build)
           ? gate
           : null;
-      gateResolved = true;
     });
   }
 
@@ -180,9 +204,20 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   Future<void> restore() async {
     if (!mounted || _restorePending) return;
     _restorePending = true;
-    setState(() => stage = _Stage.restoring);
+    final inCachedWorkspace =
+        stage == _Stage.signedIn &&
+        _offlineState != WorkspaceOfflineState.online;
+    setState(() {
+      if (inCachedWorkspace) {
+        _offlineState = WorkspaceOfflineState.syncing;
+        _offlineMessage = null;
+        _offlineReauthNeeded = false;
+      } else {
+        stage = _Stage.restoring;
+      }
+    });
     try {
-      await _restoreSession();
+      await _restoreSession(inCachedWorkspace: inCachedWorkspace);
     } finally {
       _restorePending = false;
     }
@@ -198,7 +233,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     }
   }
 
-  Future<void> _restoreSession() async {
+  Future<void> _restoreSession({bool inCachedWorkspace = false}) async {
     if (_pendingRevocation != null) {
       await _awaitPendingRevocation();
       if (!mounted) return;
@@ -208,6 +243,7 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         stage = _Stage.signedOut;
         session = null;
         captchaRequired = false;
+        _offlineState = WorkspaceOfflineState.online;
         message = '未能读取本机设置，已停止自动恢复。请重新读取设置，或选择路线后手动登录。';
       });
       return;
@@ -224,18 +260,18 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       final result = await widget.liveService.setRoute(route);
       if (result.failure != null) {
         if (!mounted) return;
-        setState(() {
-          stage = _Stage.restoreFailed;
-          message = failureMessage(result.failure);
-        });
+        _handleRestoreFailure(
+          inCachedWorkspace: inCachedWorkspace,
+          reason: failureMessage(result.failure),
+        );
         return;
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        stage = _Stage.restoreFailed;
-        message = '网络路线初始化失败，请重试恢复，或手动选择路线登录';
-      });
+      _handleRestoreFailure(
+        inCachedWorkspace: inCachedWorkspace,
+        reason: '网络路线初始化失败，请重试恢复，或手动选择路线登录',
+      );
       return;
     }
     if (!mounted) return;
@@ -246,22 +282,30 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     if (_preferences.explicitSignOut) {
       setState(() {
         stage = _Stage.signedOut;
+        session = null;
         message = null;
         captchaRequired = false;
+        _offlineState = WorkspaceOfflineState.online;
       });
       return;
     }
-    setState(() {
-      stage = _Stage.restoring;
-      message = null;
-    });
+    if (!inCachedWorkspace) {
+      setState(() {
+        stage = _Stage.restoring;
+        message = null;
+      });
+    }
     try {
       final response = await widget.liveService.restoreSession();
       if (!mounted) return;
       if (response.state == SessionState.signedIn) {
+        _persistHint(response);
         setState(() {
           session = response;
           stage = _Stage.signedIn;
+          _offlineState = WorkspaceOfflineState.online;
+          _offlineMessage = null;
+          _offlineReauthNeeded = false;
         });
         return;
       }
@@ -269,10 +313,19 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           response.failure != FailureCode.sessionExpired &&
           response.failure != FailureCode.invalidCredentials &&
           response.state != SessionState.captchaRequired) {
+        _handleRestoreFailure(
+          inCachedWorkspace: inCachedWorkspace,
+          reason: failureMessage(response.failure),
+        );
+        return;
+      }
+      if (inCachedWorkspace) {
         setState(() {
-          session = null;
-          stage = _Stage.restoreFailed;
-          message = failureMessage(response.failure);
+          _offlineState = WorkspaceOfflineState.offline;
+          _offlineReauthNeeded = true;
+          _offlineMessage = response.state == SessionState.captchaRequired
+              ? '需要验证码登录，当前显示离线缓存'
+              : '登录已过期，当前显示离线缓存';
         });
         return;
       }
@@ -288,11 +341,45 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       });
     } catch (_) {
       if (!mounted) return;
+      _handleRestoreFailure(
+        inCachedWorkspace: inCachedWorkspace,
+        reason: failureMessage(null),
+      );
+    }
+  }
+
+  void _handleRestoreFailure({
+    required bool inCachedWorkspace,
+    required String reason,
+  }) {
+    if (inCachedWorkspace) {
       setState(() {
+        _offlineState = WorkspaceOfflineState.offline;
+        _offlineReauthNeeded = false;
+        _offlineMessage = reason;
+      });
+    } else {
+      setState(() {
+        session = null;
         stage = _Stage.restoreFailed;
-        message = failureMessage(null);
+        message = reason;
       });
     }
+  }
+
+  void _persistHint(SessionResponse response) {
+    if (widget.liveService is! NativeMirrorService) return;
+    final account = response.account;
+    if (account == null || account.isEmpty) return;
+    unawaited(
+      OfflineCacheStore.shared.saveSessionHint(
+        OfflineSessionHint(
+          account: account,
+          name: response.name,
+          route: response.route,
+        ),
+      ),
+    );
   }
 
   Future<void> signOut() async {
@@ -301,6 +388,9 @@ class _GinkgoRootState extends State<GinkgoRoot> {
     // runs to completion and serializes ahead of any subsequent login/restore.
     final saved = _preferences.setExplicitSignOut(true);
     ServiceHealthTracker.shared.clear();
+    if (widget.liveService is NativeMirrorService) {
+      unawaited(OfflineCacheStore.shared.clearSessionHint());
+    }
     final revoking = widget.liveService.signOut().then<void>(
       (_) {},
       onError: (Object _) {},
@@ -312,6 +402,9 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         stage = _Stage.signedOut;
         captchaRequired = false;
         message = null;
+        _offlineState = WorkspaceOfflineState.online;
+        _offlineMessage = null;
+        _offlineReauthNeeded = false;
       });
     }
     await saved;
@@ -327,6 +420,9 @@ class _GinkgoRootState extends State<GinkgoRoot> {
       session = null;
       stage = _Stage.signedOut;
       captchaRequired = false;
+      _offlineState = WorkspaceOfflineState.online;
+      _offlineMessage = null;
+      _offlineReauthNeeded = false;
       message = reason ?? '学校会话已过期，已自动填入记住的账号密码，请重新登录。';
     });
   }
@@ -334,11 +430,15 @@ class _GinkgoRootState extends State<GinkgoRoot> {
   void signedIn(SessionResponse response) {
     ServiceHealthTracker.shared.clear();
     _preferences.setExplicitSignOut(false);
+    _persistHint(response);
     setState(() {
       session = response;
       stage = _Stage.signedIn;
       captchaRequired = false;
       message = null;
+      _offlineState = WorkspaceOfflineState.online;
+      _offlineMessage = null;
+      _offlineReauthNeeded = false;
     });
   }
 
@@ -354,12 +454,6 @@ class _GinkgoRootState extends State<GinkgoRoot> {
           onRetry: checkUpdateGate,
         ),
       );
-    }
-    // Until the manifest check settles (bounded by its own timeout), only the
-    // startup surface is available: a stale build must not reach the workspace
-    // — or school writes — before the gate has decided.
-    if (widget.loadUpdateGate != null && !gateResolved) {
-      return ginkgoApp(preferences: _preferences, home: const StartupPage());
     }
     return switch (stage) {
       _Stage.restoring => ginkgoApp(
@@ -411,12 +505,20 @@ class _GinkgoRootState extends State<GinkgoRoot> {
         preferences: _preferences,
         platformActions: _platformActions,
         service: widget.liveService is NativeMirrorService
-            ? NativeMirrorService(expectedAccount: session?.account)
+            ? NativeMirrorService(
+                expectedAccount: session?.account,
+                offlineFastPath: _offlineState != WorkspaceOfflineState.online,
+              )
             : widget.liveService,
         startupUpdate: startupUpdate,
         accountName: session?.name ?? session?.account,
         accountId: session?.account,
         route: session?.route,
+        offlineState: _offlineState,
+        offlineMessage: _offlineMessage,
+        onRetryRestore: _offlineReauthNeeded
+            ? () => reauthenticate(reason: _offlineMessage)
+            : restore,
         onSignOut: signOut,
         onReauthenticate: reauthenticate,
       ),

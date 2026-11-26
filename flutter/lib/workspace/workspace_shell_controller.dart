@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart' show RouteChoice;
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
 import 'package:ginkgo_mirror/workspace/workspace_catalog.dart';
 
@@ -39,9 +42,24 @@ class WorkspaceShellState extends State<WorkspaceShell> {
   String selectedId = mobileDestinations.first.id;
   final navigators = <String, GlobalKey<NavigatorState>>{};
   final Set<String> visited = {};
+  bool _restoredTab = false;
 
   WorkspaceShellState() {
     visited.add(selectedId);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_restoredTab) return;
+    _restoredTab = true;
+    final prefs = AppPreferencesScope.of(context);
+    final saved = prefs.hasBackingStore ? prefs.lastMobileTab : null;
+    if (saved != null &&
+        mobileDestinations.any((destination) => destination.id == saved)) {
+      selectedId = saved;
+      visited.add(saved);
+    }
   }
 
   int get mobileIndex {
@@ -54,10 +72,13 @@ class WorkspaceShellState extends State<WorkspaceShell> {
   GlobalKey<NavigatorState> navigatorFor(String id) =>
       navigators.putIfAbsent(id, () => GlobalKey<NavigatorState>());
 
-  void onMobileTab(int index) {
+  void onMobileTab(int index, {bool persist = false}) {
     final id = mobileDestinations[index].id;
     selectedId = id;
     visited.add(id);
+    if (persist && mounted) {
+      unawaited(AppPreferencesScope.of(context).setLastMobileTab(id));
+    }
   }
 
   void select(String id) {

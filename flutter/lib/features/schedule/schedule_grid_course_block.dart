@@ -11,9 +11,11 @@ class ScheduleGridCourseBlock extends StatelessWidget {
     super.key,
     required this.course,
     required this.onTap,
+    this.overlapCount = 1,
   });
   final ScheduleCourse course;
   final VoidCallback onTap;
+  final int overlapCount;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,8 @@ class ScheduleGridCourseBlock extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '${course.name}，${weekdayNames[course.day - 1]}，${courseDetail(course)}',
+          '${course.name}，${weekdayNames[course.day - 1]}，${courseDetail(course)}'
+          '${overlapCount > 1 ? '，另有 ${overlapCount - 1} 门重叠课程' : ''}',
       child: CupertinoButton(
         key: Key('schedule-grid-course-${course.id}'),
         padding: EdgeInsets.zero,
@@ -33,61 +36,87 @@ class ScheduleGridCourseBlock extends StatelessWidget {
         child: SizedBox.expand(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(GinkgoRadii.button),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: dark ? 0.26 : 0.14),
-                borderRadius: BorderRadius.circular(GinkgoRadii.button),
-                border: Border.all(
-                  color: color.withValues(alpha: dark ? 0.42 : 0.25),
-                  width: GinkgoSpacing.hairline,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(height: 3, color: color),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        GinkgoSpacing.xs,
-                        GinkgoSpacing.xs,
-                        GinkgoSpacing.xs,
-                        GinkgoSpacing.xs,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              course.name,
-                              maxLines: span >= 3 ? 5 : (span == 2 ? 3 : 2),
-                              overflow: TextOverflow.ellipsis,
-                              style: GinkgoTypography.caption.copyWith(
-                                height: 1.18,
-                                fontWeight: FontWeight.w700,
-                                color: CupertinoColors.label.resolveFrom(
-                                  context,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: dark ? 0.26 : 0.14),
+                    borderRadius: BorderRadius.circular(GinkgoRadii.button),
+                    border: Border.all(
+                      color: color.withValues(alpha: dark ? 0.42 : 0.25),
+                      width: GinkgoSpacing.hairline,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(height: GinkgoSpacing.opticalIconInset + 1, color: color),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(GinkgoSpacing.xs),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  course.name,
+                                  maxLines: span >= 3 ? 5 : (span == 2 ? 3 : 2),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GinkgoTypography.caption.copyWith(
+                                    height: 1.18,
+                                    fontWeight: FontWeight.w700,
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              if (place.isNotEmpty)
+                                Text(
+                                  '@$place',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GinkgoTypography.caption2.copyWith(
+                                    height: 1.12,
+                                    fontWeight: FontWeight.w600,
+                                    color: color,
+                                  ),
+                                ),
+                            ],
                           ),
-                          if (place.isNotEmpty)
-                            Text(
-                              '@$place',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: GinkgoTypography.caption2.copyWith(
-                                height: 1.12,
-                                fontWeight: FontWeight.w600,
-                                color: color,
-                              ),
-                            ),
-                        ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (overlapCount > 1)
+                  Positioned(
+                    right: GinkgoSpacing.opticalIconInset,
+                    top: GinkgoSpacing.xs,
+                    child: DecoratedBox(
+                      key: Key('schedule-grid-overlap-${course.id}'),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(GinkgoRadii.pill),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: GinkgoSpacing.xs,
+                          vertical: GinkgoSpacing.hairline,
+                        ),
+                        child: Text(
+                          '+${overlapCount - 1}',
+                          style: GinkgoTypography.caption2.copyWith(
+                            color: CupertinoColors.white,
+                            fontWeight: FontWeight.w700,
+                            height: 1.0,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
           ),
         ),

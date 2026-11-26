@@ -45,7 +45,11 @@ class GinkgoIconTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: alpha),
-        borderRadius: BorderRadius.circular(GinkgoRadii.panel),
+        borderRadius: BorderRadius.circular(GinkgoIconTokens.tileRadius(size)),
+        border: Border.all(
+          color: accent.withValues(alpha: dark ? 0.22 : 0.12),
+          width: GinkgoSurfaceTokens.borderWidth,
+        ),
       ),
       child: Center(
         child: Icon(
@@ -92,8 +96,12 @@ class GinkgoBadge extends StatelessWidget {
         largeText: MediaQuery.textScalerOf(context).scale(1) > 1.3,
       ),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: dark ? 0.22 : 0.12),
-        borderRadius: BorderRadius.circular(GinkgoRadii.compact),
+        color: accent.withValues(alpha: GinkgoBadgeTokens.fillAlpha(dark)),
+        borderRadius: BorderRadius.circular(GinkgoBadgeTokens.radius),
+        border: Border.all(
+          color: accent.withValues(alpha: GinkgoBadgeTokens.borderAlpha(dark)),
+          width: GinkgoSurfaceTokens.borderWidth,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

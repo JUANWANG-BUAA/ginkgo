@@ -345,8 +345,12 @@ pub(super) async fn reserve_library_seat(
                 },
             );
             match with_module_submit(ModuleAccess::Library, || booking).await {
-                Some(outcome) => mutation_response(outcome),
-                None => MutationResponse {
+                SubmitOutcome::Completed(outcome) => mutation_response(outcome),
+                SubmitOutcome::GateTimeout => MutationResponse {
+                    state: "notSubmitted".into(),
+                    message: "当前会话忙，未发送预约请求，请稍后重试".into(),
+                },
+                SubmitOutcome::InFlightTimeout => MutationResponse {
                     state: "uncertain".into(),
                     message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
                 },
@@ -373,8 +377,12 @@ pub(super) async fn perform_library_action(booking_id: String, action: String) -
             })
             .await
             {
-                Some(outcome) => mutation_response(outcome),
-                None => MutationResponse {
+                SubmitOutcome::Completed(outcome) => mutation_response(outcome),
+                SubmitOutcome::GateTimeout => MutationResponse {
+                    state: "notSubmitted".into(),
+                    message: "当前会话忙，未发送操作请求，请稍后重试".into(),
+                },
+                SubmitOutcome::InFlightTimeout => MutationResponse {
                     state: "uncertain".into(),
                     message: "提交超时，结果待核实；请刷新确认，勿重复提交".into(),
                 },

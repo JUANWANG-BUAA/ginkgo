@@ -241,7 +241,7 @@ void main() {
     ];
 
     testWidgets(
-      'TodayHomeworkSection excludes overdue from pending list and shows overdue in summary',
+      'TodayHomeworkSection shows only active pending work and never clutters Today with overdue summary',
       (tester) async {
         final section = RefreshSection<HomeworkResponse>()
           ..value = HomeworkResponse(
@@ -263,17 +263,15 @@ void main() {
         );
 
         // 4 pending non-overdue items: active-soon, active-date, undated, invalid-due
-        expect(find.text('4 项待处理'), findsOneWidget);
-        // Overdue count is surfaced even while other pending work is listed.
-        // Unknown status is surfaced in the same compact review row.
+        expect(find.text('4 项'), findsOneWidget);
+        // Unknown status stays surfaced; past-deadline archive stays off Today.
         expect(find.textContaining('1 项状态待确认'), findsOneWidget);
-        expect(find.textContaining('已截止 2 项'), findsOneWidget);
+        expect(find.text('有已截止作业'), findsNothing);
+        expect(find.textContaining('已截止 2 项'), findsNothing);
 
         // Active items must be displayed
         expect(find.text('活跃作业1'), findsOneWidget);
         expect(find.text('活跃作业2'), findsOneWidget);
-        // Only take(3) are shown in items list:
-        // active-soon (18:00), active-date (end of day), undated/invalid
         expect(
           find.byKey(const Key('today-homework-item-active-soon')),
           findsOneWidget,
@@ -302,7 +300,7 @@ void main() {
     );
 
     testWidgets(
-      'HomeworkPage separates statuses and shows counts on quick filters',
+      'HomeworkPage defaults to active pending work and cleanly separates submitted and overdue',
       (tester) async {
         tester.view.physicalSize = const Size(430, 1600);
         tester.view.devicePixelRatio = 1;
@@ -328,49 +326,41 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Counts live on the filters that use them, rather than in a second
-        // stacked summary card above those same controls.
-        expect(find.text('待完成 6'), findsOneWidget);
+        expect(find.text('待提交 4'), findsOneWidget);
         expect(find.text('已提交 1'), findsOneWidget);
-        expect(find.text('已截止 3'), findsOneWidget);
+        expect(find.text('已截止 2'), findsOneWidget);
         expect(find.text('待确认 1'), findsOneWidget);
-        expect(find.textContaining('学校状态与个人待办独立'), findsOneWidget);
-        expect(find.textContaining('截止按北京时间'), findsOneWidget);
 
-        // Filter 0 (全部): all 8 items are visible
-        expect(find.text('8 项作业'), findsOneWidget);
-
-        // Switch to filter 1 (待完成)
-        await tester.tap(find.byKey(const Key('homework-filter-pending')));
-        await tester.pumpAndSettle();
-        expect(find.text('6 项作业'), findsOneWidget);
+        // Default segment 0 (待提交): only active non-overdue pending items
+        expect(find.text('4 项作业'), findsOneWidget);
         expect(find.text('活跃作业1'), findsOneWidget);
         expect(find.text('活跃作业2'), findsOneWidget);
         expect(find.text('无截止作业'), findsOneWidget);
         expect(find.text('非法日期作业'), findsOneWidget);
-        // Overdue pending work remains pending; deadline is independent.
-        expect(find.text('已截止作业1'), findsOneWidget);
-        expect(find.text('已截止作业2'), findsOneWidget);
+        expect(find.text('已截止作业1'), findsNothing);
         expect(find.text('已提交作业'), findsNothing);
 
-        // Switch to filter 3 (已截止) via quickFilter pill
-        await tester.tap(find.text('已截止 3'));
+        // Switch to 已截止 segment
+        await tester.tap(find.byKey(const Key('homework-filter-overdue')));
         await tester.pumpAndSettle();
         expect(find.text('2 项作业'), findsOneWidget);
         expect(find.text('已截止作业1'), findsOneWidget);
         expect(find.text('已截止作业2'), findsOneWidget);
         expect(find.text('活跃作业1'), findsNothing);
 
-        // Clear both dimensions before selecting submitted work.
-        await tester.tap(find.text('清除筛选'));
-        await tester.pumpAndSettle();
+        // Switch to 已提交 segment
         await tester.tap(find.byKey(const Key('homework-filter-submitted')));
         await tester.pumpAndSettle();
         expect(find.text('1 项作业'), findsOneWidget);
         expect(find.text('已提交作业'), findsOneWidget);
         expect(find.textContaining('已超期'), findsNothing);
 
-        // Switch to filter 4 (待确认)
+        // Switch to 全部 segment
+        await tester.tap(find.byKey(const Key('homework-filter-all')));
+        await tester.pumpAndSettle();
+        expect(find.text('8 项作业'), findsOneWidget);
+
+        // Switch to 待确认 chip
         await tester.tap(find.text('待确认 1'));
         await tester.pumpAndSettle();
         expect(find.text('1 项作业'), findsOneWidget);
@@ -400,14 +390,7 @@ void main() {
 
       expect(find.textContaining('作业结果不完整'), findsOneWidget);
       expect(find.textContaining('课程身份未能全部核对'), findsOneWidget);
-      final overdueFilter = find.text('已截止 0');
-      expect(overdueFilter, findsOneWidget);
-      expect(
-        tester.widget<Text>(overdueFilter).style!.color,
-        CupertinoColors.secondaryLabel.resolveFrom(
-          tester.element(overdueFilter),
-        ),
-      );
+      expect(find.byKey(const Key('homework-filter-overdue')), findsOneWidget);
     });
   });
 }

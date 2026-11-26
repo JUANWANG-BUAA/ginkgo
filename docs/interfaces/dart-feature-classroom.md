@@ -44,24 +44,24 @@
 ## features/classroom/classroom_sections.dart
 
 - `class ClassroomScopeSection extends StatelessWidget` — Campus, day and the query entry point. The school date is read once by
-  <sub>class · features/classroom/classroom_sections.dart:13</sub>
-    - `const ClassroomScopeSection({ super.key, required this.campus, required this.date, required this.today, required this.tomorrow, required this.busy, required this.initializing, required this.isDemo, required this.onCampusChanged, required this.onDateChanged, required this.onShortcutDate, required this.onQuery, });`  <sub>:14</sub>
-    - `Future<void> pickDate(BuildContext context) async {…}`  <sub>:36</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:46</sub>
+  <sub>class · features/classroom/classroom_sections.dart:14</sub>
+    - `const ClassroomScopeSection({ super.key, required this.campus, required this.date, required this.today, required this.tomorrow, required this.busy, required this.initializing, required this.isDemo, required this.onCampusChanged, required this.onDateChanged, required this.onShortcutDate, required this.onQuery, });`  <sub>:15</sub>
+    - `Future<void> pickDate(BuildContext context) async {…}`  <sub>:37</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:47</sub>
 - `class ClassroomFilterSection extends StatelessWidget` — Collapsible filter and sort panel. The page owns the applied selection and
-  <sub>class · features/classroom/classroom_sections.dart:126</sub>
-    - `const ClassroomFilterSection({ super.key, required this.filters, required this.expanded, required this.hasFilters, required this.queried, required this.roomCount, required this.onToggle, required this.onChanged, });`  <sub>:127</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:145</sub>
+  <sub>class · features/classroom/classroom_sections.dart:125</sub>
+    - `const ClassroomFilterSection({ super.key, required this.filters, required this.expanded, required this.hasFilters, required this.queried, required this.roomCount, required this.onToggle, required this.onChanged, });`  <sub>:126</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:144</sub>
 - `class ClassroomResultSummarySection extends StatelessWidget` — Provenance of the shown results: when they were read, how many rooms they
-  <sub>class · features/classroom/classroom_sections.dart:210</sub>
-    - `const ClassroomResultSummarySection({ super.key, required this.result, required this.isDemo, required this.hasFilters, required this.onClearFilters, });`  <sub>:211</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:223</sub>
+  <sub>class · features/classroom/classroom_sections.dart:209</sub>
+    - `const ClassroomResultSummarySection({ super.key, required this.result, required this.isDemo, required this.hasFilters, required this.onClearFilters, });`  <sub>:210</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:222</sub>
 - `class ClassroomFooterNote extends StatelessWidget` — Closing note of the page: the data source boundary and the shared rule
-  <sub>class · features/classroom/classroom_sections.dart:268</sub>
-    - `const ClassroomFooterNote({ super.key, required this.isDemo, required this.onOpenRules, });`  <sub>:269</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:278</sub>
+  <sub>class · features/classroom/classroom_sections.dart:267</sub>
+    - `const ClassroomFooterNote({ super.key, required this.isDemo, required this.onOpenRules, });`  <sub>:268</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:277</sub>
 - `Future<DateTime?> showClassroomDatePicker( BuildContext context, DateTime initial, ) async {…}` — Picks one day inside the supported range. The picked day is reported to
-  <sub>function · features/classroom/classroom_sections.dart:302</sub>
+  <sub>function · features/classroom/classroom_sections.dart:301</sub>
 
 ## features/classroom/classroom_status.dart
 
@@ -98,10 +98,10 @@
     - `Widget build(BuildContext context) => …`  <sub>:213</sub>
 - `class ClassroomShortcutButton extends StatelessWidget` — Shortcut to today or tomorrow. Disabled until the school date is known.
   <sub>class · features/classroom/classroom_widgets.dart:286</sub>
-    - `const ClassroomShortcutButton({ super.key, required this.title, required this.value, required this.onSelected, this.enabled = true, });`  <sub>:287</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:300</sub>
+    - `const ClassroomShortcutButton({ super.key, required this.title, required this.value, required this.onSelected, this.enabled = true, this.selected = false, });`  <sub>:287</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:302</sub>
 - `class ClassroomFilterPicker<T> extends StatelessWidget` — One filter row backed by a picker sheet. The page applies the value and
-  <sub>class · features/classroom/classroom_widgets.dart:312</sub>
-    - `const ClassroomFilterPicker({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, });`  <sub>:313</sub>
-    - `final String Function(T) label;`  <sub>:324</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:328</sub>
+  <sub>class · features/classroom/classroom_widgets.dart:317</sub>
+    - `const ClassroomFilterPicker({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, });`  <sub>:318</sub>
+    - `final String Function(T) label;`  <sub>:329</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:333</sub>

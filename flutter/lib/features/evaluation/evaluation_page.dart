@@ -187,7 +187,7 @@ class _EvaluationPageState extends State<EvaluationPage> {
               '- ${(total * 0.25).ceil()}门',
             ]
           : const ['- 75%', '- 50%', '- 25%'],
-      footer: hasCourses ? '$done / $total 已评' : '纯只读核对',
+      footer: hasCourses ? '$done / $total 已评' : '评教',
       semanticLabel: '本学期课程评教完成比例',
     );
 
@@ -198,10 +198,8 @@ class _EvaluationPageState extends State<EvaluationPage> {
         statusLabel: statusLabel,
         statusTone: statusTone,
         headline: _busy ? '正在同步评教进度…' : '尚未加载评教任务',
-        subheadline: '只读核对完成状态 · 实际打分请前往官网',
-        meters: const [
-          TelemetryMeterData(label: '提交策略', trailing: '仅只读 · 不代填'),
-        ],
+        subheadline: '',
+        meters: const [],
       );
     }
 
@@ -276,14 +274,14 @@ class _EvaluationPageState extends State<EvaluationPage> {
           children: [
             _buildInstrument(data, failure),
             AppleSection(
-              header: const Text('评教任务说明'),
-              footer: Text(
-                data == null
-                    ? '仅只读检查完成状态，不代填或提交评教。'
-                    : data.stale
-                    ? '上次读取 ${schoolClockLabel(data.fetchedAt)}；当前展示旧快照。'
-                    : '最近读取 ${schoolClockLabel(data.fetchedAt)}。',
-              ),
+              header: const Text('评教任务'),
+              footer: data == null
+                  ? null
+                  : Text(
+                      data.stale
+                          ? '上次读取 ${schoolClockLabel(data.fetchedAt)}；当前展示旧快照。'
+                          : '更新于 ${schoolClockLabel(data.fetchedAt)}',
+                    ),
               children: [
                 if (data?.taskName != null || data?.term != null)
                   AppleListTile(
@@ -310,7 +308,6 @@ class _EvaluationPageState extends State<EvaluationPage> {
                     ),
                     leadingSize: 34,
                     title: const Text('前往学校评教系统'),
-                    subtitle: const Text('在系统浏览器打开官网完成实际评教 ↗'),
                     trailing: const CupertinoListTileChevron(),
                     onTap: _openOfficialEvaluation,
                   ),

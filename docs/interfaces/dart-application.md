@@ -52,11 +52,13 @@
 - [application/reminder_platform.dart](#applicationreminderplatformdart) (2)
 - [application/reminder_store.dart](#applicationreminderstoredart) (1)
 - [application/saved_credential.dart](#applicationsavedcredentialdart) (2)
+- [application/schedule_ics.dart](#applicationscheduleicsdart) (3)
 - [application/school_rules.dart](#applicationschoolrulesdart) (1)
 - [application/school_timestamp.dart](#applicationschooltimestampdart) (1)
 - [application/service_capabilities.dart](#applicationservicecapabilitiesdart) (1)
 - [application/service_health.dart](#applicationservicehealthdart) (4)
-- [application/session_reauth.dart](#applicationsessionreauthdart) (2)
+- [application/session_memory_cache.dart](#applicationsessionmemorycachedart) (1)
+- [application/session_reauth.dart](#applicationsessionreauthdart) (3)
 - [application/shuttle.dart](#applicationshuttledart) (7)
 - [application/startup_update_controller.dart](#applicationstartupupdatecontrollerdart) (1)
 - [application/student_service_links.dart](#applicationstudentservicelinksdart) (1)
@@ -348,10 +350,10 @@
 
 ## application/failure_message.dart
 
-- `String failureMessage(FailureCode? code) {…}` — Maps typed Rust domain failure codes to human-readable Chinese error messages.
+- `String failureMessage(FailureCode? code, {String? detail}) {…}` — Maps typed Rust domain failure codes to human-readable Chinese error messages.
   <sub>function · application/failure_message.dart:5</sub>
 - `String failureAdvice({required bool hasStaleValue, FailureCode? failure}) {…}` — The advice line shown under a failed read.
-  <sub>function · application/failure_message.dart:34</sub>
+  <sub>function · application/failure_message.dart:38</sub>
 
 ## application/file_actions.dart
 
@@ -770,7 +772,9 @@
 
 - `class PlatformActions` — The platform actions the presentation layer needs.
   <sub>class · application/platform_actions.dart:12</sub>
-    - `const PlatformActions({ this.learningFileSaver, this.homeworkFilePicker, this.homeworkFileSave, this.checkinQrSaver, this.checkinQrHelper, this.maintenance, });`  <sub>:13</sub>
+    - `const PlatformActions({ this.learningFileSaver, this.homeworkFilePicker, this.homeworkFileSave, this.checkinQrSaver, this.checkinQrHelper, this.maintenance, this.networkStatus, this.openWifiSettings, });`  <sub>:13</sub>
+    - `final Future<String> Function()? networkStatus;` — Checks Android network capability (e.g. `captivePortal`, `offline`, `validated`).  <sub>:43</sub>
+    - `final Future<bool> Function()? openWifiSettings;` — Opens system Wi-Fi settings so the user can complete campus portal login.  <sub>:46</sub>
 
 ## application/query_snapshots.dart
 
@@ -860,6 +864,15 @@
   <sub>class · application/saved_credential.dart:12</sub>
     - `Future<SavedCredential?> savedCredential();`  <sub>:13</sub>
 
+## application/schedule_ics.dart
+
+- `Uint8List buildScheduleIcsBytes(ScheduleResponse data) => …` — Exports the currently loaded week schedule as a standard RFC 5545 `.ics`
+  <sub>function · application/schedule_ics.dart:8</sub>
+- `String scheduleIcsFileName(ScheduleResponse data) {…}`
+  <sub>function · application/schedule_ics.dart:11</sub>
+- `String buildScheduleIcs(ScheduleResponse data) {…}`
+  <sub>function · application/schedule_ics.dart:17</sub>
+
 ## application/school_rules.dart
 
 - `abstract interface class SchoolRules` — The school rules the presentation layer needs. The domain owns them; a page
@@ -906,15 +919,36 @@
     - `DateTime? get lastUpdatedAt {…}`  <sub>:116</sub>
     - `void clear() {…}`  <sub>:127</sub>
 
+## application/session_memory_cache.dart
+
+- `final class SessionMemoryCache` — Process-local, memory-only session cache for secondary account views
+  <sub>class · application/session_memory_cache.dart:24</sub>
+    - `static final shared = SessionMemoryCache._();`  <sub>:27</sub>
+    - `static const Duration ttl = Duration(minutes: 5);`  <sub>:28</sub>
+    - `CampusCardBalanceResponse? readCampusCard(Object gateway) => …`  <sub>:35</sub>
+    - `void writeCampusCard(Object gateway, CampusCardBalanceResponse value) {…}`  <sub>:38</sub>
+    - `NetworkAccountReport? readNetworkAccount(Object gateway) => …`  <sub>:42</sub>
+    - `void writeNetworkAccount(Object gateway, NetworkAccountReport value) {…}`  <sub>:45</sub>
+    - `FinanceIncomeReport? readFinance(Object gateway) => …`  <sub>:49</sub>
+    - `void writeFinance(Object gateway, FinanceIncomeReport value) {…}`  <sub>:51</sub>
+    - `LibraryLoanPage? readLibraryLoans(Object gateway, int page) {…}`  <sub>:55</sub>
+    - `void writeLibraryLoans(Object gateway, int page, LibraryLoanPage value) {…}`  <sub>:61</sub>
+    - `void clearLibraryLoans(Object gateway) {…}`  <sub>:66</sub>
+    - `void clearAll() {…}`  <sub>:70</sub>
+
 ## application/session_reauth.dart
 
 - `typedef SessionReauthCallback = Future<void> Function({String? reason});`
   <sub>typedef · application/session_reauth.dart:3</sub>
+- `enum WorkspaceOfflineState { online, syncing, offline }` — Non-blocking status of background session restoration when the workspace
+  <sub>enum · application/session_reauth.dart:7</sub>
 - `class SessionReauthScope extends InheritedWidget` — Provides a non-destructive return to the login screen when an upstream
-  <sub>class · application/session_reauth.dart:8</sub>
-    - `const SessionReauthScope({ super.key, required this.onReauthenticate, required super.child, });`  <sub>:9</sub>
-    - `static SessionReauthCallback? of(BuildContext context) => …`  <sub>:17</sub>
-    - `bool updateShouldNotify(SessionReauthScope oldWidget) => …`  <sub>:22</sub>
+  <sub>class · application/session_reauth.dart:12</sub>
+    - `const SessionReauthScope({ super.key, required this.onReauthenticate, this.offlineState = WorkspaceOfflineState.online, this.offlineMessage, this.onRetryRestore, required super.child, });`  <sub>:13</sub>
+    - `final Future<void> Function()? onRetryRestore;`  <sub>:25</sub>
+    - `static SessionReauthCallback? of(BuildContext context) => …`  <sub>:27</sub>
+    - `static SessionReauthScope? scopeOf(BuildContext context) => …`  <sub>:31</sub>
+    - `bool updateShouldNotify(SessionReauthScope oldWidget) => …`  <sub>:35</sub>
 
 ## application/shuttle.dart
 

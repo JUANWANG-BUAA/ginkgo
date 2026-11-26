@@ -11,6 +11,7 @@ import 'package:ginkgo_mirror/app/ginkgo_app.dart';
 import 'package:ginkgo_mirror/infrastructure/reminder_store.dart';
 import 'package:ginkgo_mirror/infrastructure/course_visibility_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/native_reminder_platform.dart';
+import 'package:ginkgo_mirror/infrastructure/native_navigation_links.dart';
 import 'package:ginkgo_mirror/infrastructure/serial_reminder_platform.dart';
 import 'package:ginkgo_mirror/infrastructure/task_storage.dart';
 
@@ -42,6 +43,9 @@ class GinkgoApp extends StatelessWidget {
     this.accountName,
     this.accountId,
     this.route,
+    this.offlineState = WorkspaceOfflineState.online,
+    this.offlineMessage,
+    this.onRetryRestore,
     this.onSignOut,
     this.onReauthenticate,
   });
@@ -56,6 +60,9 @@ class GinkgoApp extends StatelessWidget {
   final String? accountName;
   final String? accountId;
   final RouteChoice? route;
+  final WorkspaceOfflineState offlineState;
+  final String? offlineMessage;
+  final Future<void> Function()? onRetryRestore;
   final Future<void> Function()? onSignOut;
   final SessionReauthCallback? onReauthenticate;
   @override
@@ -65,6 +72,9 @@ class GinkgoApp extends StatelessWidget {
     startupUpdate: startupUpdate,
     home: SessionReauthScope(
       onReauthenticate: onReauthenticate,
+      offlineState: offlineState,
+      offlineMessage: offlineMessage,
+      onRetryRestore: onRetryRestore,
       child: CourseVisibilityScope(
       key: ValueKey(service.isDemo ? 'demo' : accountId ?? 'account'),
       account: service.isDemo ? '__demo__' : accountId ?? '__account__',
@@ -91,6 +101,9 @@ class GinkgoApp extends StatelessWidget {
                 accountId: accountId,
                 route: route,
                 onSignOut: onSignOut,
+                externalDestinations: NativeNavigationLinks.shared.destinations,
+                takeInitialDestination:
+                    NativeNavigationLinks.shared.takeInitialDestination,
               ),
               desktopBuilder: (shell) => DesktopWorkspaceShell(
                 shell: shell,

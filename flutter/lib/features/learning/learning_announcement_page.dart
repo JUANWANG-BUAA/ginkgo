@@ -120,7 +120,6 @@ class LearningAnnouncementPageState extends State<LearningAnnouncementPage> {
             if (value.attachments.isNotEmpty)
               AppleSection(
                 header: const Text('附件'),
-                footer: const Text('仅在点击时下载；读取公告不会标记已读。'),
                 children: [
                   for (final file in value.attachments)
                     Column(

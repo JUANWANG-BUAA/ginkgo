@@ -60,15 +60,15 @@
 
 ## features/homework/homework_list_slivers.dart
 
-- `List<Widget> buildHomeworkListSlivers({ required BuildContext context, required HomeworkResponse data, required List<HomeworkItem> visible, required int overdue, required int overduePending, required int unknown, required int filter, required int deadlineFilter, required bool includeTeaching, required bool allPersonalSubmitted, required String search, required DateTime clock, required AcademicGateway service, required PlatformActions fileActions, required ValueChanged<int> onToggleFilter, required ValueChanged<int> onToggleDeadline, required VoidCallback onClearFilters, }) {…}` — Builds the quick-filter bar, count header, grouped homework list (or empty
-  <sub>function · features/homework/homework_list_slivers.dart:32</sub>
+- `List<Widget> buildHomeworkListSlivers({ required BuildContext context, required HomeworkResponse data, required List<HomeworkItem> visible, required int unknown, required int filter, required bool includeTeaching, required bool allPersonalSubmitted, required String search, required DateTime clock, required AcademicGateway service, required PlatformActions fileActions, required ValueChanged<int> onToggleFilter, required VoidCallback onShowAll, required VoidCallback onClearFilters, }) {…}` — Builds the optional unknown-status filter, count header, unified progressive
+  <sub>function · features/homework/homework_list_slivers.dart:26</sub>
 
 ## features/homework/homework_page.dart
 
 - `class HomeworkPage extends StatefulWidget`
-  <sub>class · features/homework/homework_page.dart:22</sub>
-    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:23</sub>
-    - `State<HomeworkPage> createState() => …`  <sub>:37</sub>
+  <sub>class · features/homework/homework_page.dart:20</sub>
+    - `const HomeworkPage({ super.key, required this.service, required this.fileActions, this.initialFilter = 0, this.now, });`  <sub>:21</sub>
+    - `State<HomeworkPage> createState() => …`  <sub>:35</sub>
 
 ## features/homework/homework_projection.dart
 
@@ -80,33 +80,29 @@
   <sub>function · features/homework/homework_projection.dart:37</sub>
 - `String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {…}` — Produces a strict single-line, unambiguous deadline string (under 22 chars).
   <sub>function · features/homework/homework_projection.dart:103</sub>
+- `String homeworkCountdownBadge(String? dueAt, [DateTime? beijingNow]) {…}` — Crisp short countdown label for a status pill (e.g. "剩 35 天", "仅剩 6 小时",
+  <sub>function · features/homework/homework_projection.dart:175</sub>
+- `String? homeworkDueSummary(String? dueAt, [DateTime? beijingNow]) {…}` — Concise clock/date deadline string paired next to [homeworkCountdownBadge].
+  <sub>function · features/homework/homework_projection.dart:212</sub>
 - `CupertinoDynamicColor homeworkDeadlineTint( String? dueAt, [ DateTime? beijingNow, ]) {…}` — Color for the deadline status:
-  <sub>function · features/homework/homework_projection.dart:178</sub>
+  <sub>function · features/homework/homework_projection.dart:244</sub>
 
 ## features/homework/homework_visuals.dart
 
-- `class HomeworkTelemetryCard extends StatelessWidget` — Compact Things-3 / Linear–inspired urgency & completion ribbon for HomeworkPage.
-  <sub>class · features/homework/homework_visuals.dart:9</sub>
-    - `const HomeworkTelemetryCard({ super.key, required this.pending, required this.submitted, required this.overdue, required this.unknown, required this.overduePending, required this.termCode, required this.demo, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
+- `class HomeworkTelemetryCard extends StatelessWidget` — Compact interactive progress card for HomeworkPage built on [GinkgoCard].
+  <sub>class · features/homework/homework_visuals.dart:10</sub>
+    - `const HomeworkTelemetryCard({ super.key, required this.pending, required this.submitted, required this.overdue, required this.unknown, required this.overduePending, required this.termCode, required this.demo, this.selectedFilter = 0, this.onSelectFilter, });`  <sub>:11</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:38</sub>
 
 ## features/homework/homework_widgets.dart
 
 - `String homeworkFilterLabel(int value) => …` — 作业状态筛选文案。取值与 [HomeworkPage] 的筛选器一一对应。
-  <sub>function · features/homework/homework_widgets.dart:11</sub>
-- `class HomeworkQuickFilter extends StatelessWidget` — 状态快捷筛选按钮；再次点击同一项即回到「全部」。
-  <sub>class · features/homework/homework_widgets.dart:20</sub>
-    - `const HomeworkQuickFilter({ super.key, required this.value, required this.label, required this.tint, required this.selected, required this.onPressed, });`  <sub>:21</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:37</sub>
-- `class HomeworkStatusBadge extends StatelessWidget` — 作业状态徽标。已提交用成功色，已截止用危险色，待确认保留不确定色。
-  <sub>class · features/homework/homework_widgets.dart:50</sub>
-    - `const HomeworkStatusBadge({ super.key, required this.status, required this.dueAt, required this.clock, });`  <sub>:51</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:63</sub>
-- `class HomeworkDeadlineText extends StatelessWidget` — 单条作业的截止时间与倒计时描述。
-  <sub>class · features/homework/homework_widgets.dart:100</sub>
-    - `const HomeworkDeadlineText({ super.key, required this.item, required this.clock, });`  <sub>:101</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:111</sub>
-- `class HomeworkItemTile extends StatelessWidget` — 作业列表项：标题、截止信息与课程；教师信息位于详情页。
-  <sub>class · features/homework/homework_widgets.dart:153</sub>
-    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:154</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:166</sub>
+  <sub>function · features/homework/homework_widgets.dart:12</sub>
+- `class HomeworkStatusBadge extends StatelessWidget` — 作业状态徽标。统一复用 [GinkgoBadge]（图标 + 颜色 + 文案）。
+  <sub>class · features/homework/homework_widgets.dart:21</sub>
+    - `const HomeworkStatusBadge({ super.key, required this.status, required this.dueAt, required this.clock, });`  <sub>:22</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:34</sub>
+- `class HomeworkItemTile extends StatelessWidget` — 作业列表项：采用统一渐进式卡片层级（状态/倒计时徽标 + 标题 + 课程与截止时间）。
+  <sub>class · features/homework/homework_widgets.dart:69</sub>
+    - `const HomeworkItemTile({ super.key, required this.item, required this.clock, required this.onTap, });`  <sub>:70</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:82</sub>

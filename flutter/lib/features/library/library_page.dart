@@ -1,19 +1,20 @@
 import 'package:flutter/cupertino.dart';
-import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/mutation_dialog.dart';
-import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 
 import 'library_action_grid.dart';
 import 'library_area_page.dart';
 import 'library_books_page.dart';
 import 'library_controller.dart';
 import 'library_history_page.dart';
+import 'library_slot_page.dart';
 import 'library_stats_page.dart';
 import 'library_venue_selection_page.dart';
 import 'library_widgets.dart';
@@ -151,12 +152,6 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
           SliverList.list(
             children: [
-              const FeatureIntro(
-                icon: CupertinoIcons.book_fill,
-                title: '你的学习空间',
-                description: '找一处座位，查一本书，或查看当前借阅。',
-                color: GinkgoColors.resourceTeal,
-              ),
               LibraryBentoGrid(
                 onFindSeats: _openVenueSelection,
                 onOpenBooks: () =>
@@ -165,6 +160,48 @@ class _LibraryPageState extends State<LibraryPage> {
                     _push(LibraryStatsPage(service: widget.service)),
                 onOpenLoans: widget.onOpenLoans,
               ),
+              if (AppPreferencesScope.of(context).favoriteLibraryAreaId != null &&
+                  AppPreferencesScope.of(context).favoriteLibraryAreaName !=
+                      null)
+                AppleSection(
+                  header: const Text('常去区域'),
+                  children: [
+                    AppleListTile(
+                      key: const Key('library-favorite-area'),
+                      leading: const Icon(CupertinoIcons.bolt_fill),
+                      title: Text(
+                        AppPreferencesScope.of(
+                          context,
+                        ).favoriteLibraryAreaName!,
+                      ),
+                      subtitle: const Text('一键直达座位列表，跳过场馆翻找'),
+                      trailing: const CupertinoListTileChevron(),
+                      onTap: () {
+                        final prefs = AppPreferencesScope.of(context);
+                        final id = prefs.favoriteLibraryAreaId!;
+                        final name = prefs.favoriteLibraryAreaName!;
+                        _push(
+                          LibrarySlotPage(
+                            service: widget.service,
+                            area: LibraryArea(
+                              id: id,
+                              name: name,
+                              free: 0,
+                              total: 0,
+                            ),
+                            onReservationChanged: controller.reservationChanged,
+                            onViewReservations: () => _push(
+                              LibraryPage(
+                                service: widget.service,
+                                onOpenLoans: widget.onOpenLoans,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               if (_firstLoad)
                 const AppleSection(
                   animateSize: false,
@@ -185,7 +222,12 @@ class _LibraryPageState extends State<LibraryPage> {
                     AppleListTile(
                       key: const Key('library-history'),
                       title: const Text('全部预约记录'),
-                      leading: const Icon(CupertinoIcons.clock),
+                      leading: const GinkgoIconTile(
+                        icon: CupertinoIcons.clock,
+                        size: GinkgoIconTokens.md,
+                        iconSize: GinkgoIconTokens.glyphMd,
+                        color: GinkgoColors.resourceTeal,
+                      ),
                       trailing: const CupertinoListTileChevron(),
                       onTap: () =>
                           _push(LibraryHistoryPage(service: widget.service)),
@@ -281,75 +323,64 @@ class _LibraryPageState extends State<LibraryPage> {
     '已失效',
   }.contains(booking.statusName.trim());
 
-  bool _bookingIsCurrent(LibraryBooking booking) {
-    if (_bookingIsEnded(booking)) return false;
-    // Actions describe which operations the domain currently permits; they do
-    // not identify the upstream status. Unknown labels stay out of this group.
-    return const {'使用中', '进行中'}.contains(booking.statusName.trim());
+  /// Resolves the user-facing status label from upstream `statusName`, falling
+  /// back to explicit active seat lifecycle flags when `index/subscribe` omits
+  /// `status_name` on live bookings (e.g. `flag_out` -> `leave` + `checkout`).
+  String _effectiveStatusLabel(LibraryBooking booking) {
+    final raw = booking.statusName.trim();
+    if (raw.isNotEmpty) return raw;
+    final actions = booking.actions ?? const <String>[];
+    if (actions.contains('leave') && actions.contains('checkout')) return '使用中';
+    if (actions.contains('signin') && actions.contains('checkout')) {
+      return '暂离中';
+    }
+    if (actions.contains('signin') || actions.contains('cancel')) return '已预约';
+    return '状态待核实';
   }
 
-  Widget _bookingRow(LibraryBooking booking, {bool unresolved = false}) =>
-      Column(
-        children: [
-          AppleListTile(
-            key: Key('library-booking-${booking.id}'),
-            minimumHeight: 68,
-            leading: Icon(
-              unresolved
-                  ? CupertinoIcons.exclamationmark_circle
-                  : CupertinoIcons.bookmark_fill,
-              color: unresolved
-                  ? AppleDesign.statusUncertain.resolveFrom(context)
-                  : AppleDesign.statusSuccess.resolveFrom(context),
-              size: 22,
-            ),
-            title: Text(booking.title.isEmpty ? '图书馆预约' : booking.title),
-            subtitle: Text(
-              _bookingDetail(booking),
-              style: TextStyle(
-                fontSize: 14,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-            additionalInfo: Text(
-              booking.statusName.isEmpty ? '状态待核实' : booking.statusName,
-              style: TextStyle(
-                fontSize: 14,
-                color: unresolved
-                    ? AppleDesign.statusUncertain.resolveFrom(context)
-                    : AppleDesign.statusSuccess.resolveFrom(context),
-              ),
-            ),
-          ),
-          if ((booking.actions ?? []).isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  for (final action in booking.actions!)
-                    ReservationActionButton(
-                      buttonKey: Key('library-action-${booking.id}-$action'),
-                      label: libraryActionLabel(action),
-                      icon: libraryActionIcon(action),
-                      compact: true,
-                      tint: libraryActionTint(action),
-                      onPressed:
-                          controller.submitting ||
-                              controller.loadingBookings ||
-                              controller.bookingError != null ||
-                              controller.bookings?.stale == true ||
-                              controller.uncertainActions.contains(
-                                '${booking.id}/$action',
-                              )
-                          ? null
-                          : () => perform(booking, action),
-                    ),
-                ],
-              ),
-            ),
-        ],
+  bool _bookingIsCurrent(LibraryBooking booking) {
+    if (_bookingIsEnded(booking)) return false;
+    final raw = booking.statusName.trim();
+    if (const {'使用中', '进行中', '已签到', '暂离中', '已预约'}.contains(raw)) {
+      return true;
+    }
+    // When upstream omits status_name on an active `index/subscribe` record
+    // while sending seat lifecycle flags (`leave`/`checkout`/`signin`), treat
+    // it as an active current booking rather than forcing an alarming banner.
+    if (raw.isEmpty) {
+      final actions = booking.actions ?? const <String>[];
+      return actions.any(
+        (a) => a == 'leave' || a == 'checkout' || a == 'signin',
       );
+    }
+    return false;
+  }
+
+  StatusTone _bookingTone(String label, {required bool unresolved}) {
+    if (unresolved) return StatusTone.uncertain;
+    return switch (label) {
+      '使用中' || '进行中' || '已签到' => StatusTone.success,
+      '暂离中' || '已预约' => StatusTone.pending,
+      _ => StatusTone.uncertain,
+    };
+  }
+
+  Widget _bookingRow(LibraryBooking booking, {bool unresolved = false}) {
+    final label = _effectiveStatusLabel(booking);
+    return LibraryBookingCard(
+      booking: booking,
+      statusLabel: label,
+      statusTone: _bookingTone(label, unresolved: unresolved),
+      timeDetail: _bookingDetail(booking),
+      actionsDisabled:
+          controller.submitting ||
+          controller.loadingBookings ||
+          controller.bookingError != null ||
+          controller.bookings?.stale == true,
+      uncertainActions: controller.uncertainActions,
+      onAction: (action) => perform(booking, action),
+    );
+  }
 
   /// Upstream sends HH:mm:ss; the row only has room for HH:mm.
   String _clock(String value) {

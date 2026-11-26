@@ -132,7 +132,7 @@ void main() {
           await tester.ensureVisible(row);
           await tester.pumpAndSettle();
           expect(tester.getSize(row).height, greaterThanOrEqualTo(48));
-          expect(find.textContaining('本地完成不代表学校作业已提交'), findsOneWidget);
+          expect(find.textContaining('本地完成不代表学校作业已提交'), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
           await tester.pump();

@@ -152,7 +152,7 @@ void main() {
     final download = controller();
     await download.download(asset);
     expect(download.phase, UpdateDownloadPhase.failed);
-    expect(count, 2); // Only the two original official entries were attempted.
+    expect(count, 3); // Official release, GitHub API, and domestic mirror fallback were attempted.
     download.dispose();
   });
 

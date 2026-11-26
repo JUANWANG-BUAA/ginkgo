@@ -184,20 +184,33 @@ where
     bounded_read(body()).await
 }
 
+/// Distinguishes a lock-wait timeout before the write was ever sent from a
+/// timeout after the request entered the upstream transport.
+pub(super) enum SubmitOutcome<T> {
+    Completed(T),
+    GateTimeout,
+    InFlightTimeout,
+}
+
 /// Take the session read gate and a module write gate, then run a submitted
-/// write. A dropped submit yields no outcome, exactly like
-/// [`with_session_submit`].
-pub(super) async fn with_module_submit<T, F, Fut>(module: ModuleAccess, body: F) -> Option<T>
+/// write. Waiting for local concurrency gates never touches the school, so a
+/// gate timeout reports `GateTimeout` (`notSubmitted`) instead of falsely
+/// locking the UI into `uncertain`.
+pub(super) async fn with_module_submit<T, F, Fut>(module: ModuleAccess, body: F) -> SubmitOutcome<T>
 where
     F: FnOnce() -> Fut,
     Fut: std::future::Future<Output = T> + Send,
 {
-    let _access = gate_read(GATE_BUDGET).await.ok()?;
-    let _module = tokio::time::timeout(GATE_BUDGET, module.write())
-        .await
-        .map_err(|_| AppError::unavailable())
-        .ok()?;
-    bounded_submit(body()).await
+    let Ok(_access) = gate_read(GATE_BUDGET).await else {
+        return SubmitOutcome::GateTimeout;
+    };
+    let Ok(_module) = tokio::time::timeout(GATE_BUDGET, module.write()).await else {
+        return SubmitOutcome::GateTimeout;
+    };
+    match bounded_submit(body()).await {
+        Some(value) => SubmitOutcome::Completed(value),
+        None => SubmitOutcome::InFlightTimeout,
+    }
 }
 
 pub(super) fn service() -> Result<&'static LiveService, AppError> {
@@ -294,6 +307,19 @@ mod gate_budget_tests {
             "a queued submit must not report a fabricated outcome"
         );
         drop(write);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn module_submit_distinguishes_gate_timeout_from_in_flight_timeout() {
+        let _serial = TEST_GATE.lock().await;
+        let write = SESSION_ACCESS.write().await;
+        let gate_timed_out = with_module_submit(ModuleAccess::Library, || async { 1i32 }).await;
+        assert!(matches!(gate_timed_out, SubmitOutcome::GateTimeout));
+        drop(write);
+
+        let in_flight =
+            with_module_submit(ModuleAccess::Library, std::future::pending::<i32>).await;
+        assert!(matches!(in_flight, SubmitOutcome::InFlightTimeout));
     }
 
     #[tokio::test(start_paused = true)]

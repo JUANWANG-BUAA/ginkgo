@@ -10,6 +10,8 @@ abstract interface class SystemSettingsService {
   Future<bool> openNotifications();
   Future<bool> openAppSettings();
   Future<bool> shareProject();
+  Future<String> networkStatus();
+  Future<bool> openWifiSettings();
 }
 
 class BackgroundReminderStatus {
@@ -85,4 +87,14 @@ class NativeSystemSettingsService
     );
     return true;
   }
+
+  @override
+  Future<String> networkStatus() async => isAndroid
+      ? await channel.invokeMethod<String>('networkStatus') ?? 'unknown'
+      : 'unknown';
+
+  @override
+  Future<bool> openWifiSettings() async => isAndroid
+      ? await channel.invokeMethod<bool>('openWifiSettings') ?? false
+      : false;
 }

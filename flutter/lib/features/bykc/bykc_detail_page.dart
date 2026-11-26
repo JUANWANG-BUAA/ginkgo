@@ -128,7 +128,6 @@ class BykcDetailPage extends StatelessWidget {
                 ),
               AppleSection(
                 header: const Text('选课与人数'),
-                footer: const Text('人数为上次读取结果，不代表当前可以选课；请以学校系统为准。'),
                 children: [
                   field('选课状态', switch (chosenRecord != null
                       ? true

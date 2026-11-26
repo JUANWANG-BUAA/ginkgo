@@ -15,10 +15,10 @@
 ## features/checkin/checkin_page.dart
 
 - `class CheckInPage extends StatefulWidget` — Per-course classroom QR generation with智慧北航 scan guidance and status readback.
-  <sub>class · features/checkin/checkin_page.dart:24</sub>
-    - `const CheckInPage({ super.key, required this.service, this.platformActions = const PlatformActions(), this.history = false, this.clock, });`  <sub>:25</sub>
-    - `final DateTime Function()? clock;`  <sub>:35</sub>
-    - `State<CheckInPage> createState() => …`  <sub>:37</sub>
+  <sub>class · features/checkin/checkin_page.dart:28</sub>
+    - `const CheckInPage({ super.key, required this.service, this.platformActions = const PlatformActions(), this.history = false, this.clock, });`  <sub>:29</sub>
+    - `final DateTime Function()? clock;`  <sub>:39</sub>
+    - `State<CheckInPage> createState() => …`  <sub>:41</sub>
 
 ## features/checkin/checkin_qr_render.dart
 
@@ -55,10 +55,10 @@
 ## features/checkin/checkin_widgets.dart
 
 - `class CheckinCourseRow extends StatelessWidget` — One course with its sign-in status, merged-record notes and the classroom
-  <sub>class · features/checkin/checkin_widgets.dart:10</sub>
-    - `const CheckinCourseRow({ super.key, required this.course, required this.windowOpen, required this.canSubmit, required this.onSubmit, });`  <sub>:11</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:27</sub>
+  <sub>class · features/checkin/checkin_widgets.dart:11</sub>
+    - `const CheckinCourseRow({ super.key, required this.course, required this.windowOpen, required this.canSubmit, required this.onSubmit, });`  <sub>:12</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:28</sub>
 - `class CheckinStatusSummary extends StatelessWidget` — Day totals: count tile, proportional status meter and readable legend.
-  <sub>class · features/checkin/checkin_widgets.dart:135</sub>
-    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:136</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:152</sub>
+  <sub>class · features/checkin/checkin_widgets.dart:181</sub>
+    - `const CheckinStatusSummary({ super.key, required this.dateLabel, required this.scopeLabel, required this.signed, required this.notSigned, required this.unknown, required this.fetchedAt, });`  <sub>:182</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:198</sub>

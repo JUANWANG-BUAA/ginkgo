@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
@@ -6,25 +7,45 @@ import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/homework_files.dart';
 import 'package:ginkgo_mirror/application/service_health.dart';
 import 'package:ginkgo_mirror/infrastructure/native_command.dart';
+import 'package:ginkgo_mirror/infrastructure/offline_cache_store.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
 
 mixin NativeHomeworkFiles implements HomeworkFilesGateway {
   String? get expectedAccount;
+  bool get offlineFastPath => false;
 
-  Future<HomeworkResponse> homework({bool forceRefresh = false}) =>
-      coalescedNativeRead(
-        account: expectedAccount,
-        key: 'homework',
-        forceRefresh: forceRefresh,
-        command: () => ServiceHealthTracker.shared.observe(
-          ServiceEndpointId.homework,
-          () => boundedNativeRead(
-            () => live.loadHomework(forceRefresh: forceRefresh),
-          ),
-          failureOf: (r) => r.failure,
-          staleOf: (r) => r.failure != null && r.fetchedAt != null,
+  Future<HomeworkResponse> homework({bool forceRefresh = false}) async {
+    final owner = expectedAccount;
+    if (offlineFastPath && !forceRefresh && owner != null && owner.isNotEmpty) {
+      final cached = await OfflineCacheStore.shared.readHomework(owner);
+      if (cached != null) return cached;
+    }
+    final result = await coalescedNativeRead(
+      account: owner,
+      key: 'homework',
+      forceRefresh: forceRefresh,
+      command: () => ServiceHealthTracker.shared.observe(
+        ServiceEndpointId.homework,
+        () => boundedNativeRead(
+          () => live.loadHomework(forceRefresh: forceRefresh),
         ),
-      );
+        failureOf: (r) => r.failure,
+        staleOf: (r) => r.failure != null && r.fetchedAt != null,
+      ),
+    );
+    if (owner != null && owner.isNotEmpty) {
+      if (result.failure == null && result.termCode.isNotEmpty) {
+        unawaited(OfflineCacheStore.shared.saveHomework(owner, result));
+      } else if (result.failure != null && result.fetchedAt == null) {
+        final cached = await OfflineCacheStore.shared.readHomework(
+          owner,
+          attachFailure: result.failure,
+        );
+        if (cached != null) return cached;
+      }
+    }
+    return result;
+  }
 
   Future<live.HomeworkDetailResponse> homeworkDetail(
     String assignmentId, {

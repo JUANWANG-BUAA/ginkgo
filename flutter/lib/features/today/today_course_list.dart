@@ -2,37 +2,55 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
 
 import 'today_presentation.dart';
 
 /// Keep course times on a visible axis, like the native Today views. At large
 /// type sizes the axis moves above the title so neither field is squeezed.
 class TodayCourseRow extends StatelessWidget {
-  const TodayCourseRow({super.key, required this.course, required this.status});
+  const TodayCourseRow({
+    super.key,
+    required this.course,
+    required this.status,
+    this.checkin,
+    this.onOpenCheckIn,
+  });
   final TodayCourse course;
   final String status;
+  final CheckInCourse? checkin;
+  final VoidCallback? onOpenCheckIn;
 
   @override
   Widget build(BuildContext context) {
     final times = RegExp(r'^(\d{1,2}:\d{2})\s*[-–—~～]\s*(\d{1,2}:\d{2})$')
         .firstMatch(course.time?.trim() ?? '');
-    final secondary = AppleDesign.statusInactive.resolveFrom(context);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final isRunning = status == '正在上课';
+    final stripeColor = isRunning
+        ? AppleDesign.statusSuccess.resolveFrom(context)
+        : CupertinoColors.separator.resolveFrom(context);
     final time = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           times?.group(1) ?? course.time ?? '时间未提供',
-          style: TextStyle(
-            fontSize: times == null ? 13 : 17,
-            fontWeight: FontWeight.w500,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+          style:
+              (times == null
+                      ? GinkgoTypography.footnote
+                      : GinkgoTypography.body)
+                  .copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isRunning
+                        ? stripeColor
+                        : CupertinoColors.label.resolveFrom(context),
+                    fontFeatures: GinkgoTypography.tabularDigits,
+                  ),
         ),
         if (times != null)
           Text(
             times.group(2)!,
-            style: TextStyle(
-              fontSize: 13,
+            style: GinkgoTypography.footnote.copyWith(
               color: secondary,
               fontFeatures: GinkgoTypography.tabularDigits,
             ),
@@ -42,16 +60,36 @@ class TodayCourseRow extends StatelessWidget {
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(status, style: TextStyle(fontSize: 13, color: secondary)),
-        const SizedBox(height: 4),
+        Wrap(
+          spacing: GinkgoSpacing.sm,
+          runSpacing: GinkgoSpacing.xs,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              status,
+              style: GinkgoTypography.footnote.copyWith(
+                color: isRunning ? stripeColor : secondary,
+                fontWeight: isRunning ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+            if (checkin != null) _CourseRowCheckInChip(
+              course: checkin!,
+              onTap: onOpenCheckIn,
+            ),
+          ],
+        ),
+        const SizedBox(height: GinkgoSpacing.xs),
         Text(
           course.name,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+          style: GinkgoTypography.body.copyWith(
+            color: CupertinoColors.label.resolveFrom(context),
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: GinkgoSpacing.compact),
         Text(
           todayCoursePlaceLabel(course.place),
-          style: TextStyle(fontSize: 13, color: secondary),
+          style: GinkgoTypography.footnote.copyWith(color: secondary),
         ),
       ],
     );
@@ -62,44 +100,84 @@ class TodayCourseRow extends StatelessWidget {
           final stacked =
               constraints.maxWidth < 280 ||
               MediaQuery.textScalerOf(context).scale(1) > 1.4;
-          return Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  width: 4,
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: GinkgoSurfaceTokens.accentStripeWidth,
                   decoration: BoxDecoration(
-                    color: CupertinoColors.separator.resolveFrom(context),
-                    borderRadius: BorderRadius.circular(2),
+                    color: stripeColor,
+                    borderRadius: BorderRadius.circular(
+                      GinkgoSurfaceTokens.accentStripeRadius,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (stacked)
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [time, const SizedBox(height: 8), details],
-                        ),
-                      )
-                    else ...[
-                      SizedBox(width: 84, child: time),
-                      const SizedBox(width: 12),
-                      Expanded(child: details),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+                const SizedBox(width: GinkgoSpacing.md),
+                if (stacked)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        time,
+                        const SizedBox(height: GinkgoSpacing.sm),
+                        details,
+                      ],
+                    ),
+                  )
+                else ...[
+                  SizedBox(
+                    width: GinkgoSurfaceTokens.timelineWidth,
+                    child: time,
+                  ),
+                  const SizedBox(width: GinkgoSpacing.md),
+                  Expanded(child: details),
+                ],
+              ],
+            ),
           );
         },
       ),
+    );
+  }
+}
+
+class _CourseRowCheckInChip extends StatelessWidget {
+  const _CourseRowCheckInChip({required this.course, this.onTap});
+
+  final CheckInCourse course;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon, color) = switch (course.status) {
+      CheckInStatus.signed => (
+        '已签到',
+        CupertinoIcons.checkmark_circle_fill,
+        AppleDesign.statusSuccess.resolveFrom(context),
+      ),
+      CheckInStatus.notSigned => (
+        '未签到',
+        CupertinoIcons.qrcode,
+        AppleDesign.statusPending.resolveFrom(context),
+      ),
+      CheckInStatus.unknown => (
+        '待确认',
+        CupertinoIcons.question_circle_fill,
+        AppleDesign.statusUncertain.resolveFrom(context),
+      ),
+    };
+    final badge = GinkgoBadge(
+      label: label,
+      icon: icon,
+      color: color,
+      compact: true,
+    );
+    if (onTap == null || course.status == CheckInStatus.signed) return badge;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: badge,
     );
   }
 }

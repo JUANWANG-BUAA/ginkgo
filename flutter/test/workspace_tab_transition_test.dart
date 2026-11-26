@@ -411,7 +411,7 @@ void main() {
       await tester.pumpAndSettle();
       await tapTab(tester, '作业');
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('homework-spoc:a')));
+      await tester.tap(find.byKey(const Key('homework-spoc:b')));
       await tester.pumpAndSettle();
       final detailNavigator = Navigator.of(tester.element(find.text('作业详情')));
       await tapTab(tester, '更多');

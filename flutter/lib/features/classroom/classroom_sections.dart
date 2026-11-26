@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
@@ -46,9 +47,6 @@ class ClassroomScopeSection extends StatelessWidget {
   Widget build(BuildContext context) => AppleSection(
     animateSize: false,
     header: const Text('查询范围'),
-    footer: Text(
-      isDemo ? '结果在 5 分钟内优先复用本机样例缓存。' : '结果在 5 分钟内复用本机缓存；刷新失败时保留上次结果。',
-    ),
     children: [
       ApplePickerTile<int>(
         title: '校区',
@@ -66,56 +64,57 @@ class ClassroomScopeSection extends StatelessWidget {
         title: const Text('日期'),
         minimumHeight: 56,
         additionalInfo: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GinkgoSpacing.md,
+            vertical: GinkgoSpacing.small,
+          ),
           decoration: BoxDecoration(
             color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(GinkgoRadii.pill),
           ),
           child: Text(
             date.isEmpty ? '正在读取…' : _classroomDateLabel(date),
-            style: TextStyle(
+            style: GinkgoTypography.callout.copyWith(
               color: CupertinoColors.label.resolveFrom(context),
-              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              fontFeatures: GinkgoTypography.tabularDigits,
             ),
           ),
         ),
         onTap: busy || date.isEmpty ? null : () => pickDate(context),
       ),
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: GinkgoSpacing.base,
+          vertical: GinkgoSpacing.sm,
+        ),
         child: Row(
           children: [
             ClassroomShortcutButton(
               title: '今天',
               value: today,
+              selected: today.isNotEmpty && date == today,
               enabled: !busy,
               onSelected: onShortcutDate,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: GinkgoSpacing.sm),
             ClassroomShortcutButton(
               title: '明天',
               value: tomorrow,
+              selected: tomorrow.isNotEmpty && date == tomorrow,
               enabled: !busy,
               onSelected: onShortcutDate,
             ),
+            const Spacer(),
+            GinkgoActionButton(
+              label: '查询空教室',
+              icon: CupertinoIcons.search,
+              variant: GinkgoButtonVariant.primary,
+              compact: true,
+              onPressed: busy || initializing ? null : onQuery,
+            ),
           ],
         ),
-      ),
-      AppleListTile(
-        title: Text(
-          '查询空教室',
-          style: TextStyle(
-            color: busy || initializing
-                ? CupertinoColors.inactiveGray
-                : CupertinoTheme.of(context).primaryColor,
-          ),
-        ),
-        leading: Icon(
-          CupertinoIcons.search,
-          color: CupertinoTheme.of(context).primaryColor,
-          size: 20,
-        ),
-        onTap: busy || initializing ? null : onQuery,
       ),
     ],
   );

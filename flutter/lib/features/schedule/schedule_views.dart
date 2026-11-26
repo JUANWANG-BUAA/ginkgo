@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -26,6 +27,8 @@ class ScheduleCourseBrowser extends StatelessWidget {
     required this.onSelectedDay,
     required this.onSearchChanged,
     required this.onCourseTap,
+    this.onConflictTap,
+    this.onSwipeWeek,
   });
   final ScheduleResponse snapshot;
   final List<ScheduleCourse> courses;
@@ -38,6 +41,8 @@ class ScheduleCourseBrowser extends StatelessWidget {
   final ValueChanged<int> onSelectedDay;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<ScheduleCourse> onCourseTap;
+  final ValueChanged<List<ScheduleCourse>>? onConflictTap;
+  final ValueChanged<int>? onSwipeWeek;
 
   @override
   Widget build(BuildContext context) {
@@ -125,20 +130,43 @@ class ScheduleCourseBrowser extends StatelessWidget {
                       courses: courses,
                       weekStart: weekStart,
                       onCourseTap: onCourseTap,
+                      onConflictTap: onConflictTap,
+                      onSwipeWeek: onSwipeWeek,
                     ),
                   )
                 else
-                  for (final day in visibleDays.entries)
-                    ScheduleSection(
-                      title: scheduleDayTitle(day.key, weekStart),
+                  GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragEnd: !searching &&
+                            mode == ScheduleViewMode.dayList
+                        ? (details) {
+                            final v = details.primaryVelocity ?? 0;
+                            if (v.abs() < 260) return;
+                            final next =
+                                (selectedDay + (v < 0 ? 1 : -1)).clamp(1, 7);
+                            if (next != selectedDay) {
+                              HapticFeedback.selectionClick();
+                              onSelectedDay(next);
+                            }
+                          }
+                        : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (final course in day.value)
-                          ScheduleCourseRow(
-                            course: course,
-                            onTap: () => onCourseTap(course),
+                        for (final day in visibleDays.entries)
+                          ScheduleSection(
+                            title: scheduleDayTitle(day.key, weekStart),
+                            children: [
+                              for (final course in day.value)
+                                ScheduleCourseRow(
+                                  course: course,
+                                  onTap: () => onCourseTap(course),
+                                ),
+                            ],
                           ),
                       ],
                     ),
+                  ),
               ],
             ),
           ),

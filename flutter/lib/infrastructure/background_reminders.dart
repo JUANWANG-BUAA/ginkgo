@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:ginkgo_mirror/application/background_reminders.dart';
 import 'package:ginkgo_mirror/application/contracts.dart' show FailureCode;
 import 'package:ginkgo_mirror/shared/app_preferences.dart';
+import 'package:ginkgo_mirror/shared/homework_visibility.dart';
 import 'package:ginkgo_mirror/infrastructure/course_visibility_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/display_preferences_file_store.dart';
 import 'package:ginkgo_mirror/infrastructure/mirror_runtime.dart';
@@ -61,7 +62,7 @@ Future<void> runBackgroundReminders() async {
         planner: const NativeMirrorService(),
         nowMillis: DateTime.now().millisecondsSinceEpoch,
         personalHomework: (item) =>
-            item.courseRole != 'assistant' &&
+            !isNonStudentCourseRole(item.courseRole) &&
             !visibility.hidden('spoc', item.courseId ?? item.id),
       );
       status = batch.groups.isEmpty ? 'retryLater' : 'updated';

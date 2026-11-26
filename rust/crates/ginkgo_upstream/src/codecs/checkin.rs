@@ -44,7 +44,8 @@ fn rejected_detail(stage: &str, status: &str) -> String {
 }
 
 pub fn parse_app_login(value: &Value) -> Result<IClassSession, AppError> {
-    let status = status_text(value.get("STATUS")).ok_or_else(AppError::changed)?;
+    let status = status_text(value.get("STATUS"))
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_login_status"))?;
     if !is_success(&status) {
         return Err(AppError::with_detail(
             ErrorCode::BusinessRejected,
@@ -54,15 +55,15 @@ pub fn parse_app_login(value: &Value) -> Result<IClassSession, AppError> {
     let result = value
         .get("result")
         .and_then(Value::as_object)
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_login_result"))?;
     let user_id = result
         .get("id")
         .and_then(|value| status_text(Some(value)))
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_login_uid"))?;
     let session_id = result
         .get("sessionId")
         .and_then(|value| status_text(Some(value)))
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_login_sid"))?;
     Ok(IClassSession {
         user_id,
         session_id,
@@ -73,7 +74,8 @@ pub fn parse_app_login(value: &Value) -> Result<IClassSession, AppError> {
 /// "no classes today"; every other non-success status is a business rejection,
 /// not an empty list.
 pub fn parse_course_schedule(value: &Value) -> Result<Vec<CheckInCourse>, AppError> {
-    let status = status_text(value.get("STATUS")).ok_or_else(AppError::changed)?;
+    let status = status_text(value.get("STATUS"))
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_status"))?;
     if status == "2" {
         return Ok(Vec::new());
     }
@@ -86,7 +88,7 @@ pub fn parse_course_schedule(value: &Value) -> Result<Vec<CheckInCourse>, AppErr
     let rows = value
         .get("result")
         .and_then(Value::as_array)
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_rows"))?;
     let candidates = rows
         .iter()
         .map(parse_candidate)
@@ -108,14 +110,18 @@ struct Candidate {
 }
 
 fn parse_candidate(record: &Value) -> Result<Candidate, AppError> {
-    let id = text(record, "id").ok_or_else(AppError::changed)?;
-    let course_name = text(record, "courseName").ok_or_else(AppError::changed)?;
-    let begins_at = text(record, "classBeginTime").ok_or_else(AppError::changed)?;
-    let ends_at = text(record, "classEndTime").ok_or_else(AppError::changed)?;
+    let id = text(record, "id")
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_id"))?;
+    let course_name = text(record, "courseName")
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_name"))?;
+    let begins_at = text(record, "classBeginTime")
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_begin"))?;
+    let ends_at = text(record, "classEndTime")
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_end"))?;
     let raw_status = record
         .get("signStatus")
         .and_then(|value| status_text(Some(value)))
-        .ok_or_else(AppError::changed)?;
+        .ok_or_else(|| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_sched_sign"))?;
     let status = match raw_status.parse::<i64>() {
         Ok(0) => CheckInStatus::NotSigned,
         Ok(1) => CheckInStatus::Signed,
@@ -277,7 +283,17 @@ fn normalized(value: &str) -> String {
 /// app-login query and never stored, logged or sent to Dart.
 pub fn login_name_from_url(url: &str) -> Option<String> {
     let url = url::Url::parse(url).ok()?;
-    url.query_pairs()
+    if let Some(value) = url
+        .query_pairs()
+        .find(|(key, _)| key.eq_ignore_ascii_case("loginName"))
+        .map(|(_, value)| value.trim().to_owned())
+        .filter(|value| !value.is_empty())
+    {
+        return Some(value);
+    }
+    let fragment = url.fragment()?;
+    let (_, query) = fragment.split_once('?')?;
+    url::form_urlencoded::parse(query.as_bytes())
         .find(|(key, _)| key.eq_ignore_ascii_case("loginName"))
         .map(|(_, value)| value.trim().to_owned())
         .filter(|value| !value.is_empty())

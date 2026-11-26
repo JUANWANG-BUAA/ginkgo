@@ -22,23 +22,23 @@
 ## features/learning/learning_cards.dart
 
 - `Color learningCourseAccent(String seed) {…}` — Deterministic accent palette for SPOC courses so each course keeps a stable
-  <sub>function · features/learning/learning_cards.dart:11</sub>
+  <sub>function · features/learning/learning_cards.dart:12</sub>
 - `class LearningCourseCard extends StatelessWidget` — Tactile course card on the SPOC Learning root list.
-  <sub>class · features/learning/learning_cards.dart:34</sub>
-    - `const LearningCourseCard({ super.key, required this.course, required this.onTap, });`  <sub>:35</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:49</sub>
+  <sub>class · features/learning/learning_cards.dart:35</sub>
+    - `const LearningCourseCard({ super.key, required this.course, required this.onTap, });`  <sub>:36</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:48</sub>
 - `class LearningCourseHeroCard extends StatelessWidget` — Identity hero banner at the top of LearningCoursePage.
-  <sub>class · features/learning/learning_cards.dart:154</sub>
-    - `const LearningCourseHeroCard({ super.key, required this.course, this.onOpenSource, });`  <sub>:155</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:169</sub>
+  <sub>class · features/learning/learning_cards.dart:127</sub>
+    - `const LearningCourseHeroCard({ super.key, required this.course, this.onOpenSource, });`  <sub>:128</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:142</sub>
 - `class LearningAnnouncementCard extends StatelessWidget` — Announcement row card inside a SPOC course.
-  <sub>class · features/learning/learning_cards.dart:296</sub>
-    - `const LearningAnnouncementCard({ super.key, required this.announcement, required this.onTap, });`  <sub>:297</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:310</sub>
+  <sub>class · features/learning/learning_cards.dart:269</sub>
+    - `const LearningAnnouncementCard({ super.key, required this.announcement, required this.onTap, });`  <sub>:270</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:283</sub>
 - `class LearningAssessmentCard extends StatelessWidget` — Read-only assessment card with color-coded metadata pills.
-  <sub>class · features/learning/learning_cards.dart:363</sub>
-    - `const LearningAssessmentCard({ super.key, required this.item, required this.fallbackSummary, });`  <sub>:364</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:376</sub>
+  <sub>class · features/learning/learning_cards.dart:336</sub>
+    - `const LearningAssessmentCard({ super.key, required this.item, required this.fallbackSummary, });`  <sub>:337</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:349</sub>
 
 ## features/learning/learning_course_page.dart
 

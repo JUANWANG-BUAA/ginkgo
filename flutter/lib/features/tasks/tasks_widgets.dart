@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
@@ -6,8 +9,8 @@ import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 
 /// 单条本机待办卡片。
 ///
-/// 定位到的待办会高亮并标注「已定位待办」；完成切换与更多操作都保持至少
-/// 48dp 触控目标并带 TalkBack 语义标签。
+/// 定位到的待办会高亮并标注「已定位待办」；支持右滑快速完成、左滑删除，
+/// 同时保留至少 48dp 显式按钮与 TalkBack 语义标签。
 class TaskRowCard extends StatelessWidget {
   const TaskRowCard({
     super.key,
@@ -20,6 +23,7 @@ class TaskRowCard extends StatelessWidget {
     required this.onToggle,
     required this.onMore,
     required this.onSource,
+    this.onDelete,
   });
 
   final LocalTaskRecord task;
@@ -31,113 +35,183 @@ class TaskRowCard extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onMore;
   final VoidCallback onSource;
+  final VoidCallback? onDelete;
 
   @override
-  Widget build(BuildContext context) => Container(
-    key: highlighted ? targetKey : ValueKey('task-container-${task.id}'),
-    decoration: BoxDecoration(
-      color: highlighted
-          ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.07)
-          : null,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    padding: GinkgoSpacing.edgeInsetsCard,
-    child: Column(
-      key: Key('task-row-${task.id}'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (highlighted)
+  Widget build(BuildContext context) {
+    final card = Container(
+      key: highlighted ? targetKey : ValueKey('task-container-${task.id}'),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.07)
+            : null,
+        borderRadius: BorderRadius.circular(GinkgoRadii.panel),
+      ),
+      padding: GinkgoSpacing.edgeInsetsCard,
+      child: Column(
+        key: Key('task-row-${task.id}'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (highlighted)
+            Text(
+              '已定位待办',
+              key: Key('task-highlight-${task.id}'),
+              style: GinkgoTypography.footnote.copyWith(
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
           Text(
-            '已定位待办',
-            key: Key('task-highlight-${task.id}'),
+            task.title,
+            style: GinkgoTypography.headline.copyWith(
+              color:
+                  (task.completed
+                          ? CupertinoColors.secondaryLabel
+                          : CupertinoColors.label)
+                      .resolveFrom(context),
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: GinkgoSpacing.sm),
+          Text(
+            '${task.completed ? '已在本机完成' : '待完成'} · ${localTaskDueLabel(task.due)}',
             style: GinkgoTypography.footnote.copyWith(
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              fontWeight: FontWeight.w600,
+              color: AppleDesign.statusInactive.resolveFrom(context),
               height: 1.4,
             ),
           ),
-        Text(
-          task.title,
-          style: GinkgoTypography.headline.copyWith(
-            color:
-                (task.completed
-                        ? CupertinoColors.secondaryLabel
-                        : CupertinoColors.label)
-                    .resolveFrom(context),
-            height: 1.35,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${task.completed ? '已在本机完成' : '待完成'} · ${localTaskDueLabel(task.due)}',
-          style: GinkgoTypography.footnote.copyWith(
-            color: AppleDesign.statusInactive.resolveFrom(context),
-            height: 1.4,
-          ),
-        ),
-        if (task.sourceAssignmentId != null)
-          CupertinoButton(
-            key: Key('task-source-${task.id}'),
-            minimumSize: const Size(48, 48),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            alignment: Alignment.centerLeft,
-            onPressed: locating ? null : onSource,
-            child: Text(
-              '来源：学校作业 · 查看来源',
-              style: GinkgoTypography.footnote.copyWith(
-                color:
-                    (locating
-                            ? CupertinoColors.secondaryLabel
-                            : AppleDesign.statusInactive)
-                        .resolveFrom(context),
-                decoration: TextDecoration.underline,
-                decorationColor: CupertinoColors.tertiaryLabel.resolveFrom(
-                  context,
-                ),
-              ),
-            ),
-          ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          children: [
-            Semantics(
-              label: '${task.title}，${task.completed ? '标记未完成' : '标记本机完成'}',
-              button: true,
-              child: CupertinoButton(
-                key: Key('task-toggle-${task.id}'),
-                color: CupertinoTheme.of(context).primaryColor
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                onPressed: busy || !readable ? null : onToggle,
-                child: Text(
-                  task.completed ? '撤销完成' : '本机完成',
-                  style: TextStyle(
-                    fontSize: AppleDesign.calloutSize,
-                    fontWeight: FontWeight.w600,
-                    color: CupertinoColors.label.resolveFrom(context),
+          if (task.sourceAssignmentId != null)
+            CupertinoButton(
+              key: Key('task-source-${task.id}'),
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(vertical: GinkgoSpacing.sm),
+              alignment: Alignment.centerLeft,
+              onPressed: locating ? null : onSource,
+              child: Text(
+                '来源：学校作业 · 查看来源',
+                style: GinkgoTypography.footnote.copyWith(
+                  color:
+                      (locating
+                              ? CupertinoColors.secondaryLabel
+                              : AppleDesign.statusInactive)
+                          .resolveFrom(context),
+                  decoration: TextDecoration.underline,
+                  decorationColor: CupertinoColors.tertiaryLabel.resolveFrom(
+                    context,
                   ),
                 ),
               ),
             ),
-            Semantics(
-              label: '${task.title}，更多操作',
-              button: true,
-              child: CupertinoButton(
-                key: Key('task-more-${task.id}'),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                onPressed: busy || !readable ? null : onMore,
-                child: const Text('更多', style: TextStyle(fontSize: 15)),
+          Wrap(
+            spacing: GinkgoSpacing.sm,
+            runSpacing: GinkgoSpacing.xs,
+            children: [
+              Semantics(
+                label: '${task.title}，${task.completed ? '标记未完成' : '标记本机完成'}',
+                button: true,
+                child: CupertinoButton(
+                  key: Key('task-toggle-${task.id}'),
+                  color: CupertinoTheme.of(context).primaryColor
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(GinkgoRadii.button),
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GinkgoSpacing.sm,
+                  ),
+                  onPressed: busy || !readable
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          onToggle();
+                        },
+                  child: Text(
+                    task.completed ? '撤销完成' : '本机完成',
+                    style: TextStyle(
+                      fontSize: AppleDesign.calloutSize,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
+              Semantics(
+                label: '${task.title}，更多操作',
+                button: true,
+                child: CupertinoButton(
+                  key: Key('task-more-${task.id}'),
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GinkgoSpacing.sm,
+                  ),
+                  onPressed: busy || !readable ? null : onMore,
+                  child: const Text(
+                    '更多',
+                    style: TextStyle(fontSize: AppleDesign.calloutSize),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (busy || !readable) return card;
+    return Dismissible(
+      key: ValueKey('task-swipe-${task.id}'),
+      direction: onDelete == null
+          ? DismissDirection.startToEnd
+          : DismissDirection.horizontal,
+      dismissThresholds: const {
+        DismissDirection.startToEnd: 0.25,
+        DismissDirection.endToStart: 0.25,
+      },
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          unawaited(HapticFeedback.lightImpact());
+          onToggle();
+        } else if (direction == DismissDirection.endToStart &&
+            onDelete != null) {
+          unawaited(HapticFeedback.mediumImpact());
+          onDelete!();
+        }
+        return false;
+      },
+      background: ColoredBox(
+        color: AppleDesign.statusSuccess.resolveFrom(context).withValues(
+          alpha: 0.18,
         ),
-      ],
-    ),
-  );
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: GinkgoSpacing.edgeInsetsPage,
+            child: Icon(
+              task.completed
+                  ? CupertinoIcons.arrow_uturn_left
+                  : CupertinoIcons.checkmark_circle_fill,
+              color: AppleDesign.statusSuccess.resolveFrom(context),
+            ),
+          ),
+        ),
+      ),
+      secondaryBackground: ColoredBox(
+        color: AppleDesign.statusDanger.resolveFrom(context).withValues(
+          alpha: 0.18,
+        ),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: GinkgoSpacing.edgeInsetsPage,
+            child: Icon(
+              CupertinoIcons.trash_fill,
+              color: AppleDesign.statusDanger.resolveFrom(context),
+            ),
+          ),
+        ),
+      ),
+      child: card,
+    );
+  }
 }
 
 /// 待办页头操作（更多 / 新增）。

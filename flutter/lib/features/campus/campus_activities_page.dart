@@ -64,7 +64,6 @@ class CampusActivitiesPage extends StatelessWidget {
         ),
         AppleSection(
           header: const Text('活动'),
-          footer: const Text('发布日期与活动时间可能不同；详情以原文为准。'),
           children: [
             for (final activity in data.activities)
               AppleListTile(

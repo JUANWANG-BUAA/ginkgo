@@ -227,6 +227,7 @@ class _ClassroomPageState extends State<ClassroomPage> {
         child: CustomScrollView(
           controller: scrollController,
           key: const Key('classroom-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             ApplePageHeader(
               largeTitle: const Text('空教室'),

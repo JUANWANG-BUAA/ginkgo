@@ -9,8 +9,9 @@
 
 - [shared/app_preferences.dart](#sharedapppreferencesdart) (6)
 - [shared/checkin_sessions.dart](#sharedcheckinsessionsdart) (2)
+- [shared/checkin_visibility.dart](#sharedcheckinvisibilitydart) (5)
 - [shared/course_visibility.dart](#sharedcoursevisibilitydart) (2)
-- [shared/homework_visibility.dart](#sharedhomeworkvisibilitydart) (1)
+- [shared/homework_visibility.dart](#sharedhomeworkvisibilitydart) (3)
 - [shared/query_cache_scope.dart](#sharedquerycachescopedart) (1)
 - [shared/reminder_controller.dart](#sharedremindercontrollerdart) (1)
 - [shared/reminder_rules.dart](#sharedreminderrulesdart) (2)
@@ -33,28 +34,32 @@
   <sub>typedef · shared/app_preferences.dart:50</sub>
 - `class AppPreferences extends ChangeNotifier` — Device-wide display choices and the session-flow marker only. Credentials
   <sub>class · shared/app_preferences.dart:55</sub>
-    - `static final shared = AppPreferences();`  <sub>:61</sub>
-    - `bool get readFailed => …` — An unreadable settings file cannot establish the saved sign-out choice.  <sub>:71</sub>
-    - `AppAppearance appearance = AppAppearance.system;`  <sub>:72</sub>
-    - `AppAccent accent = AppAccent.green;`  <sub>:73</sub>
-    - `bool compactLists = false;`  <sub>:74</sub>
-    - `bool reduceMotion = false;`  <sub>:75</sub>
-    - `double textSize = 1;`  <sub>:76</sub>
-    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:81</sub>
-    - `bool rememberPassword = false;` — Whether the user opted into saving credentials in the platform vault.  <sub>:85</sub>
-    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:90</sub>
-    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:94</sub>
-    - `Future<void> restore() async {…}`  <sub>:104</sub>
-    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:203</sub>
-    - `void dispose() {…}`  <sub>:206</sub>
-    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:211</sub>
-    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:227</sub>
-    - `Future<void> setRememberPassword(bool value) {…}` — Persists the user's remember-password switch preference (boolean only).  <sub>:233</sub>
-    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:241</sub>
+    - `static final shared = AppPreferences();`  <sub>:62</sub>
+    - `bool get readFailed => …` — An unreadable settings file cannot establish the saved sign-out choice.  <sub>:73</sub>
+    - `AppAppearance appearance = AppAppearance.system;`  <sub>:74</sub>
+    - `AppAccent accent = AppAccent.green;`  <sub>:75</sub>
+    - `bool compactLists = false;`  <sub>:76</sub>
+    - `bool reduceMotion = false;`  <sub>:77</sub>
+    - `double textSize = 1;`  <sub>:78</sub>
+    - `bool explicitSignOut = false;` — Set by an explicit sign-out and cleared by the next successful sign-in.  <sub>:83</sub>
+    - `bool rememberPassword = false;` — Whether the user opted into saving credentials in the platform vault.  <sub>:87</sub>
+    - `String? get writeError => …` — Last failed write, separate from a failed settings read.  <sub>:92</sub>
+    - `String routeMode = 'automatic';` — Chosen network route, kept so the login page and the next start use the  <sub>:96</sub>
+    - `bool revealSensitiveAmounts = true;` — Remembers whether the user prefers revealing sensitive balance amounts  <sub>:101</sub>
+    - `Future<void> restore() async {…}`  <sub>:118</sub>
+    - `Future<void> retrySave() => …` — Retries the current local snapshot without changing any setting.  <sub>:234</sub>
+    - `void dispose() {…}`  <sub>:237</sub>
+    - `Future<void> update({ AppAppearance? appearance, AppAccent? accent, bool? compactLists, bool? reduceMotion, double? textSize, }) {…}`  <sub>:242</sub>
+    - `Future<void> setRouteMode(String value) {…}` — Persists the network route chosen on the login page.  <sub>:258</sub>
+    - `Future<void> setRememberPassword(bool value) {…}` — Persists the user's remember-password switch preference (boolean only).  <sub>:264</sub>
+    - `Future<void> setExplicitSignOut(bool value) {…}` — Records or clears the explicit sign-out marker with the same serialized  <sub>:272</sub>
+    - `Future<void> setRevealSensitiveAmounts(bool value) {…}`  <sub>:279</sub>
+    - `Future<void> setLastMobileTab(String id) {…}`  <sub>:285</sub>
+    - `Future<void> setFavoriteLibraryArea(String id, String name) {…}`  <sub>:291</sub>
 - `class AppPreferencesScope extends InheritedNotifier<AppPreferences>`
-  <sub>class · shared/app_preferences.dart:249</sub>
-    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:250</sub>
-    - `static AppPreferences of(BuildContext context) => …`  <sub>:256</sub>
+  <sub>class · shared/app_preferences.dart:301</sub>
+    - `const AppPreferencesScope({ super.key, required AppPreferences preferences, required super.child, }) : super(notifier: preferences);`  <sub>:302</sub>
+    - `static AppPreferences of(BuildContext context) => …`  <sub>:308</sub>
 
 ## shared/checkin_sessions.dart
 
@@ -62,6 +67,19 @@
   <sub>function · shared/checkin_sessions.dart:3</sub>
 - `List<CheckInCourse> uniqueCheckinSessions(Iterable<CheckInCourse> courses) {…}`
   <sub>function · shared/checkin_sessions.dart:5</sub>
+
+## shared/checkin_visibility.dart
+
+- `String checkinCourseKey(CheckInCourse course) => …` — Canonical per-course visibility key for iClass check-in entries.
+  <sub>function · shared/checkin_visibility.dart:7</sub>
+- `String normalizeCheckinCourseName(String raw) => …` — Conservative course-name normalization for cross-system matching
+  <sub>function · shared/checkin_visibility.dart:12</sub>
+- `Set<String> nonStudentCourseNamesFromHomework(HomeworkResponse? homework) {…}` — Normalized names of courses confirmed as non-student (assistant/teacher) in
+  <sub>function · shared/checkin_visibility.dart:22</sub>
+- `List<CheckInCourse> personalCheckInCourses( Iterable<CheckInCourse> courses, { CourseVisibility? visibility, HomeworkResponse? homework, TodayResponse? todaySchedule, String? checkinDate, }) {…}` — Filter iClass check-in courses down to the student's own courses:
+  <sub>function · shared/checkin_visibility.dart:54</sub>
+- `CheckInCourse? matchCheckInForTodayCourse( TodayCourse course, Iterable<CheckInCourse> checkins, ) {…}` — Find the iClass check-in record corresponding to a student timetable course
+  <sub>function · shared/checkin_visibility.dart:107</sub>
 
 ## shared/course_visibility.dart
 
@@ -86,8 +104,12 @@
 
 ## shared/homework_visibility.dart
 
-- `List<HomeworkItem> personalHomeworkItems( Iterable<HomeworkItem> items, CourseVisibility? visibility, ) => …` — The dashboard, the full list and the reminder planner share one policy for
+- `bool isNonStudentCourseRole(String? role) => …` — Whether a SPOC course role belongs to teaching/assistant duties rather than
   <sub>function · shared/homework_visibility.dart:6</sub>
+- `String? homeworkCourseRoleLabel(String? role) => …` — Display label for a known SPOC course role.
+  <sub>function · shared/homework_visibility.dart:10</sub>
+- `List<HomeworkItem> personalHomeworkItems( Iterable<HomeworkItem> items, CourseVisibility? visibility, ) => …` — The dashboard, the full list and the reminder planner share one policy for
+  <sub>function · shared/homework_visibility.dart:19</sub>
 
 ## shared/query_cache_scope.dart
 
@@ -100,32 +122,32 @@
 ## shared/reminder_controller.dart
 
 - `class ReminderController extends ChangeNotifier` — Account-scoped read receipts contain only digests, not school content.
-  <sub>class · shared/reminder_controller.dart:22</sub>
-    - `final Future<String> Function() tasksRoot;`  <sub>:43</sub>
-    - `final DateTime Function() clock;`  <sub>:45</sub>
-    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:56</sub>
-    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:58</sub>
-    - `bool get busy => …`  <sub>:65</sub>
-    - `bool get settingsReady => …`  <sub>:68</sub>
-    - `bool get canRetryRestore => …`  <sub>:69</sub>
-    - `int scheduled = 0;`  <sub>:70</sub>
-    - `String digest(String key) => …`  <sub>:72</sub>
-    - `Future<void> restore() async {…}`  <sub>:77</sub>
-    - `void reportRestoreTimeout() {…}`  <sub>:122</sub>
-    - `List<ReminderPlan> get plans => …`  <sub>:150</sub>
-    - `int unread(String group) => …`  <sub>:162</sub>
-    - `void markRead(String group) {…}`  <sub>:171</sub>
-    - `void setActive(String group) {…}`  <sub>:189</sub>
-    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:194</sub>
-    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:224</sub>
-    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:240</sub>
-    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:282</sub>
-    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:303</sub>
-    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:326</sub>
-    - `Future<void> reconcile() {…}`  <sub>:430</sub>
-    - `Future<void> reschedule() async {…}`  <sub>:512</sub>
-    - `Future<void> stop() async {…}`  <sub>:517</sub>
-    - `void dispose() {…}`  <sub>:532</sub>
+  <sub>class · shared/reminder_controller.dart:23</sub>
+    - `final Future<String> Function() tasksRoot;`  <sub>:44</sub>
+    - `final DateTime Function() clock;`  <sub>:46</sub>
+    - `bool checkinEnabled = true, homeworkEnabled = true;`  <sub>:57</sub>
+    - `bool courseEnabled = false, taskEnabled = false;`  <sub>:59</sub>
+    - `bool get busy => …`  <sub>:66</sub>
+    - `bool get settingsReady => …`  <sub>:69</sub>
+    - `bool get canRetryRestore => …`  <sub>:70</sub>
+    - `int scheduled = 0;`  <sub>:71</sub>
+    - `String digest(String key) => …`  <sub>:73</sub>
+    - `Future<void> restore() async {…}`  <sub>:78</sub>
+    - `void reportRestoreTimeout() {…}`  <sub>:123</sub>
+    - `List<ReminderPlan> get plans => …`  <sub>:151</sub>
+    - `int unread(String group) => …`  <sub>:163</sub>
+    - `void markRead(String group) {…}`  <sub>:172</sub>
+    - `void setActive(String group) {…}`  <sub>:190</sub>
+    - `Future<void> setEnabled(String group, bool value) async {…}`  <sub>:195</sub>
+    - `Future<void> updateSchedule(ScheduleResponse data) async {…}` — Failed or stale school reads never replace a previously accepted plan.  <sub>:225</sub>
+    - `Future<void> updateTasks(List<LocalTaskRecord> tasks) async {…}`  <sub>:241</sub>
+    - `void updateCheckin(CheckInResponse data) {…}`  <sub>:283</sub>
+    - `void updateHomework(HomeworkResponse data) {…}`  <sub>:307</sub>
+    - `Future<void> refresh({bool includeHomework = true}) async {…}`  <sub>:330</sub>
+    - `Future<void> reconcile() {…}`  <sub>:434</sub>
+    - `Future<void> reschedule() async {…}`  <sub>:516</sub>
+    - `Future<void> stop() async {…}`  <sub>:521</sub>
+    - `void dispose() {…}`  <sub>:536</sub>
 
 ## shared/reminder_rules.dart
 

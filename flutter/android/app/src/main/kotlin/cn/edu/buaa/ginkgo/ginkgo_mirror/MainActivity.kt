@@ -13,6 +13,8 @@ class MainActivity : FlutterActivity() {
     private var checkinQrSaver: CheckinQrGallerySaver? = null
     private var settingsHandler: SystemSettingsHandler? = null
     private var reminderScheduler: ReminderScheduler? = null
+    private var navigationChannel: MethodChannel? = null
+    private var pendingDestination: String? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -29,6 +31,19 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler(LearningSnapshotHandler(applicationContext))
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/update")
             .setMethodCallHandler(UpdateInstaller(this))
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/widget")
+            .setMethodCallHandler(ScheduleWidgetChannelHandler(applicationContext))
+        navigationChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/navigation").also { ch ->
+            ch.setMethodCallHandler { call, result ->
+                if (call.method == "takePendingDestination") {
+                    val dest = pendingDestination
+                    pendingDestination = null
+                    result.success(dest)
+                } else {
+                    result.notImplemented()
+                }
+            }
+        }
         reminderScheduler = ReminderScheduler(applicationContext).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/reminders")
                 .setMethodCallHandler(it)
@@ -36,6 +51,20 @@ class MainActivity : FlutterActivity() {
         settingsHandler = SystemSettingsHandler(this).also {
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cn.edu.buaa.ginkgo/system")
                 .setMethodCallHandler(it)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val destination = intent.getStringExtra("ginkgo_destination")
+        if (!destination.isNullOrEmpty()) {
+            val channel = navigationChannel
+            if (channel != null) {
+                channel.invokeMethod("openDestination", destination)
+            } else {
+                pendingDestination = destination
+            }
         }
     }
 
@@ -68,6 +97,9 @@ class MainActivity : FlutterActivity() {
             Log.e("Ginkgo", "credential vault initialization failed")
         }
         super.onCreate(savedInstanceState)
+        intent?.getStringExtra("ginkgo_destination")?.takeIf { it.isNotEmpty() }?.let {
+            pendingDestination = it
+        }
     }
 
     override fun onStart() {

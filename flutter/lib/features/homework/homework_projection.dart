@@ -170,10 +170,76 @@ String homeworkCompactDeadline(String? dueAt, [DateTime? beijingNow]) {
   return '$weekday $clock 截止 · $remaining';
 }
 
+/// Crisp short countdown label for a status pill (e.g. "剩 35 天", "仅剩 6 小时",
+/// "今天截止", "已超期 2 天").
+String homeworkCountdownBadge(String? dueAt, [DateTime? beijingNow]) {
+  final text = dueAt?.trim() ?? '';
+  if (text.isEmpty) return '截止待确认';
+  final now = beijingNow ?? todaySchoolNow(DateTime.now());
+  final status = classifyHomeworkDeadline(text, now);
+  if (status == HomeworkDeadlineStatus.invalid ||
+      status == HomeworkDeadlineStatus.undated) {
+    return '时间待确认';
+  }
+  final dateOnly = todayDate(text);
+  if (dateOnly != null) {
+    final bound = dateOnly.add(const Duration(days: 1));
+    if (status == HomeworkDeadlineStatus.overdue) {
+      return '已超期 ${now.difference(bound).inDays + 1} 天';
+    }
+    final diff = bound.difference(now);
+    if (diff.inDays > 0) return '剩 ${diff.inDays} 天';
+    return '今天截止';
+  }
+  final instant = parseSchoolTimestamp(text);
+  if (instant == null) return '时间待确认';
+  if (status == HomeworkDeadlineStatus.overdue) {
+    final diff = now.difference(instant);
+    if (diff.inDays > 0) return '已超期 ${diff.inDays} 天';
+    if (diff.inHours > 0) return '已超期 ${diff.inHours} 小时';
+    return '刚截止';
+  }
+  final diff = instant.difference(now);
+  final days = diff.inDays;
+  final hours = diff.inHours % 24;
+  if (days >= 7) return '剩 $days 天';
+  if (days > 0) return hours > 0 ? '剩 $days天$hours时' : '剩 $days 天';
+  if (hours > 0) return '仅剩 $hours 小时';
+  return '仅剩 ${diff.inMinutes.clamp(1, 60)} 分钟';
+}
+
+/// Concise clock/date deadline string paired next to [homeworkCountdownBadge].
+String? homeworkDueSummary(String? dueAt, [DateTime? beijingNow]) {
+  final text = dueAt?.trim() ?? '';
+  if (text.isEmpty) return null;
+  final now = beijingNow ?? todaySchoolNow(DateTime.now());
+  final status = classifyHomeworkDeadline(text, now);
+  if (status == HomeworkDeadlineStatus.invalid ||
+      status == HomeworkDeadlineStatus.undated) {
+    return null;
+  }
+  final dateOnly = todayDate(text);
+  if (dateOnly != null) {
+    return '${dateOnly.month}月${dateOnly.day}日截止';
+  }
+  final instant = parseSchoolTimestamp(text);
+  if (instant == null) return null;
+  if (instant.hour == 0 && instant.minute == 0) {
+    final prev = instant.subtract(const Duration(days: 1));
+    final weekday = schoolWeekdays[prev.weekday - 1];
+    return '${prev.month}月${prev.day}日 $weekday晚 23:59';
+  }
+  final weekday = schoolWeekdays[instant.weekday - 1];
+  final clock =
+      '${instant.hour.toString().padLeft(2, '0')}:${instant.minute.toString().padLeft(2, '0')}';
+  return '${instant.month}月${instant.day}日 $weekday $clock';
+}
+
 /// Color for the deadline status:
 /// - Overdue -> statusDanger (red)
 /// - Urgent (< 24 hours) -> statusDanger (red/alert)
-/// - Pending / Active (>= 24 hours) -> statusPending (warm amber)
+/// - Soon (1–7 days) -> statusPending (warm amber)
+/// - Calm (> 7 days) -> accent (calm brand green)
 /// - Invalid / Undated -> statusUncertain (gray)
 CupertinoDynamicColor homeworkDeadlineTint(
   String? dueAt, [
@@ -194,8 +260,10 @@ CupertinoDynamicColor homeworkDeadlineTint(
   }
 
   final effectiveDue = todayDue(text);
-  if (effectiveDue != null && effectiveDue.difference(now).inHours < 24) {
-    return AppleDesign.statusDanger;
+  if (effectiveDue != null) {
+    final remainingHours = effectiveDue.difference(now).inHours;
+    if (remainingHours < 24) return AppleDesign.statusDanger;
+    if (remainingHours >= 24 * 7) return AppleDesign.accent;
   }
 
   return AppleDesign.statusPending;

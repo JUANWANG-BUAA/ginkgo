@@ -24,6 +24,8 @@ class UpdateGate {
 
   static const manifestUrl =
       'https://juanwang-buaa.github.io/ginkgo/update-gate.json';
+  static const mirrorManifestUrl =
+      'https://gh-proxy.com/https://juanwang-buaa.github.io/ginkgo/update-gate.json';
   static const defaultReleasesUrl =
       'https://github.com/JUANWANG-BUAA/ginkgo/releases';
 
@@ -74,20 +76,26 @@ class UpdateGate {
     HttpClient? client,
     Duration timeout = const Duration(milliseconds: 1800),
   }) async {
-    final httpClient = client ?? (HttpClient()..connectionTimeout = timeout);
-    try {
-      return await (() async {
-        final request = await httpClient.getUrl(Uri.parse(manifestUrl));
-        final response = await request.close();
-        if (response.statusCode != HttpStatus.ok) return null;
-        final body = await response.transform(utf8.decoder).join();
-        return parse(body);
-      })().timeout(timeout);
-    } catch (_) {
-      return null;
-    } finally {
-      if (client == null) httpClient.close(force: true);
+    Future<UpdateGate?> fetchOne(String url, Duration budget) async {
+      final httpClient = client ?? (HttpClient()..connectionTimeout = budget);
+      try {
+        return await (() async {
+          final request = await httpClient.getUrl(Uri.parse(url));
+          final response = await request.close();
+          if (response.statusCode != HttpStatus.ok) return null;
+          final body = await response.transform(utf8.decoder).join();
+          return parse(body);
+        })().timeout(budget);
+      } catch (_) {
+        return null;
+      } finally {
+        if (client == null) httpClient.close(force: true);
+      }
     }
+
+    final primary = await fetchOne(manifestUrl, timeout);
+    if (primary != null || client != null) return primary;
+    return fetchOne(mirrorManifestUrl, timeout);
   }
 
   bool blocks(int buildNumber) => buildNumber < minBuild;

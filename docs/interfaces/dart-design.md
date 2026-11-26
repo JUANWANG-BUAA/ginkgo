@@ -10,6 +10,7 @@ token 层与视觉常量。
 - [design/apple_design.dart](#designappledesigndart) (1)
 - [design/ginkgo_theme.dart](#designginkgothemedart) (1)
 - [design/tokens/colors.dart](#designtokenscolorsdart) (1)
+- [design/tokens/components.dart](#designtokenscomponentsdart) (4)
 - [design/tokens/elevation.dart](#designtokenselevationdart) (1)
 - [design/tokens/layout.dart](#designtokenslayoutdart) (1)
 - [design/tokens/motion.dart](#designtokensmotiondart) (1)
@@ -62,24 +63,65 @@ token 层与视觉常量。
 
 - `abstract final class GinkgoColors` — Semantic colors for Ginkgo across light and dark brightness modes.
   <sub>class · design/tokens/colors.dart:5</sub>
-    - `static const accent = CupertinoDynamicColor.withBrightness( color: Color(0xff189840), darkColor: Color(0xff47bd6b), );`  <sub>:7</sub>
-    - `static const accentSubtle = CupertinoDynamicColor.withBrightness( color: Color(0x1a189840), darkColor: Color(0x2447bd6b), );`  <sub>:12</sub>
-    - `static const secondaryGroupedBackground = CupertinoColors.secondarySystemGroupedBackground;`  <sub>:18</sub>
-    - `static const tertiarySystemFill = CupertinoColors.tertiarySystemFill;`  <sub>:20</sub>
-    - `static const separator = CupertinoColors.separator;`  <sub>:23</sub>
-    - `static const label = CupertinoColors.label;`  <sub>:26</sub>
-    - `static const secondaryLabel = CupertinoColors.secondaryLabel;`  <sub>:27</sub>
-    - `static const tertiaryLabel = CupertinoColors.tertiaryLabel;`  <sub>:28</sub>
-    - `static const statusSuccess = CupertinoDynamicColor.withBrightness( color: Color(0xff125a2d), darkColor: Color(0xff72d991), );`  <sub>:32</sub>
-    - `static const statusPending = CupertinoDynamicColor.withBrightness( color: Color(0xff713900), darkColor: Color(0xffffbd70), );`  <sub>:37</sub>
-    - `static const statusDanger = CupertinoDynamicColor.withBrightness( color: Color(0xff982020), darkColor: Color(0xffffaaa4), );`  <sub>:42</sub>
-    - `static const statusUncertain = CupertinoDynamicColor.withBrightness( color: Color(0xff4a4f58), darkColor: Color(0xffc4c8d0), );`  <sub>:47</sub>
-    - `static const statusInactive = statusUncertain;`  <sub>:52</sub>
-    - `static const resourceBlue = CupertinoDynamicColor.withBrightness( color: Color(0xff0066cc), darkColor: Color(0xff69adff), );`  <sub>:55</sub>
-    - `static const resourcePurple = CupertinoDynamicColor.withBrightness( color: Color(0xff7446b8), darkColor: Color(0xffcfadff), );`  <sub>:60</sub>
-    - `static const resourceTeal = CupertinoDynamicColor.withBrightness( color: Color(0xff08777c), darkColor: Color(0xff66d9df), );`  <sub>:65</sub>
-    - `static const connectionOnline = Color(0xff34c759);`  <sub>:70</sub>
-    - `static const connectionOffline = CupertinoColors.systemOrange;`  <sub>:71</sub>
+    - `static const accent = CupertinoDynamicColor.withBrightness( color: Color(0xff15803d), darkColor: Color(0xff47bd6b), );`  <sub>:8</sub>
+    - `static const accentSubtle = CupertinoDynamicColor.withBrightness( color: Color(0x1a15803d), darkColor: Color(0x2447bd6b), );`  <sub>:13</sub>
+    - `static const secondaryGroupedBackground = CupertinoColors.secondarySystemGroupedBackground;`  <sub>:19</sub>
+    - `static const tertiarySystemFill = CupertinoColors.tertiarySystemFill;`  <sub>:21</sub>
+    - `static const separator = CupertinoColors.separator;`  <sub>:24</sub>
+    - `static const label = CupertinoColors.label;`  <sub>:27</sub>
+    - `static const secondaryLabel = CupertinoColors.secondaryLabel;`  <sub>:28</sub>
+    - `static const tertiaryLabel = CupertinoColors.tertiaryLabel;`  <sub>:29</sub>
+    - `static const statusSuccess = CupertinoDynamicColor.withBrightness( color: Color(0xff125a2d), darkColor: Color(0xff72d991), );`  <sub>:33</sub>
+    - `static const statusPending = CupertinoDynamicColor.withBrightness( color: Color(0xff713900), darkColor: Color(0xffffbd70), );`  <sub>:38</sub>
+    - `static const statusDanger = CupertinoDynamicColor.withBrightness( color: Color(0xff982020), darkColor: Color(0xffffaaa4), );`  <sub>:43</sub>
+    - `static const statusUncertain = CupertinoDynamicColor.withBrightness( color: Color(0xff4a4f58), darkColor: Color(0xffc4c8d0), );`  <sub>:48</sub>
+    - `static const statusInactive = statusUncertain;`  <sub>:53</sub>
+    - `static const resourceBlue = CupertinoDynamicColor.withBrightness( color: Color(0xff0066cc), darkColor: Color(0xff69adff), );`  <sub>:56</sub>
+    - `static const resourcePurple = CupertinoDynamicColor.withBrightness( color: Color(0xff7446b8), darkColor: Color(0xffcfadff), );`  <sub>:61</sub>
+    - `static const resourceTeal = CupertinoDynamicColor.withBrightness( color: Color(0xff08777c), darkColor: Color(0xff66d9df), );`  <sub>:66</sub>
+    - `static const connectionOnline = Color(0xff34c759);`  <sub>:71</sub>
+    - `static const connectionOffline = CupertinoColors.systemOrange;`  <sub>:72</sub>
+
+## design/tokens/components.dart
+
+- `abstract final class GinkgoSurfaceTokens` — Semantic surface, border, and depth tokens shared by every card and grouped
+  <sub>class · design/tokens/components.dart:12</sub>
+    - `static const double borderWidth = GinkgoSpacing.hairline;`  <sub>:13</sub>
+    - `static const double accentStripeWidth = 3.5;`  <sub>:14</sub>
+    - `static const double accentStripeRadius = 2.0;`  <sub>:15</sub>
+    - `static const double timelineWidth = 64.0;`  <sub>:16</sub>
+    - `static double cardRadius(BuildContext context) => …`  <sub>:18</sub>
+    - `static const double innerCardRadius = GinkgoRadii.panel;`  <sub>:21</sub>
+    - `static Color dividerColor(BuildContext context) {…}`  <sub>:23</sub>
+    - `static Color borderColor( BuildContext context, { Color? accent, bool emphasized = false, }) {…}`  <sub>:30</sub>
+    - `static Color surfaceFill( BuildContext context, { Color? accent, bool tinted = false, }) {…}`  <sub>:46</sub>
+    - `static List<BoxShadow>? cardShadow( BuildContext context, { Color? accent, bool elevated = true, }) {…}`  <sub>:60</sub>
+    - `static BoxDecoration cardDecoration( BuildContext context, { double? radius, Color? accent, bool tinted = false, bool emphasized = false, bool elevated = true, }) => …`  <sub>:79</sub>
+- `abstract final class GinkgoIconTokens` — Canonical icon container tiers so icons across headers, sections, list rows,
+  <sub>class · design/tokens/components.dart:99</sub>
+    - `static const double sm = 26.0;`  <sub>:100</sub>
+    - `static const double md = 36.0;`  <sub>:101</sub>
+    - `static const double lg = 44.0;`  <sub>:102</sub>
+    - `static const double glyphXs = 12.0;`  <sub>:104</sub>
+    - `static const double glyphSm = 14.0;`  <sub>:105</sub>
+    - `static const double glyphMd = 18.0;`  <sub>:106</sub>
+    - `static const double glyphLg = 22.0;`  <sub>:107</sub>
+    - `static const double chevron = 14.0;`  <sub>:108</sub>
+    - `static double tileRadius(double size) {…}`  <sub>:110</sub>
+- `abstract final class GinkgoBadgeTokens` — Unified pill / status badge tokens: capsule shape, calibrated tint wash,
+  <sub>class · design/tokens/components.dart:119</sub>
+    - `static const double radius = GinkgoRadii.pill;`  <sub>:120</sub>
+    - `static double fillAlpha(bool dark) => …`  <sub>:122</sub>
+    - `static double borderAlpha(bool dark) => …`  <sub>:123</sub>
+- `abstract final class GinkgoButtonTokens` — Unified action button & interactive chip tokens.
+  <sub>class · design/tokens/components.dart:127</sub>
+    - `static const Size minTarget = Size(48, 48);`  <sub>:128</sub>
+    - `static const double chipRadius = GinkgoRadii.pill;`  <sub>:129</sub>
+    - `static const double actionRadius = GinkgoRadii.compact;`  <sub>:130</sub>
+    - `static const EdgeInsets paddingCompact = EdgeInsets.symmetric( horizontal: GinkgoSpacing.md, vertical: GinkgoSpacing.sm, );`  <sub>:132</sub>
+    - `static const EdgeInsets paddingStandard = EdgeInsets.symmetric( horizontal: GinkgoSpacing.base, vertical: GinkgoSpacing.md, );`  <sub>:136</sub>
+    - `static double tintedFillAlpha(bool dark, {bool selected = false}) => …`  <sub>:141</sub>
+    - `static double subtleFillAlpha(bool dark, {bool selected = false}) => …`  <sub>:145</sub>
 
 ## design/tokens/elevation.dart
 

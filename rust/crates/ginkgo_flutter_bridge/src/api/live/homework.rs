@@ -59,7 +59,7 @@ pub(super) fn homework_response(
                     score: item.score,
                 })
                 .collect(),
-            failure_detail: None,
+            failure_detail: outcome.failure.as_ref().and_then(|e| e.detail.clone()),
             failure: outcome.failure.map(|e| e.code.into()),
         },
         Err(error) => HomeworkResponse {
@@ -68,7 +68,7 @@ pub(super) fn homework_response(
             term_name: String::new(),
             term_code: String::new(),
             items: vec![],
-            failure_detail: None,
+            failure_detail: error.detail,
             failure: Some(error.code.into()),
         },
     }

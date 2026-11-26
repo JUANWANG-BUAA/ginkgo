@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
+import 'package:ginkgo_mirror/application/session_memory_cache.dart';
 import 'package:ginkgo_mirror/features/library/library_loans_page.dart';
 import 'package:ginkgo_mirror/infrastructure/native_library_loans.dart';
 import 'package:ginkgo_mirror/src/rust/api/live.dart' as live;
@@ -63,15 +64,19 @@ Future<void> tapText(WidgetTester tester, String text) async {
 }
 
 Future<void> read(WidgetTester tester, {bool refresh = false}) async {
-  final button = find.byKey(
-    Key(refresh ? 'library-loans-read' : 'library-loans-first-read'),
-  );
+  if (!refresh) {
+    await tester.pumpAndSettle();
+    return;
+  }
+  final button = find.byKey(const Key('library-loans-read'));
   await tester.ensureVisible(button);
   await tester.tap(button);
   await tester.pumpAndSettle();
 }
 
 void main() {
+  setUp(SessionMemoryCache.shared.clearAll);
+
   test('a typed read keeps an empty page and a failure distinct', () {
     // No page at all is a failure, not an empty success.
     expect(
@@ -98,18 +103,11 @@ void main() {
       FailureCode.sessionExpired,
     );
   });
-  testWidgets('no automatic personal read; explicit success and pagination', (
+  testWidgets('auto-reads on open, supports pagination and warm session cache', (
     tester,
   ) async {
     final gateway = Loans();
     await tester.pumpWidget(app(gateway));
-    await tester.pumpAndSettle();
-    expect(gateway.calls, isEmpty);
-    expect(find.text('尚未读取借阅记录'), findsOneWidget);
-    expect(find.byKey(const Key('library-loans-first-read')), findsOneWidget);
-    expect(find.byKey(const Key('library-loans-read')), findsNothing);
-    expect(find.textContaining('暂无当前借阅'), findsNothing);
-    await tester.tap(find.byKey(const Key('library-loans-first-read')));
     await tester.pumpAndSettle();
     expect(find.text('合成书名'), findsOneWidget);
     expect(gateway.calls, [1]);
@@ -120,6 +118,13 @@ void main() {
     expect(gateway.calls, [1, 2]);
     expect(find.text('第二页合成书'), findsOneWidget);
     expect(find.text('合成书名'), findsNothing);
+
+    // Re-entering renders cached page 1 immediately without cold start.
+    await tester.pumpWidget(const CupertinoApp(home: SizedBox()));
+    await tester.pumpWidget(app(gateway));
+    await tester.pump();
+    expect(find.text('合成书名'), findsOneWidget);
+    expect(gateway.calls, [1, 2]);
   });
   testWidgets(
     'failure preserves old page; auth failure clears private records',
@@ -177,7 +182,6 @@ void main() {
         failure: FailureCode.serviceUnavailable,
       );
     await tester.pumpWidget(app(gateway));
-    await tester.tap(find.byKey(const Key('library-loans-first-read')));
     await tester.pumpAndSettle();
     expect(find.text('第 1 页借阅读取失败'), findsOneWidget);
     gateway.result = const LibraryLoansRead(data: page);
@@ -253,16 +257,16 @@ void main() {
   ) async {
     final gateway = Loans();
     await tester.pumpWidget(app(gateway, portal: Portal(unavailable: true)));
+    await tester.pumpAndSettle();
     await tapText(tester, '打开图书馆官网');
     expect(find.text('无法打开官网'), findsOneWidget);
     await tapText(tester, '知道了');
-    expect(gateway.calls, isEmpty);
-    expect(find.text('尚未读取借阅记录'), findsOneWidget);
+    expect(gateway.calls, [1]);
     expect(find.textContaining('借阅读取失败'), findsNothing);
 
     // A valid portal address with no launcher returns false instead of throwing.
     await tester.pumpWidget(app(gateway, portal: Portal()));
-    await read(tester);
+    await tester.pumpAndSettle();
     gateway.result = const LibraryLoansRead(
       failure: FailureCode.businessRejected,
     );
@@ -288,60 +292,27 @@ void main() {
 
     final first = Loans();
     await tester.pumpWidget(withLauncher(first));
-    await read(tester);
-    await tapText(tester, '打开图书馆官网');
-    final second = Loans();
-    await tester.pumpWidget(withLauncher(second));
-    launch.complete(false);
     await tester.pumpAndSettle();
+    await tapText(tester, '打开图书馆官网');
+    final second = Loans()..delayed = Completer<LibraryLoansRead>();
+    await tester.pumpWidget(withLauncher(second));
+    await tester.pump();
+    launch.complete(false);
+    await tester.pump();
     expect(find.text('无法打开官网'), findsNothing);
     expect(find.text('合成书名'), findsNothing);
-    expect(find.text('尚未读取借阅记录'), findsOneWidget);
-    expect(second.calls, isEmpty);
+    expect(second.calls, [1]);
   });
 
-  testWidgets(
-    'hidden page drops data and late read without automatically reloading',
-    (tester) async {
-      final gateway = Loans()..delayed = Completer<LibraryLoansRead>();
-      await tester.pumpWidget(app(gateway));
-      await tester.tap(find.byKey(const Key('library-loans-first-read')));
-      await tester.pump();
-      await tester.pumpWidget(app(gateway, enabled: false));
-      gateway.delayed!.complete(const LibraryLoansRead(data: page));
-      await tester.pumpAndSettle();
-      await tester.pumpWidget(app(gateway));
-      await tester.pumpAndSettle();
-      expect(find.text('合成书名'), findsNothing);
-      expect(gateway.calls, [1]);
-    },
-  );
   testWidgets('gateway change rejects late account response', (tester) async {
     final first = Loans()..delayed = Completer<LibraryLoansRead>();
+    final second = Loans()..delayed = Completer<LibraryLoansRead>();
     await tester.pumpWidget(app(first));
-    await tester.tap(find.byKey(const Key('library-loans-first-read')));
     await tester.pump();
-    await tester.pumpWidget(app(Loans()));
+    await tester.pumpWidget(app(second));
+    await tester.pump();
     first.delayed!.complete(const LibraryLoansRead(data: page));
-    await tester.pumpAndSettle();
-    expect(find.text('合成书名'), findsNothing);
-  });
-  testWidgets('backgrounding clears page memory', (tester) async {
-    final gateway = Loans();
-    await tester.pumpWidget(app(gateway));
-    await read(tester);
-    gateway.result = const LibraryLoansRead(
-      failure: FailureCode.networkUnreachable,
-    );
-    await tapText(tester, '下一页');
-    expect(find.text('重试第 2 页'), findsOneWidget);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     await tester.pump();
     expect(find.text('合成书名'), findsNothing);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pumpAndSettle();
-    expect(find.text('重试第 2 页'), findsNothing);
-    expect(find.text('尚未读取借阅记录'), findsOneWidget);
-    expect(gateway.calls, [1, 2]);
   });
 }

@@ -602,7 +602,7 @@ void main() {
   );
 
   testWidgets(
-    'overlapping timetable courses share the day without covering each other',
+    'overlapping timetable courses stack into a full-width card with conflict badge',
     (tester) async {
       const first = ScheduleCourse(
         id: 'overlap-a',
@@ -622,6 +622,7 @@ void main() {
         startTime: '08:55',
         endTime: '11:40',
       );
+      List<ScheduleCourse>? tappedCluster;
       await tester.pumpWidget(
         CupertinoApp(
           home: CupertinoPageScaffold(
@@ -629,20 +630,23 @@ void main() {
               child: ScheduleGrid(
                 courses: const [first, second],
                 onCourseTap: (_) {},
+                onConflictTap: (cluster) => tappedCluster = cluster,
               ),
             ),
           ),
         ),
       );
-      final a = tester.getRect(
-        find.byKey(const Key('schedule-grid-course-overlap-a')),
-      );
-      final b = tester.getRect(
-        find.byKey(const Key('schedule-grid-course-overlap-b')),
-      );
-      expect(a.right, lessThanOrEqualTo(b.left));
-      expect(a.width, greaterThan(30));
+      final card = find.byKey(const Key('schedule-grid-course-overlap-a'));
+      expect(card, findsOneWidget);
+      expect(tester.getRect(card).width, greaterThan(45));
+      expect(find.text('+1'), findsOneWidget);
       expect(find.text('08:00'), findsWidgets);
+      await tester.tap(card);
+      await tester.pump();
+      expect(tappedCluster?.map((c) => c.id).toList(), [
+        'overlap-a',
+        'overlap-b',
+      ]);
       expect(tester.takeException(), isNull);
     },
   );
@@ -836,13 +840,18 @@ void main() {
     await tester.tap(find.text('作业'));
     await tester.pumpAndSettle();
 
-    expect(find.text('待完成 1'), findsOneWidget);
+    expect(find.text('待提交 1'), findsOneWidget);
     expect(find.text('已提交 1'), findsOneWidget);
+    // Default view focuses on active pending work (`作业二`), not submitted items.
+    expect(find.text('作业二'), findsOneWidget);
+    expect(find.text('作业一'), findsNothing);
+    expect(find.text('教师 · 张三'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('homework-filter-all')));
+    await tester.pumpAndSettle();
     expect(find.text('作业一'), findsOneWidget);
     expect(find.text('作业二'), findsOneWidget);
-    expect(find.text('教师 · 张三'), findsNothing);
     expect(find.text('已提交 · 截止'), findsNothing);
-    expect(find.text('截止时间未提供'), findsOneWidget);
     expect(find.text('已提交'), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('homework-search')), '张三');
@@ -980,6 +989,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'library booking with active leave/checkout flags and slash path renders cleanly under current bookings',
+    (tester) async {
+      final service = ControlledService()
+        ..libraryBookingsResult = const LibraryBookingsResponse(
+          bookings: [
+            LibraryBooking(
+              id: 'active-live',
+              title: '学院路校区图书馆/四楼/四层中文借阅室东区',
+              areaName: '四层中文借阅室东区',
+              seatNumber: '',
+              day: '2026-11-26',
+              startTime: '10:06',
+              endTime: '23:00',
+              statusName: '',
+              actions: ['leave', 'checkout'],
+            ),
+          ],
+          fromCache: false,
+          stale: false,
+        );
+      tester.view.physicalSize = const Size(430, 1300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(GinkgoApp(service: service));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoTabBar),
+          matching: find.text('图书馆'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('四层中文借阅室东区'), findsOneWidget);
+      expect(find.text('学院路校区图书馆 · 四楼'), findsOneWidget);
+      expect(find.text('使用中'), findsOneWidget);
+      expect(find.text('暂离'), findsOneWidget);
+      expect(find.text('离馆'), findsOneWidget);
+      expect(find.text('待核实状态'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('library drills from venue to area, slot and seats', (
     tester,
   ) async {
@@ -1009,11 +1063,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('library-area-a1')));
     await tester.pumpAndSettle();
-    expect(find.text('时段'), findsOneWidget);
-    expect(find.text('08:00–10:00'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('library-slot-2026-10-20/t1')));
-    await tester.pumpAndSettle();
+    // Single-slot areas skip the redundant slot picker and open seats directly.
     expect(find.byKey(const Key('library-seat-s1')), findsOneWidget);
     expect(find.text('A-01'), findsOneWidget);
     expect(find.text('空闲'), findsOneWidget);

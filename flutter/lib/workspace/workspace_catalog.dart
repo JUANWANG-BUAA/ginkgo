@@ -77,6 +77,7 @@ final List<WorkspaceDestination> workspaceDestinations = List.unmodifiable([
     mobileTab: 1,
     build: (context) => SchedulePage(
       service: context.service,
+      fileActions: context.platformActions,
       onOpenCheckIn: () => context.openFeature('checkin'),
     ),
   ),

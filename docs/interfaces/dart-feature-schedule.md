@@ -24,17 +24,17 @@
 
 - `class CourseRangePage extends StatelessWidget`
   <sub>class · features/schedule/course_range_page.dart:8</sub>
-    - `const CourseRangePage({ super.key, required this.preferences, required this.system, required this.courses, });`  <sub>:9</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:19</sub>
+    - `const CourseRangePage({ super.key, required this.preferences, required this.system, required this.courses, this.courseRoles = const {}, });`  <sub>:9</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:21</sub>
 
 ## features/schedule/schedule_controls.dart
 
 - `class ScheduleControls extends StatelessWidget` — Compact iOS Calendar-style top header replacing stacked title & control cards.
   <sub>class · features/schedule/schedule_controls.dart:11</sub>
-    - `const ScheduleControls({ super.key, required this.snapshot, required this.terms, required this.weeks, required this.selectedTerm, required this.selectedWeek, required this.busy, required this.searchActive, required this.onSelectTerm, required this.onSelectWeek, required this.onToggleSearch, required this.onRefresh, });`  <sub>:12</sub>
-    - `final Future<void> Function(String termId) onSelectTerm;`  <sub>:33</sub>
-    - `final void Function(int week) onSelectWeek;`  <sub>:34</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:39</sub>
+    - `const ScheduleControls({ super.key, required this.snapshot, required this.terms, required this.weeks, required this.selectedTerm, required this.selectedWeek, required this.busy, required this.searchActive, required this.onSelectTerm, required this.onSelectWeek, required this.onToggleSearch, required this.onRefresh, this.onExportIcs, });`  <sub>:12</sub>
+    - `final Future<void> Function(String termId) onSelectTerm;`  <sub>:34</sub>
+    - `final void Function(int week) onSelectWeek;`  <sub>:35</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:41</sub>
 
 ## features/schedule/schedule_course_detail.dart
 
@@ -53,16 +53,16 @@
 ## features/schedule/schedule_grid.dart
 
 - `class ScheduleGrid extends StatefulWidget` — Full-week 7-column iOS timetable card.
-  <sub>class · features/schedule/schedule_grid.dart:19</sub>
-    - `const ScheduleGrid({ super.key, required this.courses, required this.onCourseTap, this.weekStart, });`  <sub>:20</sub>
-    - `State<ScheduleGrid> createState() => …`  <sub>:31</sub>
+  <sub>class · features/schedule/schedule_grid.dart:20</sub>
+    - `const ScheduleGrid({ super.key, required this.courses, required this.onCourseTap, this.onConflictTap, this.onSwipeWeek, this.weekStart, });`  <sub>:21</sub>
+    - `State<ScheduleGrid> createState() => …`  <sub>:36</sub>
 
 ## features/schedule/schedule_grid_course_block.dart
 
 - `class ScheduleGridCourseBlock extends StatelessWidget` — Pastel iOS timetable block with a saturated top accent bar and room tag.
   <sub>class · features/schedule/schedule_grid_course_block.dart:9</sub>
-    - `const ScheduleGridCourseBlock({ super.key, required this.course, required this.onTap, });`  <sub>:10</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:19</sub>
+    - `const ScheduleGridCourseBlock({ super.key, required this.course, required this.onTap, this.overlapCount = 1, });`  <sub>:10</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:21</sub>
 
 ## features/schedule/schedule_grid_layout.dart
 
@@ -73,9 +73,9 @@
 ## features/schedule/schedule_page.dart
 
 - `class SchedulePage extends StatefulWidget`
-  <sub>class · features/schedule/schedule_page.dart:17</sub>
-    - `const SchedulePage({super.key, required this.service, this.onOpenCheckIn});`  <sub>:18</sub>
-    - `State<SchedulePage> createState() => …`  <sub>:22</sub>
+  <sub>class · features/schedule/schedule_page.dart:23</sub>
+    - `const SchedulePage({ super.key, required this.service, this.fileActions = const PlatformActions(), this.onOpenCheckIn, });`  <sub>:24</sub>
+    - `State<SchedulePage> createState() => …`  <sub>:34</sub>
 
 ## features/schedule/schedule_style.dart
 
@@ -95,17 +95,17 @@
 ## features/schedule/schedule_views.dart
 
 - `class ScheduleCourseBrowser extends StatelessWidget` — Main schedule viewport: full 7-day iOS week timetable card by default,
-  <sub>class · features/schedule/schedule_views.dart:15</sub>
-    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.searchVisible, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, });`  <sub>:16</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:43</sub>
+  <sub>class · features/schedule/schedule_views.dart:16</sub>
+    - `const ScheduleCourseBrowser({ super.key, required this.snapshot, required this.courses, required this.days, required this.weeks, required this.mode, required this.search, required this.searchVisible, required this.selectedDay, required this.onSelectedDay, required this.onSearchChanged, required this.onCourseTap, this.onConflictTap, this.onSwipeWeek, });`  <sub>:17</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:48</sub>
 - `class ScheduleSemesterWeeks extends StatelessWidget` — The teaching weeks of the term, presented as an iOS grouped list.
-  <sub>class · features/schedule/schedule_views.dart:151</sub>
-    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:152</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:161</sub>
+  <sub>class · features/schedule/schedule_views.dart:179</sub>
+    - `const ScheduleSemesterWeeks({ super.key, required this.weeks, required this.onSelected, });`  <sub>:180</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:189</sub>
 - `class ScheduleExamList extends StatelessWidget` — The exam schedule of the term, styled after iOS Academic cards.
-  <sub>class · features/schedule/schedule_views.dart:222</sub>
-    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:223</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:227</sub>
+  <sub>class · features/schedule/schedule_views.dart:250</sub>
+    - `const ScheduleExamList({super.key, required this.exams});`  <sub>:251</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:255</sub>
 
 ## features/schedule/schedule_week_strip.dart
 

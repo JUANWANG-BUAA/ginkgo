@@ -88,8 +88,16 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
         val previous = JSONArray(context.getSharedPreferences("local-reminders", 0).getString("plans", "[]"))
         val retained = (0 until previous.length()).map { previous.getJSONObject(it) }
             .filter { it.getString("group") !in groups }
-            .map { plan -> mapOf("key" to plan.getString("key"), "group" to plan.getString("group"),
-                "at" to plan.getLong("at"), "expires" to plan.getLong("expires")) }
+            .map { plan ->
+                buildMap<String, Any> {
+                    put("key", plan.getString("key"))
+                    put("group", plan.getString("group"))
+                    put("at", plan.getLong("at"))
+                    put("expires", plan.getLong("expires"))
+                    plan.optString("title", "").takeIf { it.isNotEmpty() }?.let { put("title", it) }
+                    plan.optString("body", "").takeIf { it.isNotEmpty() }?.let { put("body", it) }
+                }
+            }
         val incoming = (plans as? List<*> ?: emptyList<Any>()).filter {
             (it as? Map<*, *>)?.get("group") in groups
         }
@@ -100,8 +108,14 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
     internal fun rearm() {
         val old = JSONArray(context.getSharedPreferences("local-reminders", 0).getString("plans", "[]"))
         replace((0 until old.length()).map { old.getJSONObject(it) }.map {
-            mapOf("key" to it.getString("key"), "group" to it.getString("group"),
-                "at" to it.getLong("at"), "expires" to it.getLong("expires"))
+            buildMap<String, Any> {
+                put("key", it.getString("key"))
+                put("group", it.getString("group"))
+                put("at", it.getLong("at"))
+                put("expires", it.getLong("expires"))
+                it.optString("title", "").takeIf { s -> s.isNotEmpty() }?.let { s -> put("title", s) }
+                it.optString("body", "").takeIf { s -> s.isNotEmpty() }?.let { s -> put("body", s) }
+            }
         })
     }
 
@@ -116,7 +130,10 @@ class ReminderScheduler(private val context: Context) : MethodChannel.MethodCall
             val at = (plan["at"] as? Number)?.toLong() ?: continue
             val expiry = (plan["expires"] as? Number)?.toLong() ?: continue
             if (!key.matches(Regex("[a-f0-9]{64}")) || group !in listOf("checkin", "homework", "course", "task") || expiry <= System.currentTimeMillis()) continue
-            next.put(JSONObject().put("key", key).put("group", group).put("at", at).put("expires", expiry))
+            val item = JSONObject().put("key", key).put("group", group).put("at", at).put("expires", expiry)
+            (plan["title"] as? String)?.trim()?.takeIf { it.isNotEmpty() }?.let { item.put("title", it.take(80)) }
+            (plan["body"] as? String)?.trim()?.takeIf { it.isNotEmpty() }?.let { item.put("body", it.take(140)) }
+            next.put(item)
         }
         val prefs = context.getSharedPreferences("local-reminders", 0)
         val previous = JSONArray(prefs.getString("plans", "[]"))
@@ -187,43 +204,69 @@ class ReminderReceiver : BroadcastReceiver() {
                 val plans = JSONArray(prefs.getString("plans", "[]") ?: "[]")
                 val plan = (0 until plans.length()).map { plans.getJSONObject(it) }.firstOrNull { it.optString("key") == key } ?: return@execute
                 val now = System.currentTimeMillis()
-                if (plan.getLong("at") > now || plan.getLong("expires") <= now) return@execute
+                val group = plan.getString("group")
+                val rawExpires = plan.getLong("expires")
+                // Allow a 15-minute grace window for course reminders so OEM Doze
+                // delays right around class start do not silently drop the alert.
+                val effectiveExpires = if (group == "course") rawExpires + 15L * 60_000L else rawExpires
+                if (plan.getLong("at") > now || effectiveExpires <= now) return@execute
                 val delivered = JSONObject(prefs.getString("delivered", "{}") ?: "{}")
                 if (delivered.has(key)) return@execute
                 val manager = context.getSystemService(NotificationManager::class.java)
                 if (!manager.areNotificationsEnabled()) return@execute
-                val group = plan.getString("group")
                 val channel = REMINDER_CHANNEL_ID
                 if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(
                     NotificationChannel(channel, "校园事项提醒", NotificationManager.IMPORTANCE_DEFAULT))
                 if (Build.VERSION.SDK_INT >= 26 &&
                     manager.getNotificationChannel(channel)?.importance == NotificationManager.IMPORTANCE_NONE) return@execute
-                val open = PendingIntent.getActivity(context, 0,
+                val destination = when (group) {
+                    "checkin" -> "checkin"
+                    "course" -> "schedule"
+                    "task" -> "tasks"
+                    else -> "homework"
+                }
+                val open = PendingIntent.getActivity(context, destination.hashCode(),
                     Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        putExtra("ginkgo_destination", destination)
                     }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                val builder = if (Build.VERSION.SDK_INT >= 26) {
+                val genericTitle = when (group) {
+                    "checkin" -> "签到已开放"
+                    "course" -> "课程即将开始"
+                    "task" -> "待办临近截止"
+                    else -> "作业临近截止"
+                }
+                val genericBody = when (group) {
+                    "checkin" -> "课程签到窗口已开放，点击进入 Ginkgo 核对并手动签到。"
+                    "course" -> "有课程即将开始，点击进入 Ginkgo 查看时间与地点。"
+                    "task" -> "有未完成待办进入截止提醒期，点击查看。"
+                    else -> "有未完成作业进入截止提醒期，点击查看。"
+                }
+                val detailTitle = plan.optString("title", "").takeIf { it.isNotEmpty() } ?: genericTitle
+                val detailBody = plan.optString("body", "").takeIf { it.isNotEmpty() } ?: genericBody
+                fun newBuilder(): Notification.Builder = if (Build.VERSION.SDK_INT >= 26) {
                     Notification.Builder(context, channel)
                 } else {
                     @Suppress("DEPRECATION")
                     Notification.Builder(context)
                 }
-                val notification = builder.setSmallIcon(R.drawable.ic_reminder)
-                    .setContentTitle(when (group) {
-                        "checkin" -> "签到已开放"
-                        "course" -> "课程即将开始"
-                        "task" -> "待办临近截止"
-                        else -> "作业临近截止"
-                    })
-                    .setContentText(when (group) {
-                        "checkin" -> "课程签到窗口已开放，请进入 Ginkgo 核对并手动签到。"
-                        "course" -> "有课程即将开始，请进入 Ginkgo 查看时间与地点。"
-                        "task" -> "有未完成待办进入截止提醒期，请进入 Ginkgo 查看。"
-                        else -> "有未完成作业进入截止提醒期，请进入 Ginkgo 查看。"
-                    })
-                    .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true).build()
+                val publicVersion = newBuilder()
+                    .setSmallIcon(R.drawable.ic_reminder)
+                    .setContentTitle(genericTitle)
+                    .setContentText(genericBody)
+                    .setAutoCancel(true)
+                    .build()
+                val notification = newBuilder()
+                    .setSmallIcon(R.drawable.ic_reminder)
+                    .setContentTitle(detailTitle)
+                    .setContentText(detailBody)
+                    .setVisibility(Notification.VISIBILITY_PRIVATE)
+                    .setPublicVersion(publicVersion)
+                    .setContentIntent(open)
+                    .setAutoCancel(true)
+                    .build()
                 // Mark before posting: repeated broadcasts/rescheduling must not notify twice.
-                delivered.put(key, plan.getLong("expires"))
+                delivered.put(key, effectiveExpires)
                 check(prefs.edit().putString("delivered", delivered.toString()).commit()) {
                     "Could not persist delivered reminder"
                 }

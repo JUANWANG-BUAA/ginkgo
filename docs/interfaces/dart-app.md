@@ -17,12 +17,12 @@ CupertinoApp 组合与主题桥接。
 ## main.dart
 
 - `Future<void> main() async {…}`
-  <sub>function · main.dart:37</sub>
+  <sub>function · main.dart:42</sub>
 - `class GinkgoRoot extends StatefulWidget`
-  <sub>class · main.dart:88</sub>
-    - `const GinkgoRoot({ super.key, this.liveService = const NativeMirrorService(), this.demoService = const DemoMirrorService(), this.preferences, this.loadUpdateGate, this.startupUpdates, this.challengeGateway, });`  <sub>:89</sub>
-    - `final Future<UpdateGate?> Function()? loadUpdateGate;` — 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。  <sub>:107</sub>
-    - `State<GinkgoRoot> createState() => …`  <sub>:109</sub>
+  <sub>class · main.dart:101</sub>
+    - `const GinkgoRoot({ super.key, this.liveService = const NativeMirrorService(), this.demoService = const DemoMirrorService(), this.preferences, this.initialSessionHint, this.loadUpdateGate, this.startupUpdates, this.challengeGateway, });`  <sub>:102</sub>
+    - `final Future<UpdateGate?> Function()? loadUpdateGate;` — 启动时读取最低版本清单；测试与离线场景传 null 即跳过门禁。  <sub>:122</sub>
+    - `State<GinkgoRoot> createState() => …`  <sub>:124</sub>
 
 ## startup_page.dart
 

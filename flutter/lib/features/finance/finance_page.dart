@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ginkgo_mirror/application/failure_code.dart';
 import 'package:ginkgo_mirror/application/finance.dart';
+import 'package:ginkgo_mirror/application/session_memory_cache.dart';
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/ginkgo_visuals.dart';
@@ -19,49 +24,55 @@ class FinancePage extends StatefulWidget {
   State<FinancePage> createState() => _FinancePageState();
 }
 
-class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
+class _FinancePageState extends State<FinancePage> {
   FinanceIncomeReport? _data;
   FailureCode? _failure;
   bool _busy = false;
-  bool _showAmounts = false;
+  bool _showAmounts = true;
+  bool _prefLoaded = false;
   int _generation = 0;
 
-  void _clear() {
+  void _resetForGateway() {
     _generation++;
-    _data = null;
+    final gateway = widget.gateway;
+    _data = gateway == null
+        ? null
+        : SessionMemoryCache.shared.readFinance(gateway);
     _failure = null;
     _busy = false;
-    _showAmounts = false;
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    _resetForGateway();
+    if (widget.gateway != null && _data == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _data == null && !_busy) unawaited(_read());
+      });
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!TickerMode.valuesOf(context).enabled) _clear();
+    if (!_prefLoaded) {
+      _prefLoaded = true;
+      _showAmounts = AppPreferencesScope.of(context).revealSensitiveAmounts;
+    }
   }
 
   @override
   void didUpdateWidget(FinancePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.gateway, widget.gateway)) _clear();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed && mounted) setState(_clear);
-  }
-
-  @override
-  void dispose() {
-    _clear();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+    if (!identical(oldWidget.gateway, widget.gateway)) {
+      _resetForGateway();
+      if (widget.gateway != null && _data == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _data == null && !_busy) unawaited(_read());
+        });
+      }
+    }
   }
 
   Future<void> _read() async {
@@ -84,7 +95,7 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
       _failure = result.failure;
       if (result.failure == null && result.data != null) {
         _data = result.data;
-        _showAmounts = false;
+        SessionMemoryCache.shared.writeFinance(gateway, result.data!);
       } else if (result.failure == null) {
         _failure = FailureCode.changedResponse;
       }
@@ -150,17 +161,44 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
         middle: const Text('财务收入'),
         trailing: widget.gateway == null
             ? null
-            : CupertinoButton(
-                key: const Key('finance-read'),
-                padding: EdgeInsets.zero,
-                minimumSize: _toolbarTapSize,
-                onPressed: _busy ? null : _read,
-                child: _busy
-                    ? const CupertinoActivityIndicator(radius: 9)
-                    : const Icon(
-                        CupertinoIcons.refresh,
-                        semanticLabel: '查询财务收入',
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (data != null)
+                    CupertinoButton(
+                      key: const Key('finance-toggle'),
+                      padding: EdgeInsets.zero,
+                      minimumSize: _toolbarTapSize,
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        final next = !_showAmounts;
+                        setState(() => _showAmounts = next);
+                        unawaited(
+                          AppPreferencesScope.of(
+                            context,
+                          ).setRevealSensitiveAmounts(next),
+                        );
+                      },
+                      child: Icon(
+                        _showAmounts
+                            ? CupertinoIcons.eye_slash
+                            : CupertinoIcons.eye,
+                        semanticLabel: _showAmounts ? '隐藏收入金额' : '显示收入金额',
                       ),
+                    ),
+                  CupertinoButton(
+                    key: const Key('finance-read'),
+                    padding: EdgeInsets.zero,
+                    minimumSize: _toolbarTapSize,
+                    onPressed: _busy ? null : _read,
+                    child: _busy
+                        ? const CupertinoActivityIndicator(radius: 9)
+                        : const Icon(
+                            CupertinoIcons.refresh,
+                            semanticLabel: '查询财务收入',
+                          ),
+                  ),
+                ],
               ),
       ),
       child: SafeArea(
@@ -173,56 +211,27 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
               failure: failure,
               showAmounts: _showAmounts,
             ),
-            AppleSection(
-              header: const Text('隐私与遮挡'),
-              footer: Text(
-                data == null
-                    ? '按需只读查询；不落盘且剥离银行卡与证件号。'
-                    : '最近读取 ${schoolClockLabel(data.fetchedAt)}。',
+            if (_busy || failure != null)
+              AppleSection(
+                children: [
+                  if (_busy)
+                    SectionFeedback(
+                      key: const Key('finance-feedback'),
+                      loading: true,
+                      label: '正在查询财务收入记录',
+                      hasData: data != null,
+                    )
+                  else if (failure != null)
+                    SectionFeedback(
+                      key: const Key('finance-feedback'),
+                      loading: false,
+                      label: '财务收入',
+                      hasData: data != null,
+                      error: failureMessage(failure),
+                      onRetry: _read,
+                    ),
+                ],
               ),
-              children: [
-                AppleListTile(
-                  leading: const GinkgoIconTile(
-                    icon: CupertinoIcons.lock_shield,
-                    size: 34,
-                    iconSize: 18,
-                    color: GinkgoColors.accent,
-                  ),
-                  leadingSize: 34,
-                  title: Text(_showAmounts ? '金额当前已显示' : '金额默认遮挡'),
-                  subtitle: const Text('离开页面或进入后台后自动清除'),
-                  trailing: data == null
-                      ? null
-                      : CupertinoButton(
-                          key: const Key('finance-toggle'),
-                          padding: EdgeInsets.zero,
-                          minimumSize: _toolbarTapSize,
-                          onPressed: () =>
-                              setState(() => _showAmounts = !_showAmounts),
-                          child: Text(
-                            _showAmounts ? '隐藏' : '显示',
-                            semanticsLabel: _showAmounts ? '隐藏收入金额' : '显示收入金额',
-                          ),
-                        ),
-                ),
-                if (_busy)
-                  SectionFeedback(
-                    key: const Key('finance-feedback'),
-                    loading: true,
-                    label: '正在查询财务收入记录',
-                    hasData: data != null,
-                  )
-                else if (failure != null)
-                  SectionFeedback(
-                    key: const Key('finance-feedback'),
-                    loading: false,
-                    label: '财务收入',
-                    hasData: data != null,
-                    error: failureMessage(failure),
-                    onRetry: _read,
-                  ),
-              ],
-            ),
             if (widget.gateway == null)
               const AppleSection(
                 children: [
@@ -239,7 +248,7 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
                   AppleEmptyState(
                     key: const Key('finance-unqueried'),
                     title: '查询后在此显示',
-                    description: '按需读取当前账号发放记录，不在磁盘保存。',
+                    description: '点击下方按钮读取发放记录。',
                     icon: CupertinoIcons.money_yen_circle,
                     action: '读取收入记录',
                     onAction: _read,
@@ -253,7 +262,7 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
                   AppleEmptyState(
                     key: Key('finance-empty-confirmed'),
                     title: '暂无财务收入记录',
-                    description: '学校财务查询系统当前未返回录入记录。',
+                    description: '当前未返回录入记录。',
                     icon: CupertinoIcons.doc_text,
                   ),
                 ],
@@ -261,6 +270,7 @@ class _FinancePageState extends State<FinancePage> with WidgetsBindingObserver {
             else if (data != null)
               AppleSection(
                 header: Text('收入明细（共 ${data.entries.length} 笔）'),
+                footer: Text('更新于 ${schoolClockLabel(data.fetchedAt)}'),
                 children: [
                   for (final entry in data.entries)
                     AppleListTile(

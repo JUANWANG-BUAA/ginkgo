@@ -6,11 +6,23 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
         android:label="Ginkgo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <receiver android:name=".ReminderReceiver" android:exported="false" />
         <receiver android:name=".CheckinQrActionReceiver" android:exported="false" />
+        <receiver
+            android:name=".ScheduleWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_schedule_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/schedule_widget_info" />
+        </receiver>
         <receiver android:name=".ReminderRearmReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -49,6 +61,9 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

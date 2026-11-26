@@ -171,10 +171,16 @@ void main() {
       const LibrarySlotsResponse(
         slots: [
           LibrarySlot(
-            id: 'new',
+            id: 'new-1',
             day: '2026-10-20',
             start: '11:00',
             end: '12:00',
+          ),
+          LibrarySlot(
+            id: 'new-2',
+            day: '2026-10-20',
+            start: '13:00',
+            end: '15:00',
           ),
         ],
       ),

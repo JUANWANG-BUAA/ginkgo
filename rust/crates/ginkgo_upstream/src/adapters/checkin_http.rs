@@ -45,14 +45,21 @@ pub async fn resolve_login_name<T: HttpTransport>(
         }
         if (300..400).contains(&response.status) {
             let Some(location) = response.header("location") else {
-                return Err(AppError::changed());
+                return Err(AppError::with_detail(
+                    ErrorCode::ChangedResponse,
+                    "iclass_redirect_missing_loc",
+                ));
             };
-            let next = redirect::resolve_get(location, &response.final_url)?;
-            if hop == 7 {
-                return Err(AppError::new(ErrorCode::RedirectLimit));
+            match resolve_iclass_redirect(location, &response.final_url)? {
+                RedirectStep::LoginName(login_name) => return Ok(login_name),
+                RedirectStep::NextUrl(next) => {
+                    if hop == 7 {
+                        return Err(AppError::new(ErrorCode::RedirectLimit));
+                    }
+                    url = next;
+                    continue;
+                }
             }
-            url = next;
-            continue;
         }
         if response.status != 200 {
             return Err(AppError::unavailable());
@@ -62,7 +69,10 @@ pub async fn resolve_login_name<T: HttpTransport>(
         }
         // A 200 page without loginName means iclass is not handing out the
         // documented jump parameter any more.
-        return Err(AppError::changed());
+        return Err(AppError::with_detail(
+            ErrorCode::ChangedResponse,
+            "iclass_200_no_login_name",
+        ));
     }
     Err(AppError::new(ErrorCode::RedirectLimit))
 }
@@ -73,8 +83,9 @@ pub async fn app_login<T: HttpTransport>(
 ) -> Result<IClassSession, AppError> {
     let request = HttpRequest::get(app_login_url(login_name)?).header("Accept", "application/json");
     let response = session.send_with_fallback(request).await?;
-    classify_json(&response)?;
-    let value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
+    classify_json(&response, "iclass_app_login_html")?;
+    let value = serde_json::from_str(&response.body)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_app_login_json"))?;
     checkin::parse_app_login(&value)
 }
 
@@ -94,8 +105,9 @@ pub async fn course_schedule<T: HttpTransport>(
         .header("sessionId", &iclass.session_id)
         .header("Accept", "application/json");
     let response = session.send_with_fallback(request).await?;
-    classify_json(&response)?;
-    let value = serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
+    classify_json(&response, "iclass_schedule_html")?;
+    let value = serde_json::from_str(&response.body)
+        .map_err(|_| AppError::with_detail(ErrorCode::ChangedResponse, "iclass_schedule_json"))?;
     checkin::parse_course_schedule(&value)
 }
 
@@ -115,7 +127,7 @@ fn app_login_url(login_name: &str) -> Result<String, AppError> {
 
 /// Shared HTTP classification for the two JSON endpoints. Structure problems
 /// stay ChangedResponse; a school login page means the school session expired.
-fn classify_json(response: &HttpResponse) -> Result<(), AppError> {
+fn classify_json(response: &HttpResponse, html_tag: &'static str) -> Result<(), AppError> {
     if cas::is_login_redirect(&response.final_url, &response.body) {
         return Err(AppError::session_expired());
     }
@@ -135,17 +147,105 @@ fn classify_json(response: &HttpResponse) -> Result<(), AppError> {
         return Err(AppError::unavailable());
     }
     if response.body.trim_start().starts_with('<') {
-        return Err(AppError::changed());
+        return Err(AppError::with_detail(ErrorCode::ChangedResponse, html_tag));
     }
     Ok(())
 }
 
-fn is_gateway_login(response: &HttpResponse) -> bool {
-    url::Url::parse(&response.final_url).is_ok_and(|url| {
+enum RedirectStep {
+    LoginName(String),
+    NextUrl(String),
+}
+
+fn is_gateway_login_url(raw: &str) -> bool {
+    url::Url::parse(raw).is_ok_and(|url| {
         url.host_str()
             .is_some_and(|host| host.eq_ignore_ascii_case(webvpn::GATEWAY_HOST))
             && url.path().trim_end_matches('/').ends_with("/login")
     })
+}
+
+fn is_gateway_login(response: &HttpResponse) -> bool {
+    if is_gateway_login_url(&response.final_url) {
+        return true;
+    }
+    if matches!(response.status, 301 | 302 | 303 | 307 | 308) {
+        if let Some(location) = response.header("location") {
+            let trimmed = location.trim();
+            let joined = url::Url::parse(&response.final_url)
+                .and_then(|base| base.join(trimmed))
+                .ok();
+            if is_gateway_login_url(trimmed)
+                || joined.is_some_and(|u| is_gateway_login_url(u.as_str()))
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Resolve an iClass/SSO redirect hop. Extracts `loginName` directly from any
+/// trusted `iclass.buaa.edu.cn` redirect target without sending a plaintext
+/// HTTP request, and upgrades known `http://iclass.buaa.edu.cn(:8346)` or
+/// `http://sso.buaa.edu.cn/login` intermediate hops to HTTPS.
+fn resolve_iclass_redirect(location: &str, base: &str) -> Result<RedirectStep, AppError> {
+    let resolved = webvpn::resolve_redirect(location, base).ok_or_else(AppError::changed)?;
+    if is_gateway_login_url(&resolved) {
+        return Err(AppError::with_detail(
+            ErrorCode::AccessPolicyDenied,
+            "webvpn_login_required",
+        ));
+    }
+    redirect::reject_reported_error(&resolved)?;
+    let mut parsed = url::Url::parse(&resolved).map_err(|_| AppError::changed())?;
+    if !parsed.username().is_empty() || parsed.password().is_some() {
+        return Err(AppError::with_detail(
+            ErrorCode::ChangedResponse,
+            "insecure_redirect",
+        ));
+    }
+    let host = parsed.host_str().unwrap_or_default().to_ascii_lowercase();
+    if host == "iclass.buaa.edu.cn" && matches!(parsed.scheme(), "https" | "http") {
+        if let Some(login_name) = checkin::login_name_from_url(&resolved) {
+            return Ok(RedirectStep::LoginName(login_name));
+        }
+    }
+    let allowed = match parsed.scheme() {
+        "https" => match host.as_str() {
+            "sso.buaa.edu.cn" => parsed.port_or_known_default() == Some(443),
+            "iclass.buaa.edu.cn" => {
+                matches!(parsed.port_or_known_default(), Some(443 | 8346 | 8347))
+            }
+            _ => false,
+        },
+        "http" => match host.as_str() {
+            "sso.buaa.edu.cn" => {
+                parsed.path() == "/login" && parsed.port_or_known_default() == Some(80)
+            }
+            "iclass.buaa.edu.cn" => matches!(parsed.port_or_known_default(), Some(80 | 8346)),
+            _ => false,
+        },
+        _ => false,
+    };
+    if !allowed {
+        let tag = match parsed.scheme() {
+            "https" => "iclass_redirect_https_host",
+            "http" => "iclass_redirect_http_host",
+            _ => "iclass_redirect_scheme",
+        };
+        return Err(AppError::with_detail(ErrorCode::ChangedResponse, tag));
+    }
+    if parsed.scheme() == "http" {
+        let port = parsed.port();
+        parsed
+            .set_scheme("https")
+            .map_err(|()| AppError::changed())?;
+        if port == Some(80) {
+            parsed.set_port(None).map_err(|()| AppError::changed())?;
+        }
+    }
+    Ok(RedirectStep::NextUrl(parsed.into()))
 }
 
 pub const TIMESTAMP_URL: &str = "https://iclass.buaa.edu.cn:8347/app/common/get_timestamp.action";
@@ -158,7 +258,7 @@ pub async fn fetch_timestamp<T: HttpTransport>(session: &Session<T>) -> Result<S
     let response = session
         .send_with_fallback(HttpRequest::get(TIMESTAMP_URL).header("Accept", "application/json"))
         .await?;
-    classify_json(&response)?;
+    classify_json(&response, "iclass_timestamp_html")?;
     let value: serde_json::Value =
         serde_json::from_str(&response.body).map_err(|_| AppError::changed())?;
     match &value["timestamp"] {
@@ -445,6 +545,63 @@ mod tests {
                 .expect_err("non-numeric shifted")
                 .code,
             ErrorCode::ChangedResponse
+        );
+    }
+
+    #[tokio::test]
+    async fn resolve_login_name_handles_http_iclass_redirect_fragment_and_gateway_302() {
+        for location in [
+            "http://iclass.buaa.edu.cn:8346/?loginName=fixture-http#/MyCenter",
+            "http://iclass.buaa.edu.cn:8081/?loginName=fixture-http",
+            "https://iclass.buaa.edu.cn:8346/#/MyCenter?loginName=fixture-http",
+        ] {
+            let transport =
+                MockTransport::with_responses(vec![
+                    HttpResponse::new(302, ENTRY_URL, "").with_header("Location", location)
+                ]);
+            let session = Session::new(transport.clone());
+            assert_eq!(
+                resolve_login_name(&session).await.expect(location),
+                "fixture-http"
+            );
+            assert_eq!(transport.request_count(), 1);
+        }
+
+        let upgrade_transport = MockTransport::with_responses(vec![
+            HttpResponse::new(302, ENTRY_URL, "")
+                .with_header("Location", "http://iclass.buaa.edu.cn:8346/?step=2"),
+            HttpResponse::new(302, "https://iclass.buaa.edu.cn:8346/?step=2", "")
+                .with_header("Location", "/?loginName=upgraded-user"),
+        ]);
+        let session = Session::new(upgrade_transport.clone());
+        assert_eq!(
+            resolve_login_name(&session).await.expect("upgraded"),
+            "upgraded-user"
+        );
+        assert_eq!(
+            upgrade_transport.requests()[1].url,
+            "https://iclass.buaa.edu.cn:8346/?step=2"
+        );
+
+        let gateway_transport =
+            MockTransport::with_responses(vec![HttpResponse::new(302, ENTRY_URL, "")
+                .with_header("Location", "https://d.buaa.edu.cn/login")]);
+        let err = resolve_login_name(&Session::new(gateway_transport))
+            .await
+            .expect_err("gateway 302");
+        assert_eq!(err.code, ErrorCode::AccessPolicyDenied);
+        assert_eq!(err.detail.as_deref(), Some("webvpn_login_required"));
+
+        let evil_transport =
+            MockTransport::with_responses(vec![HttpResponse::new(302, ENTRY_URL, "")
+                .with_header("Location", "http://evil.example/?loginName=stolen")]);
+        assert_eq!(
+            resolve_login_name(&Session::new(evil_transport))
+                .await
+                .expect_err("foreign host")
+                .detail
+                .as_deref(),
+            Some("iclass_redirect_http_host")
         );
     }
 }

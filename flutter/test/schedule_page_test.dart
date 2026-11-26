@@ -120,7 +120,6 @@ void main() {
     await tester.tap(find.text('算法设计与分析'));
     await tester.pumpAndSettle();
     expect(find.text('尚未关联签到记录'), findsOneWidget);
-    expect(find.textContaining('当前无法可靠关联'), findsOneWidget);
     await tester.tap(find.text('打开签到列表'));
     expect(openedCheckIn, isTrue);
   });

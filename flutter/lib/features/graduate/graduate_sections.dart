@@ -139,17 +139,11 @@ class GraduateOverview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const FeatureIntro(
-          icon: CupertinoIcons.book_circle,
-          title: '培养进度',
-          description: '已认定、待考核与尚需学分分别呈现，按类别查看课程。',
-        ),
         AppleSection(
           header: const FeatureSectionTitle(
             '学分进度',
             icon: CupertinoIcons.chart_pie,
           ),
-          footer: const Text('仅统计学校已认定的方案学分，待考核学分单独列出。'),
           children: [
             if (summary.progress != null)
               GraduateCreditProgress(progress: summary.progress!),
@@ -171,7 +165,6 @@ class GraduateOverview extends StatelessWidget {
               '类别与课组',
               icon: CupertinoIcons.square_grid_2x2,
             ),
-            footer: const Text('各类可能包含同一课程，学分不可直接相加。展开查看学校要求和课程。'),
             children: [
               for (final section in sections.skip(1))
                 GraduateCategoryRow(

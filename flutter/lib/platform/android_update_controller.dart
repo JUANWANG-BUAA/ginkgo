@@ -10,9 +10,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:ginkgo_mirror/application/maintenance.dart';
 
 enum UpdateDownloadSource {
-  automatic('自动选择官方入口'),
+  automatic('自动选择（含国内镜像回退）'),
   github('GitHub 发布入口'),
-  api('GitHub API 入口');
+  api('GitHub API 入口'),
+  mirror('国内加速镜像（校验官方摘要）');
 
   const UpdateDownloadSource(this.label);
   final String label;
@@ -114,13 +115,16 @@ class AndroidUpdateController extends ChangeNotifier {
       if (await part.exists() && await part.length() > next.size) {
         await part.delete();
       }
+      final mirrorUrl = 'https://gh-proxy.com/${next.url}';
       final urls = switch (source) {
-        UpdateDownloadSource.automatic => [next.url, next.apiUrl],
+        UpdateDownloadSource.automatic => [next.url, next.apiUrl, mirrorUrl],
         UpdateDownloadSource.github => [next.url],
         UpdateDownloadSource.api => [next.apiUrl],
+        UpdateDownloadSource.mirror => [mirrorUrl],
       };
       var downloaded = false;
-      for (final url in urls) {
+      for (var i = 0; i < urls.length; i++) {
+        final url = urls[i];
         if (_pauseRequested) break;
         try {
           await _transfer(Uri.parse(url), part, next);
@@ -128,9 +132,8 @@ class AndroidUpdateController extends ChangeNotifier {
           break;
         } catch (_) {
           if (_pauseRequested) break;
-          message =
-              source == UpdateDownloadSource.automatic && url == urls.first
-              ? '正在尝试另一个 GitHub 官方入口…'
+          message = source == UpdateDownloadSource.automatic && i < urls.length - 1
+              ? (i == 0 ? '正在尝试另一个 GitHub 官方入口…' : '官方直连超时，正在尝试国内镜像（仍核验 SHA-256）…')
               : null;
           notifyListeners();
         }
@@ -177,6 +180,7 @@ class AndroidUpdateController extends ChangeNotifier {
             'github.com',
             'api.github.com',
             'release-assets.githubusercontent.com',
+            'gh-proxy.com',
           }.contains(uri.host)) ||
       (allowTestHttp && uri.scheme == 'http' && uri.host == '127.0.0.1');
 

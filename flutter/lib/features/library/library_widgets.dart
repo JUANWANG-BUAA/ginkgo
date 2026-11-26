@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:ginkgo_mirror/application/contracts.dart' show LibraryBooking;
 import 'package:ginkgo_mirror/design/apple_design.dart';
+import 'package:ginkgo_mirror/features/reservations/reservation_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
+import 'package:ginkgo_mirror/widgets/status_chip.dart';
 
 /// Library chrome shared by the venue / area / slot / seat / books pages.
 /// Every piece keeps the same visual language: one quiet inset group, one
@@ -139,7 +142,175 @@ IconData libraryActionIcon(String action) => switch (action) {
 /// The semantic tint of one booking action. Actions without a tint keep the
 /// theme accent.
 CupertinoDynamicColor? libraryActionTint(String action) => switch (action) {
-  'cancel' => AppleDesign.statusDanger,
+  'cancel' || 'checkout' => AppleDesign.statusDanger,
   'leave' => AppleDesign.statusPending,
   _ => null,
 };
+
+/// Clean, structured booking card for active or pending library seat records.
+///
+/// Splits long slash-separated room paths (`学院路校区图书馆/四楼/四层中文借阅室东区`)
+/// into a crisp primary room headline + subtle breadcrumb, pairs a compact
+/// status chip on top-right, and renders an even full-width action bar below a
+/// hairline divider instead of cramped trailing text or floating centered pills.
+class LibraryBookingCard extends StatelessWidget {
+  const LibraryBookingCard({
+    super.key,
+    required this.booking,
+    required this.statusLabel,
+    required this.statusTone,
+    required this.timeDetail,
+    required this.actionsDisabled,
+    required this.uncertainActions,
+    required this.onAction,
+  });
+
+  final LibraryBooking booking;
+  final String statusLabel;
+  final StatusTone statusTone;
+  final String timeDetail;
+  final bool actionsDisabled;
+  final Set<String> uncertainActions;
+  final ValueChanged<String> onAction;
+
+  (String, String?) _splitLocation(String rawTitle) {
+    final trimmed = rawTitle.trim();
+    if (trimmed.isEmpty) return ('图书馆预约', null);
+    final segments = trimmed
+        .split('/')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (segments.length <= 1) return (trimmed, null);
+    return (segments.last, segments.sublist(0, segments.length - 1).join(' · '));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (headline, breadcrumb) = _splitLocation(booking.title);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final separator = CupertinoColors.separator.resolveFrom(context);
+    final actions = booking.actions ?? const <String>[];
+    final chip = switch (statusTone) {
+      StatusTone.success => StatusChip.done(statusLabel, compact: true),
+      StatusTone.pending => StatusChip.pending(statusLabel, compact: true),
+      StatusTone.danger => StatusChip(
+        label: statusLabel,
+        icon: CupertinoIcons.exclamationmark_triangle_fill,
+        tone: StatusTone.danger,
+        compact: true,
+      ),
+      StatusTone.uncertain ||
+      StatusTone.neutral ||
+      StatusTone.accent => StatusChip.unknown(statusLabel, compact: true),
+    };
+
+    return Padding(
+      key: Key('library-booking-${booking.id}'),
+      padding: GinkgoSpacing.edgeInsetsCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (breadcrumb != null) ...[
+                      Text(
+                        breadcrumb,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GinkgoTypography.caption.copyWith(
+                          color: secondary,
+                        ),
+                      ),
+                      const SizedBox(height: GinkgoSpacing.xs),
+                    ],
+                    Text(
+                      headline,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GinkgoTypography.headline.copyWith(
+                        color: CupertinoColors.label.resolveFrom(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: GinkgoSpacing.sm),
+              chip,
+            ],
+          ),
+          if (timeDetail.isNotEmpty) ...[
+            const SizedBox(height: GinkgoSpacing.xs),
+            Row(
+              children: [
+                Icon(
+                  CupertinoIcons.clock,
+                  size: GinkgoSpacing.md,
+                  color: secondary,
+                ),
+                const SizedBox(width: GinkgoSpacing.xs),
+                Expanded(
+                  child: Text(
+                    timeDetail,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GinkgoTypography.footnote.copyWith(
+                      color: secondary,
+                      fontFeatures: GinkgoTypography.tabularDigits,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (actions.isNotEmpty) ...[
+            const SizedBox(height: GinkgoSpacing.sm),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: separator.withValues(alpha: 0.45),
+                    width: GinkgoSpacing.hairline,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: GinkgoSpacing.sm),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < actions.length; i++) ...[
+                      if (i > 0) const SizedBox(width: GinkgoSpacing.sm),
+                      Expanded(
+                        child: ReservationActionButton(
+                          buttonKey: Key(
+                            'library-action-${booking.id}-${actions[i]}',
+                          ),
+                          label: libraryActionLabel(actions[i]),
+                          icon: libraryActionIcon(actions[i]),
+                          compact: true,
+                          tint: libraryActionTint(actions[i]),
+                          onPressed:
+                              actionsDisabled ||
+                                  uncertainActions.contains(
+                                    '${booking.id}/${actions[i]}',
+                                  )
+                              ? null
+                              : () => onAction(actions[i]),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

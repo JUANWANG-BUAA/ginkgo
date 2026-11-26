@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:ginkgo_mirror/application/mirror_service.dart';
+import 'package:ginkgo_mirror/shared/app_preferences.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 import 'package:ginkgo_mirror/widgets/resource_meter.dart';
@@ -136,18 +139,28 @@ class _LibraryAreaPageState extends State<LibraryAreaPage> {
                           unit: '座',
                           onTap: busy || error != null
                               ? null
-                              : () => Navigator.of(context).push(
-                                  CupertinoPageRoute<void>(
-                                    builder: (_) => LibrarySlotPage(
-                                      service: widget.service,
-                                      area: area,
-                                      onReservationChanged:
-                                          widget.onReservationChanged,
-                                      onViewReservations:
-                                          widget.onViewReservations,
+                              : () {
+                                  unawaited(
+                                    AppPreferencesScope.of(
+                                      context,
+                                    ).setFavoriteLibraryArea(
+                                      area.id,
+                                      area.name,
                                     ),
-                                  ),
-                                ),
+                                  );
+                                  Navigator.of(context).push(
+                                    CupertinoPageRoute<void>(
+                                      builder: (_) => LibrarySlotPage(
+                                        service: widget.service,
+                                        area: area,
+                                        onReservationChanged:
+                                            widget.onReservationChanged,
+                                        onViewReservations:
+                                            widget.onViewReservations,
+                                      ),
+                                    ),
+                                  );
+                                },
                         ),
                   ],
                 ),

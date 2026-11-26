@@ -18,6 +18,7 @@
 - [widgets/diagnostic_hints.dart](#widgetsdiagnostichintsdart) (1)
 - [widgets/feature_intro.dart](#widgetsfeatureintrodart) (2)
 - [widgets/ginkgo_mark.dart](#widgetsginkgomarkdart) (1)
+- [widgets/ginkgo_primitives.dart](#widgetsginkgoprimitivesdart) (4)
 - [widgets/ginkgo_visuals.dart](#widgetsginkgovisualsdart) (2)
 - [widgets/liquid_vial_gauge.dart](#widgetsliquidvialgaugedart) (2)
 - [widgets/loading_widgets.dart](#widgetsloadingwidgetsdart) (5)
@@ -55,22 +56,22 @@
     - `const AcademicMetric({ super.key, required this.label, required this.value, this.prominent = false, });`  <sub>:103</sub>
     - `Widget build(BuildContext context) => …`  <sub>:112</sub>
 - `class AcademicMetricGrid extends StatelessWidget`
-  <sub>class · widgets/academic_widgets.dart:140</sub>
-    - `const AcademicMetricGrid({ super.key, required this.children, this.maxColumns, });`  <sub>:141</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:149</sub>
+  <sub>class · widgets/academic_widgets.dart:145</sub>
+    - `const AcademicMetricGrid({ super.key, required this.children, this.maxColumns, });`  <sub>:146</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:154</sub>
 
 ## widgets/apple_controls.dart
 
 - `class AppleToolbarButton extends StatelessWidget`
-  <sub>class · widgets/apple_controls.dart:149</sub>
-    - `const AppleToolbarButton({ super.key, required this.child, required this.onPressed, required this.label, this.busy = false, });`  <sub>:150</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:162</sub>
+  <sub>class · widgets/apple_controls.dart:150</sub>
+    - `const AppleToolbarButton({ super.key, required this.child, required this.onPressed, required this.label, this.busy = false, });`  <sub>:151</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:163</sub>
 - `class ApplePickerTile<T> extends StatelessWidget`
-  <sub>class · widgets/apple_controls.dart:235</sub>
-    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, this.useWheel = false, });`  <sub>:236</sub>
-    - `final String Function(T) label;`  <sub>:249</sub>
-    - `final void Function(T) onSelected;`  <sub>:250</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:254</sub>
+  <sub>class · widgets/apple_controls.dart:236</sub>
+    - `const ApplePickerTile({ super.key, required this.title, required this.value, required this.values, required this.label, required this.onSelected, this.enabled = true, this.useWheel = false, });`  <sub>:237</sub>
+    - `final String Function(T) label;`  <sub>:250</sub>
+    - `final void Function(T) onSelected;`  <sub>:251</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:255</sub>
 
 ## widgets/apple_navigation.dart
 
@@ -110,9 +111,9 @@
     - `const AppleSection({ super.key, required this.children, this.header, this.footer, this.animateSize = true, });`  <sub>:208</sub>
     - `Widget build(BuildContext context) => …`  <sub>:219</sub>
 - `class AppleListTile extends StatelessWidget`
-  <sub>class · widgets/apple_surfaces.dart:312</sub>
-    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:313</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:330</sub>
+  <sub>class · widgets/apple_surfaces.dart:299</sub>
+    - `const AppleListTile({ super.key, required this.title, this.subtitle, this.additionalInfo, this.leading, this.trailing, this.onTap, this.minimumHeight = AppleDesign.rowHeight, this.leadingSize = 30, });`  <sub>:300</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:317</sub>
 
 ## widgets/collection_toolbar.dart
 
@@ -169,6 +170,23 @@
     - `const GinkgoMark({ super.key, this.size = 96, this.color, this.progress = 1, this.veinColor, });`  <sub>:10</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:31</sub>
 
+## widgets/ginkgo_primitives.dart
+
+- `class GinkgoCard extends StatelessWidget` — Shared visual surface for standalone cards and grouped panels.
+  <sub>class · widgets/ginkgo_primitives.dart:8</sub>
+    - `const GinkgoCard({ super.key, required this.child, this.padding, this.margin, this.radius, this.accent, this.tinted = false, this.emphasized = false, this.elevated = true, this.onTap, });`  <sub>:9</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:33</sub>
+- `enum GinkgoButtonVariant { primary, tinted, subtle }` — Visual prominence levels for [GinkgoActionButton].
+  <sub>enum · widgets/ginkgo_primitives.dart:71</sub>
+- `class GinkgoActionButton extends StatelessWidget` — Token-driven action button and selectable filter chip with a guaranteed
+  <sub>class · widgets/ginkgo_primitives.dart:75</sub>
+    - `const GinkgoActionButton({ super.key, required this.label, required this.onPressed, this.icon, this.variant = GinkgoButtonVariant.tinted, this.tint, this.selected = false, this.compact = true, this.pill = false, });`  <sub>:76</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:98</sub>
+- `class GinkgoProgressiveRow extends StatelessWidget` — Layered progressive-disclosure row for actionable school items (assignments,
+  <sub>class · widgets/ginkgo_primitives.dart:204</sub>
+    - `const GinkgoProgressiveRow({ super.key, required this.title, this.subtitle, this.meta, this.badgeLabel, this.badgeIcon, this.extraBadges = const [], this.accent, this.emphasized = false, this.onTap, });`  <sub>:205</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:229</sub>
+
 ## widgets/ginkgo_visuals.dart
 
 - `class GinkgoIconTile extends StatelessWidget` — A rounded tinted base for a single glyph. The glyph follows text scaling
@@ -176,9 +194,9 @@
     - `const GinkgoIconTile({ super.key, required this.icon, this.size = 44, this.iconSize, this.selected = false, this.color, this.semanticLabel, });`  <sub>:8</sub>
     - `Widget build(BuildContext context) {…}`  <sub>:26</sub>
 - `class GinkgoBadge extends StatelessWidget` — A compact tinted label. The text always carries the meaning; color is only
-  <sub>class · widgets/ginkgo_visuals.dart:68</sub>
-    - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:69</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:83</sub>
+  <sub>class · widgets/ginkgo_visuals.dart:72</sub>
+    - `const GinkgoBadge({ super.key, required this.label, this.icon, this.color, this.compact = false, });`  <sub>:73</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:87</sub>
 
 ## widgets/liquid_vial_gauge.dart
 
@@ -313,13 +331,13 @@
 ## widgets/status_chip.dart
 
 - `enum StatusTone { neutral, accent, success, pending, danger, uncertain }` — The tone of a value or a status. Color only reinforces a word that is
-  <sub>enum · widgets/status_chip.dart:8</sub>
+  <sub>enum · widgets/status_chip.dart:9</sub>
 - `Color statusToneColor(BuildContext context, StatusTone tone) {…}`
-  <sub>function · widgets/status_chip.dart:10</sub>
+  <sub>function · widgets/status_chip.dart:11</sub>
 - `class StatusChip extends StatelessWidget` — A status is always three things: a word, an icon and a color. The word
-  <sub>class · widgets/status_chip.dart:32</sub>
-    - `const StatusChip({ super.key, required this.label, required this.icon, this.tone = StatusTone.neutral, this.compact = false, });`  <sub>:33</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:67</sub>
+  <sub>class · widgets/status_chip.dart:33</sub>
+    - `const StatusChip({ super.key, required this.label, required this.icon, this.tone = StatusTone.neutral, this.compact = false, });`  <sub>:34</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:68</sub>
 
 ## widgets/summary_strip.dart
 
@@ -388,14 +406,14 @@
 ## widgets/visual_section.dart
 
 - `class TodayVisualDivider extends StatelessWidget` — A quiet inset rule for rows nested inside a reveal animation.
-  <sub>class · widgets/visual_section.dart:7</sub>
-    - `const TodayVisualDivider({super.key});`  <sub>:8</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:11</sub>
+  <sub>class · widgets/visual_section.dart:8</sub>
+    - `const TodayVisualDivider({super.key});`  <sub>:9</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:12</sub>
 - `class TodayVisualSection extends StatelessWidget` — Shared structured section wrapper with secondary header and muted footer.
-  <sub>class · widgets/visual_section.dart:26</sub>
-    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:27</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:38</sub>
+  <sub>class · widgets/visual_section.dart:25</sub>
+    - `const TodayVisualSection({ super.key, required this.children, this.header, this.footer, });`  <sub>:26</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:37</sub>
 - `class TodaySectionHeader extends StatelessWidget` — A structured section header with theme icon, bold title, count capsule badge,
-  <sub>class · widgets/visual_section.dart:68</sub>
-    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:69</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:87</sub>
+  <sub>class · widgets/visual_section.dart:67</sub>
+    - `const TodaySectionHeader({ super.key, required this.title, this.icon, this.iconColor, this.badge, this.actionLabel, this.actionKey, this.onAction, });`  <sub>:68</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:88</sub>

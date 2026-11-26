@@ -80,16 +80,16 @@
 - `pub fn parse_app_login(value: &Value) -> Result<IClassSession, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:46</sub>
 - `pub fn parse_course_schedule(value: &Value) -> Result<Vec<CheckInCourse>, AppError> {…}` — Parse the day's course list. STATUS == "2" is upstream's documented
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:75</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:76</sub>
 - `pub fn login_name_from_url(url: &str) -> Option<String> {…}` — The only field borrowed from the SSO landing URL. It is used once for the
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:278</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:284</sub>
 - `pub fn summary(courses: &[CheckInCourse]) -> Value {…}` — Compact shape shared with the fixture contracts.
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:287</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:303</sub>
 - `pub struct DayInput`
-  <sub>struct · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:304</sub>
-    - `body: Value`  <sub>:305</sub>
+  <sub>struct · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:320</sub>
+    - `body: Value`  <sub>:321</sub>
 - `pub fn parse_sign_in(value: &Value) -> super::mutation::MutationOutcome {…}` — Match Apple STATUS + result.stuSignStatus confirmation, never assume HTTP 200.
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:433</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/checkin.rs:449</sub>
 
 ## classroom
 
@@ -145,12 +145,12 @@
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:17</sub>
 - `pub fn parse_page(value: Value) -> Result<HomeworkPage, AppError> {…}`
   <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:37</sub>
-- `pub fn apply_course_context(items: &mut [HomeworkItem], courses: &Value) -> Result<(), AppError> {…}` — Course context uses kcid/kcmc/skjs, matching SpocHomeworkClient.Course.
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:92</sub>
+- `pub fn apply_course_context(items: &mut [HomeworkItem], courses: &Value) -> Result<(), AppError> {…}` — Course context uses kcid/kcmc/skjs (and optional juese from /jxkj/queryKclb:
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:105</sub>
 - `pub fn content(value: &Value) -> Result<&Value, AppError> {…}` — SPOC envelope success is 200 (API.md §7.1), independent of other portals.
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:148</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:194</sub>
 - `pub fn parse_detail(value: &Value) -> Result<HomeworkDetail, AppError> {…}`
-  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:162</sub>
+  <sub>fn · rust/crates/ginkgo_upstream/src/codecs/homework.rs:210</sub>
 
 ## announcements
 

@@ -110,7 +110,6 @@ class LearningResourceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppleSection(
     header: const Text('课程资料'),
-    footer: const Text('只列当前目录的当前页；筛选不跨页。下载由你主动发起，不会批量保存。'),
     children: [
       if (path.isEmpty)
         Padding(

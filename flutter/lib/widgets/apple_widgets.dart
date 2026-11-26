@@ -4,6 +4,7 @@ export 'package:ginkgo_mirror/widgets/apple_controls.dart';
 export 'package:ginkgo_mirror/widgets/apple_navigation.dart';
 export 'package:ginkgo_mirror/widgets/apple_page_chrome.dart';
 export 'package:ginkgo_mirror/widgets/apple_surfaces.dart';
+export 'package:ginkgo_mirror/widgets/ginkgo_primitives.dart';
 export 'package:ginkgo_mirror/widgets/status_chip.dart';
 export 'package:ginkgo_mirror/widgets/summary_strip.dart';
 

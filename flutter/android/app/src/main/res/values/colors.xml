@@ -7,4 +7,9 @@
     <color name="launch_mark_stroke">#3D603D</color>
     <color name="launch_mark_fill">#3D603D</color>
     <color name="launch_mark_vein">#E5E4D8</color>
+    <color name="widget_surface">#F8F8F4</color>
+    <color name="widget_border">#D8DACD</color>
+    <color name="widget_primary_text">#1C1E1A</color>
+    <color name="widget_secondary_text">#5F645B</color>
+    <color name="widget_accent">#2F6E44</color>
 </resources>

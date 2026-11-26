@@ -7,13 +7,16 @@ import 'package:ginkgo_mirror/application/local_tasks.dart';
 import 'package:ginkgo_mirror/application/task_storage_scope.dart';
 import 'package:ginkgo_mirror/application/refresh_section.dart';
 import 'package:ginkgo_mirror/application/service_capabilities.dart';
-import 'package:ginkgo_mirror/design/tokens/spacing.dart';
+import 'package:ginkgo_mirror/design/apple_design.dart';
 import 'package:ginkgo_mirror/widgets/top_bounce_scroll_physics.dart';
+import 'package:ginkgo_mirror/features/homework/homework_projection.dart';
 import 'package:ginkgo_mirror/features/settings/network_diagnostics_page.dart';
+import 'package:ginkgo_mirror/shared/checkin_visibility.dart';
 import 'package:ginkgo_mirror/shared/course_visibility.dart';
 import 'package:ginkgo_mirror/application/mirror_service.dart';
 import 'package:ginkgo_mirror/application/platform_actions.dart';
 import 'package:ginkgo_mirror/shared/reminders.dart';
+import 'package:ginkgo_mirror/shared/school_timestamp.dart';
 import 'package:ginkgo_mirror/shared/today_time.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
@@ -64,6 +67,23 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   bool? _active;
   bool _internalRouteInactive = false;
   bool _coursesExpanded = false;
+  bool _captivePortal = false;
+  bool _examsVisible = false;
+  int? _weekNumber;
+  String? _lastActiveDate;
+
+  String get _headerDateLabel {
+    final base = schoolDateWeekdayLabel(_now);
+    final shortDate = base.startsWith('${_now.year}年')
+        ? base.substring('${_now.year}年'.length)
+        : base;
+    return _weekNumber == null ? shortDate : '$shortDate · 第 $_weekNumber 周';
+  }
+
+  String _dateKey(DateTime wall) =>
+      '${wall.year.toString().padLeft(4, '0')}-'
+      '${wall.month.toString().padLeft(2, '0')}-'
+      '${wall.day.toString().padLeft(2, '0')}';
 
   @override
   void didChangeDependencies() {
@@ -100,6 +120,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _lastActiveDate = _dateKey(_now);
     WidgetsBinding.instance.addObserver(this);
     _startClock();
     _createSection();
@@ -117,7 +138,18 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _startClock();
-      _changed();
+      final currentDay = _dateKey(_now);
+      final crossedMidnight =
+          (_lastActiveDate != null && _lastActiveDate != currentDay) ||
+          (data != null &&
+              data!.date.isNotEmpty &&
+              data!.date != currentDay);
+      _lastActiveDate = currentDay;
+      if (crossedMidnight && !busy) {
+        unawaited(load(force: true));
+      } else {
+        _changed();
+      }
     } else {
       _clock?.cancel();
     }
@@ -126,6 +158,8 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   void _createSection() {
     _generation++;
     _coursesExpanded = false;
+    _examsVisible = false;
+    _weekNumber = null;
     tasks = RefreshSection<TodayTasksSnapshot>()..addListener(_changed);
     courses = RefreshSection<TodayResponse>()..addListener(_changed);
     homework = RefreshSection<HomeworkResponse>()..addListener(_changed);
@@ -167,13 +201,48 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
   Future<void> load({bool force = false}) async {
     final generation = _generation;
     examRefreshToken++;
+    final today = DateTime.utc(_now.year, _now.month, _now.day);
+    final confirmedNoClassesToday =
+        data != null &&
+        courses.error == null &&
+        todayDate(data!.date) == today &&
+        data!.courses.isEmpty;
+    final eagerCheckIn =
+        force && (!confirmedNoClassesToday || checkin.value != null);
     await Future.wait([
       _loadCourses(force: force),
       _loadHomework(force: force),
       _loadTasks(),
-      if (force) _loadCheckIn(force: true),
+      if (eagerCheckIn) _loadCheckIn(force: true),
     ]);
-    if (mounted && generation == _generation) setState(() => routeRevision++);
+    if (force &&
+        !eagerCheckIn &&
+        mounted &&
+        generation == _generation &&
+        data != null &&
+        data!.courses.isNotEmpty) {
+      await _loadCheckIn(force: true);
+    }
+    if (mounted && generation == _generation) {
+      setState(() => routeRevision++);
+      unawaited(_checkCaptivePortal(generation));
+    }
+  }
+
+  Future<void> _checkCaptivePortal(int generation) async {
+    final probe = widget.fileActions.networkStatus;
+    if (probe == null || _errorSections == 0) {
+      if (_captivePortal && mounted) setState(() => _captivePortal = false);
+      return;
+    }
+    try {
+      final status = await probe();
+      if (!mounted || generation != _generation) return;
+      final isCaptive = status == 'captivePortal';
+      if (isCaptive != _captivePortal) {
+        setState(() => _captivePortal = isCaptive);
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadCourses({bool force = false}) => courses.refresh(
@@ -299,6 +368,53 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
     );
   }
 
+  bool _isAllQuietToday(BuildContext context) {
+    final courseData = data;
+    final homeworkData = homework.value;
+    final tasksData = tasks.value;
+    if (_errorSections > 0 ||
+        _examsVisible ||
+        courseData == null ||
+        homeworkData == null ||
+        tasksData == null) {
+      return false;
+    }
+    final today = DateTime.utc(_now.year, _now.month, _now.day);
+    if (courseData.courses.isNotEmpty || todayDate(courseData.date) != today) {
+      return false;
+    }
+    final checkinData = checkin.value;
+    if (checkinData != null) {
+      final checkinDate = todayDate(checkinData.date);
+      final checkinNeedsRefresh =
+          checkinData.stale || checkinDate == null || checkinDate != today;
+      if (checkinNeedsRefresh ||
+          TodayCheckInSection.pendingCourses(
+            checkinData,
+            visibility: CourseVisibilityScope.of(context),
+            homework: homeworkData,
+            todaySchedule: courseData,
+          ).isNotEmpty) {
+        return false;
+      }
+    }
+    if (homeworkData.rolesComplete != true) return false;
+    final personalHomework = personalHomeworkItems(
+      homeworkData.items,
+      CourseVisibilityScope.of(context),
+    );
+    if (personalHomework.any(
+      (item) =>
+          item.status == HomeworkStatus.unknown ||
+          (item.status == HomeworkStatus.pending &&
+              !isHomeworkOverdue(item.dueAt, _now)),
+    )) {
+      return false;
+    }
+    if (tasksData.items.any((task) => !task.completed)) return false;
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
@@ -313,6 +429,23 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
         ? const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics())
         : const AlwaysScrollableScrollPhysics(parent: TopBounceScrollPhysics());
 
+    final visibility = CourseVisibilityScope.of(context);
+    final hasCoursesToday = data != null && data!.courses.isNotEmpty;
+    final personalCheckIns = TodayCheckInSection.personalCourses(
+      checkin.value,
+      visibility: visibility,
+      homework: homework.value,
+      todaySchedule: data,
+    );
+    final fusedCheckInIds = hasCoursesToday
+        ? {
+            for (final course in data!.courses)
+              if (matchCheckInForTodayCourse(course, personalCheckIns)
+                  case final matched?)
+                matched.id,
+          }
+        : const <String>{};
+
     return PageRefreshShortcut(
       onRefresh: busy ? null : () => load(force: true),
       child: CupertinoPageScaffold(
@@ -325,6 +458,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
           slivers: [
             TodayPageHeader(
               title: '今天',
+              dateLabel: _headerDateLabel,
               busy: busy,
               onRefresh: () => load(force: true),
             ),
@@ -333,12 +467,15 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
               padding: EdgeInsets.symmetric(horizontal: horizontalInset),
               sliver: SliverList.list(
                 children: [
+                  TodayDateContext(label: _headerDateLabel),
                   TodayStatusStrip(
                     demo: widget.service.isDemo,
                     loadingLabels: _loadingLabels,
                     readySections: _readySections,
                     errorSections: _errorSections,
                     routeRevision: routeRevision,
+                    captivePortal: _captivePortal,
+                    onOpenWifiSettings: widget.fileActions.openWifiSettings,
                     verifiedRoute: ServiceCapabilities.resolve(widget.service)
                         .verifiedRoute,
                     onOpenDiagnostics: _openDiagnostics,
@@ -366,11 +503,21 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                             ? null
                             : () => widget.onOpenFeature!('schedule'),
                         demo: widget.service.isDemo,
+                        checkinSection: checkin,
+                        checkinCourses: personalCheckIns,
+                        onCheckInRetry: () => _loadCheckIn(force: true),
+                        onOpenCheckIn: () =>
+                            widget.onOpenFeature?.call('checkin'),
                       ),
                     ),
                   TodayCheckInSection(
                     section: checkin,
                     now: _now,
+                    hasCoursesToday: hasCoursesToday,
+                    todaySchedule: data,
+                    homework: homework.value,
+                    handledByCourses: hasCoursesToday,
+                    fusedCourseIds: fusedCheckInIds,
                     onRetry: () => _loadCheckIn(force: true),
                     onOpen: () => widget.onOpenFeature?.call('checkin'),
                   ),
@@ -384,6 +531,16 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                     now: _now,
                     refreshToken: examRefreshToken,
                     onOpen: widget.onOpenFeature,
+                    onVisibilityChanged: (visible) {
+                      if (_examsVisible != visible && mounted) {
+                        setState(() => _examsVisible = visible);
+                      }
+                    },
+                    onWeekNumberChanged: (week) {
+                      if (_weekNumber != week && mounted) {
+                        setState(() => _weekNumber = week);
+                      }
+                    },
                   ),
                   TodayHomeworkSection(
                     section: homework,
@@ -405,6 +562,7 @@ class _TodayPageState extends State<TodayPage> with WidgetsBindingObserver {
                     onRetry: _loadTasks,
                     onOpen: _openTasks,
                   ),
+                  if (_isAllQuietToday(context)) TodayAllQuietView(now: _now),
                   SizedBox(height: bottomClearance),
                 ],
               ),

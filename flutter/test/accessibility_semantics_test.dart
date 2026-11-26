@@ -83,6 +83,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('作业').last);
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('homework-filter-all')));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('homework-spoc:a')));
     await tester.pumpAndSettle();
 

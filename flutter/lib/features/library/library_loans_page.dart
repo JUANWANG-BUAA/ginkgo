@@ -1,15 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
-import 'package:ginkgo_mirror/widgets/feature_intro.dart';
 import 'package:ginkgo_mirror/widgets/school_links.dart';
 
 import 'package:ginkgo_mirror/application/contracts.dart';
 import 'package:ginkgo_mirror/application/library_loans.dart';
+import 'package:ginkgo_mirror/application/session_memory_cache.dart';
 import 'package:ginkgo_mirror/widgets/apple_widgets.dart';
 import 'package:ginkgo_mirror/widgets/loading_widgets.dart';
 
 import 'library_controls.dart';
 
-/// Private records exist only while this page is active. No background reads.
+/// Private records live in session memory only (never written to disk) and are
+/// cleared on sign-out, account/gateway switch, or explicit cache clear.
 class LibraryLoansPage extends StatefulWidget {
   const LibraryLoansPage({super.key, this.gateway, this.officialGateway});
   final LibraryLoansGateway? gateway;
@@ -21,15 +24,18 @@ class LibraryLoansPage extends StatefulWidget {
   State<LibraryLoansPage> createState() => _LibraryLoansPageState();
 }
 
-class _LibraryLoansPageState extends State<LibraryLoansPage>
-    with WidgetsBindingObserver {
+class _LibraryLoansPageState extends State<LibraryLoansPage> {
   LibraryLoanPage? _data;
   ({int page, FailureCode code})? _failure;
-  bool _busy = false, _showPrivacy = false;
+  bool _busy = false;
   int _generation = 0;
-  void _clear() {
+
+  void _resetForGateway() {
     _generation++;
-    _data = null;
+    final gateway = widget.gateway;
+    _data = gateway == null
+        ? null
+        : SessionMemoryCache.shared.readLibraryLoans(gateway, 1);
     _failure = null;
     _busy = false;
   }
@@ -37,31 +43,25 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!TickerMode.valuesOf(context).enabled) _clear();
+    _resetForGateway();
+    if (widget.gateway != null && _data == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _data == null && !_busy) unawaited(_read(1));
+      });
+    }
   }
 
   @override
   void didUpdateWidget(LibraryLoansPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.gateway, widget.gateway)) _clear();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed && mounted) setState(_clear);
-  }
-
-  @override
-  void dispose() {
-    _clear();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+    if (!identical(oldWidget.gateway, widget.gateway)) {
+      _resetForGateway();
+      if (widget.gateway != null && _data == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _data == null && !_busy) unawaited(_read(1));
+        });
+      }
+    }
   }
 
   Future<void> _read(int page) async {
@@ -81,15 +81,22 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
     if (!mounted || generation != _generation) return;
     setState(() {
       _busy = false;
-      final code = result.failure ??
+      final code =
+          result.failure ??
           (result.data == null ? FailureCode.changedResponse : null);
       if (code == null) {
         _data = result.data;
+        SessionMemoryCache.shared.writeLibraryLoans(
+          gateway,
+          result.data!.page,
+          result.data!,
+        );
       } else {
         _failure = (page: page, code: code);
         if (code == FailureCode.sessionExpired ||
             code == FailureCode.moduleAuthRequired) {
           _data = null;
+          SessionMemoryCache.shared.clearLibraryLoans(gateway);
         }
       }
     });
@@ -152,31 +159,9 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
       child: SafeArea(
         child: ListView(
           children: [
-            const FeatureIntro(
-              icon: CupertinoIcons.bookmark,
-              title: '我的借阅',
-              description: '按需查看借出书目与应还日期',
-              color: CupertinoColors.systemIndigo,
-            ),
             AppleSection(
               header: const Text('当前借阅'),
               children: [
-                AppleListTile(
-                  leading: const Icon(CupertinoIcons.lock_shield),
-                  title: const Text('仅在本页临时查看'),
-                  subtitle: const Text('不保存到磁盘；离开本页或进入后台后清除'),
-                  trailing: CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () =>
-                        setState(() => _showPrivacy = !_showPrivacy),
-                    child: Text(_showPrivacy ? '收起' : '说明'),
-                  ),
-                ),
-                if (_showPrivacy)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('读取当前账号记录。本页不提供续借或到期提醒；认证及非空记录需要实际账号验证。'),
-                  ),
                 if (widget.gateway == null)
                   const Padding(
                     padding: EdgeInsets.all(16),
@@ -190,7 +175,7 @@ class _LibraryLoansPageState extends State<LibraryLoansPage>
                     !_busy) ...[
                   const AppleEmptyState(
                     title: '尚未读取借阅记录',
-                    description: '按需读取当前账号记录。',
+                    description: '点击下方按钮读取当前账号记录。',
                     icon: CupertinoIcons.book,
                   ),
                   Padding(

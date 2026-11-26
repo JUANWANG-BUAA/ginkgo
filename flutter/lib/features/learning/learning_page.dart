@@ -150,7 +150,6 @@ class _LearningPageState extends State<LearningPage> {
                       icon: CupertinoIcons.book_circle,
                     ),
                   ],
-                  note: '课程来自 SPOC 站点；本机不缓存账号密码。',
                 ),
               ),
             SliverList.builder(

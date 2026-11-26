@@ -41,6 +41,15 @@ class TestSystemSettings implements SystemSettingsService {
     shares++;
     return true;
   }
+
+  @override
+  Future<String> networkStatus() async => 'validated';
+
+  @override
+  Future<bool> openWifiSettings() async {
+    opens++;
+    return true;
+  }
 }
 
 class PendingSystemSettings extends TestSystemSettings {

@@ -18,6 +18,8 @@ class TodayStatusStrip extends StatelessWidget {
     required this.readySections,
     required this.errorSections,
     required this.routeRevision,
+    this.captivePortal = false,
+    this.onOpenWifiSettings,
     this.verifiedRoute,
     this.tracker,
     this.onOpenDiagnostics,
@@ -28,6 +30,8 @@ class TodayStatusStrip extends StatelessWidget {
   final int readySections;
   final int errorSections;
   final int routeRevision;
+  final bool captivePortal;
+  final Future<bool> Function()? onOpenWifiSettings;
   final VerifiedRouteGateway? verifiedRoute;
   final ServiceHealthTracker? tracker;
   final VoidCallback? onOpenDiagnostics;
@@ -35,7 +39,11 @@ class TodayStatusStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final health = tracker ?? ServiceHealthTracker.shared;
-    final reauth = SessionReauthScope.of(context);
+    final reauthScope = SessionReauthScope.scopeOf(context);
+    final reauth = reauthScope?.onReauthenticate;
+    final offlineState = reauthScope?.offlineState ?? WorkspaceOfflineState.online;
+    final offlineMessage = reauthScope?.offlineMessage;
+    final retryRestore = reauthScope?.onRetryRestore;
     return ListenableBuilder(
       listenable: health,
       builder: (context, _) {
@@ -43,21 +51,48 @@ class TodayStatusStrip extends StatelessWidget {
           ...loadingLabels,
           for (final item in health.loadingSnapshots) item.endpoint.title,
         }.toList(growable: false);
-        final isSyncing = inFlightNames.isNotEmpty;
-        final sessionExpired = !isSyncing && health.hasSessionExpired;
+        final isSyncing =
+            inFlightNames.isNotEmpty ||
+            offlineState == WorkspaceOfflineState.syncing;
+        final isOffline =
+            !isSyncing && offlineState == WorkspaceOfflineState.offline;
+        final sessionExpired = !isSyncing && !isOffline && health.hasSessionExpired;
         final issues = errorSections > health.degradedCount
             ? errorSections
             : health.degradedCount;
         final healthy = health.healthyCount > readySections
             ? health.healthyCount
             : readySections;
+        final offlineSyncing = offlineState == WorkspaceOfflineState.syncing;
+        if (!offlineSyncing &&
+            !captivePortal &&
+            !isOffline &&
+            !sessionExpired &&
+            issues == 0) {
+          return const SizedBox.shrink();
+        }
 
         final (icon, color, headline) = isSyncing
             ? (
                 null,
                 CupertinoTheme.of(context).primaryColor,
-                '正在同步 ${inFlightNames.first}'
-                    '${inFlightNames.length > 1 ? ' 等 ${inFlightNames.length} 项' : ''}…',
+                offlineState == WorkspaceOfflineState.syncing &&
+                        inFlightNames.isEmpty
+                    ? '离线缓存 · 正在恢复连接…'
+                    : '正在同步 ${inFlightNames.first}'
+                          '${inFlightNames.length > 1 ? ' 等 ${inFlightNames.length} 项' : ''}…',
+              )
+            : captivePortal
+            ? (
+                CupertinoIcons.wifi_exclamationmark,
+                AppleDesign.statusPending.resolveFrom(context),
+                '校园 Wi-Fi 尚未登录认证，请前往认证或切流量',
+              )
+            : isOffline
+            ? (
+                CupertinoIcons.wifi_slash,
+                AppleDesign.statusPending.resolveFrom(context),
+                offlineMessage ?? '离线缓存 · 暂未连接学校网络',
               )
             : sessionExpired && reauth != null
             ? (
@@ -82,10 +117,18 @@ class TodayStatusStrip extends StatelessWidget {
               );
 
         final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
-        final primaryTap = sessionExpired && reauth != null
+        final primaryTap = captivePortal && onOpenWifiSettings != null
+            ? () => onOpenWifiSettings!()
+            : isOffline && retryRestore != null
+            ? () => retryRestore()
+            : sessionExpired && reauth != null
             ? () => reauth()
             : onOpenDiagnostics;
-        final trailingLabel = sessionExpired && reauth != null
+        final trailingLabel = captivePortal && onOpenWifiSettings != null
+            ? '去认证'
+            : isOffline && retryRestore != null
+            ? '重试连接'
+            : sessionExpired && reauth != null
             ? '重新登录'
             : onOpenDiagnostics != null
             ? '接口状态'

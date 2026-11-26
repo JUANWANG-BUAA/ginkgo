@@ -18,6 +18,32 @@
 
 2026-11-03 用户补充：开发机反复真实登录可能触发账号风控，先完成离线代码/协议回归，再交付本地可安装候选，由用户手动实机测试。验证器自身反例检查与 Beta.3 目标身份边界复核沿用 [网络审计](_audit/2026-11-03-network-transport-and-routing.md#验证器自身复核与候选交付边界)。本地候选交付不等于公开发布，不以离线通过填写真机验收。
 
+## 商业级体验、手势与稳定性打磨（2026-11-26）
+
+面向可发布的商业闭源软件标准与北航日常高频场景（课表、签到、作业、图书馆、校园卡），在不触碰 `docs/NETWORK-FREEZE.md` 认证/传输冻结基线的前提下，按以下四批落地并清理沿途工程债务（保持实现精简，避免过度防御与测试膨胀）：
+
+### 批次 A：离线优先启动与跨天鲜度
+- [x] **A1 非阻塞冷启动与本地只读快照**：`UpdateGate` 改为后台静默检查（仅命中 `minBuild` 时拦截）；为课表、今日课程、近期作业建立按账号隔离的本地只读持久化快照（`OfflineCacheStore`），冷启动 0ms 直进工作台渲染缓存，后台静默恢复会话，离线/断网不再被锁死在恢复页，显式退出或切账号严格清空状态。
+- [x] **A2 「今天」页跨午夜自动刷新**：App 切回前台检测到北京时间跨天时自动触发刷新，避免早八停留昨日旧快照提示。
+
+### 批次 B：Android 桌面生态与通知闭环
+- [x] **B1 Android 桌面小组件**：新增 4×2「今日课程 / 下一节教室」原生 `ScheduleWidgetProvider`（深浅色适配，随今日课表同步与登出清理）。
+- [x] **B2 长按图标快捷方式与 Deep Link 路由**：新增 `shortcuts.xml`（课表、课程签到、校园卡、图书馆）及 `MainActivity` → `NativeNavigationLinks` → `MobileWorkspaceShell` 目标页直达分发。
+- [x] **B3 通知隐私分离 + 直达路由 + 课程宽容窗**：Android 通知接入 `VISIBILITY_PRIVATE` + `setPublicVersion`（保留 `SharedPreferences` 零明文隐私契约，支持锁屏/解锁分离渲染）；点击通知携带 `ginkgo_destination` 直达对应功能页；课程提醒增加开课后 15 分钟宽容窗避免国产 ROM 省电延迟导致静默丢弃。
+- [x] **B4 课表 `.ics` 日历导出**：支持将已加载课表一键导出为标准 `.ics` 日历文件（`schedule_ics.dart`）。
+
+### 批次 C：手机端可交互 UI 与手势
+- [x] **C1 课表手势与重课叠卡**：全周网格支持左右滑切周、按日列表支持左右滑切天；重课冲突改为整列宽度 + `+N` 叠卡徽标，点击弹出可下拉关闭的冲突课程选择面板。
+- [x] **C2 统一可下拉关闭底部弹层**：封装带顶部拖拽横条与跟手下拉关闭（Swipe-to-Dismiss）的 `showGinkgoModalSheet`，替换签到二维码、选择器滚轮、研讨室日期选择等裸弹层。
+- [x] **C3 Android 预测性返回与 CGYY 滑块防误触**：`AndroidManifest.xml` 开启 `enableOnBackInvokedCallback="true"`；CGYY 拼图滑块增加左右安全边距与拖动中返回保护。
+- [x] **C4 全站列表手势与微触感**：高频搜索列表统一 `ScrollViewKeyboardDismissBehavior.onDrag` 滚动收键盘；待办行补左右侧滑完成/删除；Tab 切换、周次切换、勾选等补齐轻量 `HapticFeedback`。
+
+### 批次 D：高频减负、稳定性削峰与债务清理
+- [x] **D1 Rust FFI 锁精度优化**：`with_module_submit` 改为 `SubmitOutcome<T>` 区分锁等待超时（未发出 → `notSubmitted`）与提交在途超时（`uncertain`）；`SCHEDULE_READ_GATE` 增加 3 秒有界合流窗口，避免慢教务导致「今天」与「课表」连坐互卡 45 秒。
+- [x] **D2 高频减负**：校园卡进页自动查询并记住金额显隐偏好（离页仍清内存不落盘）；图书馆增加「常去区域」一键直达；记住上次一级 Tab 与 CGYY 表单内存草稿。
+- [x] **D3 Captive Portal 识别与更新镜像回退**：接入 Android `ConnectivityManager` 识别未认证校园 Wi-Fi 并在今日页状态条提供一键去认证引导；为 `UpdateGate`、更新查询（`updates_http.rs`）与 APK 下载器增加国内镜像自动回退（保留包名/签名/SHA-256 强校验）。
+- [x] **D4 工程债务清理与门禁验证**：清理沿途硬编码字面量与冗余样板（收紧设计 token 预算至 127/214/170/30），同步接口索引与架构快照，全量通过 `check-mirror.sh`、`check-network-freeze.py` 及正常入口 Android ARM64 Debug APK 构建。
+
 ## Beta.10 后续验收（2026-11-04）
 
 用户已明确要求现在发布；下列未完成项保留真实状态，不是本次手动发布的前置条件。真实账号和学校请求继续暂停。

@@ -43,10 +43,11 @@
 ## workspace/mobile_workspace_shell.dart
 
 - `class MobileWorkspaceShell extends StatefulWidget` — 移动标签壳：底部导航 + 每个目的地一个常驻导航栈。选中状态与导航栈
-  <sub>class · workspace/mobile_workspace_shell.dart:17</sub>
-    - `const MobileWorkspaceShell({ super.key, required this.shell, required this.service, required this.platformActions, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:18</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:34</sub>
-    - `State<MobileWorkspaceShell> createState() => …`  <sub>:36</sub>
+  <sub>class · workspace/mobile_workspace_shell.dart:19</sub>
+    - `const MobileWorkspaceShell({ super.key, required this.shell, required this.service, required this.platformActions, this.accountName, this.accountId, this.route, this.onSignOut, this.externalDestinations, this.takeInitialDestination, });`  <sub>:20</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:38</sub>
+    - `final Future<String?> Function()? takeInitialDestination;`  <sub>:40</sub>
+    - `State<MobileWorkspaceShell> createState() => …`  <sub>:42</sub>
 
 ## workspace/more_hub_cards.dart
 
@@ -114,37 +115,39 @@
 ## workspace/workspace_catalog.dart
 
 - `WorkspaceDestination? destinationById(String id) {…}` — 按 id 查找；壳层与今日快捷入口只使用字符串标识。
-  <sub>function · workspace/workspace_catalog.dart:301</sub>
+  <sub>function · workspace/workspace_catalog.dart:302</sub>
 - `List<WorkspaceDestination> sidebarDestinations(WorkspaceSection section) => …` — 某个侧栏分组内的条目，顺序即登记顺序。
-  <sub>function · workspace/workspace_catalog.dart:319</sub>
+  <sub>function · workspace/workspace_catalog.dart:320</sub>
 
 ## workspace/workspace_shell.dart
 
 - `class GinkgoApp extends StatelessWidget` — 工作区外壳：只负责会话切换、移动/桌面布局与功能登记表的消费，
-  <sub>class · workspace/workspace_shell.dart:34</sub>
-    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.onSignOut, this.onReauthenticate, });`  <sub>:35</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:59</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:62</sub>
+  <sub>class · workspace/workspace_shell.dart:35</sub>
+    - `const GinkgoApp({ super.key, required this.service, this.platformActions = const PlatformActions(), this.brightness, this.preferences, this.startupUpdate, this.accountName, this.accountId, this.route, this.offlineState = WorkspaceOfflineState.online, this.offlineMessage, this.onRetryRestore, this.onSignOut, this.onReauthenticate, });`  <sub>:36</sub>
+    - `final Future<void> Function()? onRetryRestore;`  <sub>:65</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:66</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:69</sub>
 
 ## workspace/workspace_shell_controller.dart
 
 - `class WorkspaceShell extends StatefulWidget` — Shared navigation state above the mobile/desktop breakpoint. The concrete
-  <sub>class · workspace/workspace_shell_controller.dart:12</sub>
-    - `const WorkspaceShell({ super.key, required this.service, required this.platformActions, required this.mobileBuilder, required this.desktopBuilder, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:13</sub>
-    - `final Widget Function(WorkspaceShellState shell) mobileBuilder;`  <sub>:27</sub>
-    - `final Widget Function(WorkspaceShellState shell) desktopBuilder;`  <sub>:28</sub>
-    - `final Future<void> Function()? onSignOut;`  <sub>:32</sub>
-    - `State<WorkspaceShell> createState() => …`  <sub>:35</sub>
+  <sub>class · workspace/workspace_shell_controller.dart:15</sub>
+    - `const WorkspaceShell({ super.key, required this.service, required this.platformActions, required this.mobileBuilder, required this.desktopBuilder, this.accountName, this.accountId, this.route, this.onSignOut, });`  <sub>:16</sub>
+    - `final Widget Function(WorkspaceShellState shell) mobileBuilder;`  <sub>:30</sub>
+    - `final Widget Function(WorkspaceShellState shell) desktopBuilder;`  <sub>:31</sub>
+    - `final Future<void> Function()? onSignOut;`  <sub>:35</sub>
+    - `State<WorkspaceShell> createState() => …`  <sub>:38</sub>
 - `class WorkspaceShellState extends State<WorkspaceShell>`
-  <sub>class · workspace/workspace_shell_controller.dart:38</sub>
-    - `String selectedId = mobileDestinations.first.id;`  <sub>:39</sub>
-    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:40</sub>
-    - `final Set<String> visited = {…}`  <sub>:41</sub>
-    - `int get mobileIndex {…}`  <sub>:47</sub>
-    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:54</sub>
-    - `void onMobileTab(int index) {…}`  <sub>:57</sub>
-    - `void select(String id) {…}`  <sub>:63</sub>
-    - `Widget build(BuildContext context) => …`  <sub>:76</sub>
+  <sub>class · workspace/workspace_shell_controller.dart:41</sub>
+    - `String selectedId = mobileDestinations.first.id;`  <sub>:42</sub>
+    - `final navigators = <String, GlobalKey<NavigatorState>> {…}`  <sub>:43</sub>
+    - `final Set<String> visited = {…}`  <sub>:44</sub>
+    - `void didChangeDependencies() {…}`  <sub>:52</sub>
+    - `int get mobileIndex {…}`  <sub>:65</sub>
+    - `GlobalKey<NavigatorState> navigatorFor(String id) => …`  <sub>:72</sub>
+    - `void onMobileTab(int index, {bool persist = false}) {…}`  <sub>:75</sub>
+    - `void select(String id) {…}`  <sub>:84</sub>
+    - `Widget build(BuildContext context) => …`  <sub>:97</sub>
 
 ## workspace/workspace_shortcut_preferences.dart
 
@@ -178,17 +181,17 @@
 ## workspace/workspace_tab_transition.dart
 
 - `class WorkspaceTabMotion extends StatefulWidget` — One clock above the tabs' inactive TickerModes. Only the original incoming
-  <sub>class · workspace/workspace_tab_transition.dart:5</sub>
-    - `const WorkspaceTabMotion({ super.key, required this.controller, required this.child, });`  <sub>:6</sub>
-    - `State<WorkspaceTabMotion> createState() => …`  <sub>:16</sub>
+  <sub>class · workspace/workspace_tab_transition.dart:6</sub>
+    - `const WorkspaceTabMotion({ super.key, required this.controller, required this.child, });`  <sub>:7</sub>
+    - `State<WorkspaceTabMotion> createState() => …`  <sub>:17</sub>
 - `class WorkspaceTabScaffold extends StatefulWidget` — Cupertino tab layout with a continuous page turn. Visited tabs retain their
-  <sub>class · workspace/workspace_tab_transition.dart:113</sub>
-    - `const WorkspaceTabScaffold({ super.key, required this.controller, required this.tabBar, required this.tabBuilder, });`  <sub>:114</sub>
-    - `State<WorkspaceTabScaffold> createState() => …`  <sub>:126</sub>
+  <sub>class · workspace/workspace_tab_transition.dart:114</sub>
+    - `const WorkspaceTabScaffold({ super.key, required this.controller, required this.tabBar, required this.tabBuilder, });`  <sub>:115</sub>
+    - `State<WorkspaceTabScaffold> createState() => …`  <sub>:127</sub>
 - `class WorkspaceTabTransition extends StatelessWidget` — Paint-only page-turn motion. The incoming sheet slides in one full page
-  <sub>class · workspace/workspace_tab_transition.dart:293</sub>
-    - `const WorkspaceTabTransition({ super.key, required this.index, required this.child, });`  <sub>:294</sub>
-    - `Widget build(BuildContext context) {…}`  <sub>:304</sub>
+  <sub>class · workspace/workspace_tab_transition.dart:299</sub>
+    - `const WorkspaceTabTransition({ super.key, required this.index, required this.child, });`  <sub>:300</sub>
+    - `Widget build(BuildContext context) {…}`  <sub>:310</sub>
 
 ## workspace/workspace_types.dart
 

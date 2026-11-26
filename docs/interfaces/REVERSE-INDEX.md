@@ -55,11 +55,13 @@
 | `application/reminder_platform.dart` | ReminderPlatform → dart-application.md<br>ScopedReminderPlatform → dart-application.md |
 | `application/reminder_store.dart` | ReminderStore → dart-application.md |
 | `application/saved_credential.dart` | SavedCredential → dart-application.md<br>SavedCredentialGateway → dart-application.md |
+| `application/schedule_ics.dart` | buildScheduleIcsBytes → dart-application.md<br>scheduleIcsFileName → dart-application.md<br>buildScheduleIcs → dart-application.md |
 | `application/school_rules.dart` | SchoolRules → dart-application.md |
 | `application/school_timestamp.dart` | parseSchoolTimestamp → dart-application.md |
 | `application/service_capabilities.dart` | ServiceCapabilities → dart-application.md |
 | `application/service_health.dart` | ServiceEndpointId → dart-application.md<br>EndpointHealthState → dart-application.md<br>EndpointHealthSnapshot → dart-application.md<br>ServiceHealthTracker → dart-application.md |
-| `application/session_reauth.dart` | SessionReauthCallback → dart-application.md<br>SessionReauthScope → dart-application.md |
+| `application/session_memory_cache.dart` | SessionMemoryCache → dart-application.md |
+| `application/session_reauth.dart` | SessionReauthCallback → dart-application.md<br>WorkspaceOfflineState → dart-application.md<br>SessionReauthScope → dart-application.md |
 | `application/shuttle.dart` | ShuttleRun → dart-application.md<br>ShuttleSection → dart-application.md<br>ShuttleTable → dart-application.md<br>ShuttleTimetable → dart-application.md<br>ShuttleDeparture → dart-application.md<br>ShuttleTimetableRead → dart-application.md<br>ShuttleGateway → dart-application.md |
 | `application/startup_update_controller.dart` | StartupUpdateController → dart-application.md |
 | `application/student_service_links.dart` | StudentServiceLinksGateway → dart-application.md |
@@ -67,6 +69,7 @@
 | `design/apple_design.dart` | AppleDesign → dart-design.md |
 | `design/ginkgo_theme.dart` | ginkgoTheme → dart-design.md |
 | `design/tokens/colors.dart` | GinkgoColors → dart-design.md |
+| `design/tokens/components.dart` | GinkgoSurfaceTokens → dart-design.md<br>GinkgoIconTokens → dart-design.md<br>GinkgoBadgeTokens → dart-design.md<br>GinkgoButtonTokens → dart-design.md |
 | `design/tokens/elevation.dart` | GinkgoElevation → dart-design.md |
 | `design/tokens/layout.dart` | GinkgoLayout → dart-design.md |
 | `design/tokens/motion.dart` | GinkgoMotion → dart-design.md |
@@ -134,9 +137,9 @@
 | `features/homework/homework_files_widgets.dart` | homeworkSubmitMethodLabel → dart-feature-homework.md<br>homeworkAttachmentKindLabel → dart-feature-homework.md<br>homeworkCapabilityLabel → dart-feature-homework.md<br>homeworkCapabilityStateLabel → dart-feature-homework.md<br>HomeworkSubmitSummary → dart-feature-homework.md<br>HomeworkAttachmentList → dart-feature-homework.md<br>HomeworkCapabilityNotes → dart-feature-homework.md<br>HomeworkSubmitActions → dart-feature-homework.md<br>HomeworkPendingSubmissionNotice → dart-feature-homework.md<br>HomeworkFeedbackNote → dart-feature-homework.md<br>HomeworkBlockedNote → dart-feature-homework.md |
 | `features/homework/homework_list_slivers.dart` | buildHomeworkListSlivers → dart-feature-homework.md |
 | `features/homework/homework_page.dart` | HomeworkPage → dart-feature-homework.md |
-| `features/homework/homework_projection.dart` | classifyHomeworkDeadline → dart-feature-homework.md<br>isHomeworkOverdue → dart-feature-homework.md<br>homeworkRelativeDeadline → dart-feature-homework.md<br>homeworkCompactDeadline → dart-feature-homework.md<br>homeworkDeadlineTint → dart-feature-homework.md |
+| `features/homework/homework_projection.dart` | classifyHomeworkDeadline → dart-feature-homework.md<br>isHomeworkOverdue → dart-feature-homework.md<br>homeworkRelativeDeadline → dart-feature-homework.md<br>homeworkCompactDeadline → dart-feature-homework.md<br>homeworkCountdownBadge → dart-feature-homework.md<br>homeworkDueSummary → dart-feature-homework.md<br>homeworkDeadlineTint → dart-feature-homework.md |
 | `features/homework/homework_visuals.dart` | HomeworkTelemetryCard → dart-feature-homework.md |
-| `features/homework/homework_widgets.dart` | homeworkFilterLabel → dart-feature-homework.md<br>HomeworkQuickFilter → dart-feature-homework.md<br>HomeworkStatusBadge → dart-feature-homework.md<br>HomeworkDeadlineText → dart-feature-homework.md<br>HomeworkItemTile → dart-feature-homework.md |
+| `features/homework/homework_widgets.dart` | homeworkFilterLabel → dart-feature-homework.md<br>HomeworkStatusBadge → dart-feature-homework.md<br>HomeworkItemTile → dart-feature-homework.md |
 | `features/learning/learning_announcement_page.dart` | LearningAnnouncementPage → dart-feature-learning.md<br>LearningAnnouncementPageState → dart-feature-learning.md |
 | `features/learning/learning_cards.dart` | learningCourseAccent → dart-feature-learning.md<br>LearningCourseCard → dart-feature-learning.md<br>LearningCourseHeroCard → dart-feature-learning.md<br>LearningAnnouncementCard → dart-feature-learning.md<br>LearningAssessmentCard → dart-feature-learning.md |
 | `features/learning/learning_course_page.dart` | LearningCourseTab → dart-feature-learning.md<br>LearningCoursePage → dart-feature-learning.md |
@@ -158,7 +161,7 @@
 | `features/library/library_slot_page.dart` | LibrarySlotPage → dart-feature-library.md |
 | `features/library/library_stats_page.dart` | LibraryStatsPage → dart-feature-library.md |
 | `features/library/library_venue_selection_page.dart` | LibraryVenueSelectionPage → dart-feature-library.md |
-| `features/library/library_widgets.dart` | LibrarySectionStatus → dart-feature-library.md<br>LibraryDisclosureToggle → dart-feature-library.md<br>LibraryNoteText → dart-feature-library.md<br>libraryActionLabel → dart-feature-library.md<br>libraryActionIcon → dart-feature-library.md<br>libraryActionTint → dart-feature-library.md |
+| `features/library/library_widgets.dart` | LibrarySectionStatus → dart-feature-library.md<br>LibraryDisclosureToggle → dart-feature-library.md<br>LibraryNoteText → dart-feature-library.md<br>libraryActionLabel → dart-feature-library.md<br>libraryActionIcon → dart-feature-library.md<br>libraryActionTint → dart-feature-library.md<br>LibraryBookingCard → dart-feature-library.md |
 | `features/network_account/network_account_page.dart` | NetworkAccountPage → dart-feature-network_account.md |
 | `features/network_account/network_account_visuals.dart` | parseTrafficBytesForChart → dart-feature-network_account.md<br>formatTrafficScaleTick → dart-feature-network_account.md<br>formatTrafficTotal → dart-feature-network_account.md<br>NetworkAccountInstrumentPanel → dart-feature-network_account.md |
 | `features/notices/notices_page.dart` | NoticesPage → dart-feature-notices.md |
@@ -197,7 +200,7 @@
 | `features/today/today_homework_section.dart` | todayVisibleHomework → dart-feature-today.md<br>TodayHomeworkSection → dart-feature-today.md |
 | `features/today/today_page.dart` | TodayPage → dart-feature-today.md |
 | `features/today/today_page_actions.dart` | TodayNavigator → dart-feature-today.md |
-| `features/today/today_page_header.dart` | TodayPageHeader → dart-feature-today.md |
+| `features/today/today_page_header.dart` | TodayPageHeader → dart-feature-today.md<br>TodayDateContext → dart-feature-today.md<br>TodayAllQuietView → dart-feature-today.md |
 | `features/today/today_presentation.dart` | todayCoursePlaceLabel → dart-feature-today.md |
 | `features/today/today_status_strip.dart` | TodayStatusStrip → dart-feature-today.md |
 | `features/today/today_tasks_section.dart` | TodayTasksSnapshot → dart-feature-today.md<br>TodayTasksSection → dart-feature-today.md |
@@ -238,16 +241,19 @@
 | `infrastructure/native_library.dart` | NativeLibrary → dart-infrastructure.md |
 | `infrastructure/native_library_loans.dart` | decodeLibraryLoans → dart-infrastructure.md<br>NativeLibraryLoans → dart-infrastructure.md |
 | `infrastructure/native_mirror_service.dart` | NativeMirrorService → dart-infrastructure.md |
+| `infrastructure/native_navigation_links.dart` | NativeNavigationLinks → dart-infrastructure.md |
 | `infrastructure/native_network_account.dart` | decodeNetworkAccount → dart-infrastructure.md<br>NativeNetworkAccount → dart-infrastructure.md |
 | `infrastructure/native_reminder_planning.dart` | NativeReminderPlanning → dart-infrastructure.md |
 | `infrastructure/native_reminder_platform.dart` | NativeReminderPlatform → dart-infrastructure.md |
 | `infrastructure/native_saved_credential.dart` | NativeSavedCredential → dart-infrastructure.md |
 | `infrastructure/native_school_rules.dart` | NativeSchoolRules → dart-infrastructure.md |
 | `infrastructure/notices_decode.dart` | decodeNotices → dart-infrastructure.md |
+| `infrastructure/offline_cache_store.dart` | OfflineSessionHint → dart-infrastructure.md<br>OfflineCacheStore → dart-infrastructure.md |
 | `infrastructure/reminder_store.dart` | FileReminderStore → dart-infrastructure.md |
 | `infrastructure/serial_reminder_platform.dart` | SerialReminderPlatform → dart-infrastructure.md |
 | `infrastructure/shuttle_decode.dart` | decodeShuttleTimetable → dart-infrastructure.md |
 | `infrastructure/task_storage.dart` | localTasksStorageRoot → dart-infrastructure.md |
+| `infrastructure/widget_sync.dart` | syncTodayScheduleWidget → dart-infrastructure.md<br>clearScheduleWidget → dart-infrastructure.md |
 | `main.dart` | main → dart-app.md<br>GinkgoRoot → dart-app.md |
 | `platform/android_update_controller.dart` | UpdateDownloadSource → dart-platform.md<br>UpdateDownloadPhase → dart-platform.md<br>UpdateRoot → dart-platform.md<br>ApkInstaller → dart-platform.md<br>AndroidUpdateController → dart-platform.md |
 | `platform/external_links.dart` | launchExternalLink → dart-platform.md |
@@ -350,7 +356,7 @@
 | `rust/crates/ginkgo_flutter_bridge/src/api/live/library.rs` | load_library_venues → rust-bridge.md<br>load_library_areas → rust-bridge.md<br>load_library_slots → rust-bridge.md<br>load_library_seats → rust-bridge.md<br>load_library_bookings → rust-bridge.md<br>load_library_history → rust-bridge.md<br>load_demo_library_history → rust-bridge.md<br>load_library_stats → rust-bridge.md<br>load_demo_library_stats → rust-bridge.md<br>reserve_library_seat → rust-bridge.md<br>perform_library_action → rust-bridge.md |
 | `rust/crates/ginkgo_flutter_bridge/src/api/live/mapping.rs` | mutation_response → rust-bridge.md<br>grade_response → rust-bridge.md<br>grade_failure → rust-bridge.md<br>checkin_response → rust-bridge.md<br>checkin_failure → rust-bridge.md<br>today_response → rust-bridge.md<br>schedule_response → rust-bridge.md<br>schedule_failure → rust-bridge.md<br>classroom_response → rust-bridge.md<br>classroom_sort → rust-bridge.md<br>outcome_response → rust-bridge.md<br>status_response → rust-bridge.md<br>failure_response → rust-bridge.md<br>signed_out → rust-bridge.md<br>failure → rust-bridge.md |
 | `rust/crates/ginkgo_flutter_bridge/src/api/live/network_account.rs` | load → rust-bridge.md |
-| `rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs` | LiveService → rust-bridge.md<br>SESSION_ACCESS → rust-bridge.md<br>CHECKIN_ACCESS → rust-bridge.md<br>LIBRARY_ACCESS → rust-bridge.md<br>CGYY_ACCESS → rust-bridge.md<br>SERVICE → rust-bridge.md<br>ModuleAccess → rust-bridge.md<br>bounded_read → rust-bridge.md<br>bounded_session → rust-bridge.md<br>bounded_submit → rust-bridge.md<br>with_session_read → rust-bridge.md<br>with_session_read_in → rust-bridge.md<br>with_session_write → rust-bridge.md<br>with_session_submit → rust-bridge.md<br>with_module_read → rust-bridge.md<br>with_module_submit → rust-bridge.md<br>service → rust-bridge.md |
+| `rust/crates/ginkgo_flutter_bridge/src/api/live/runtime.rs` | LiveService → rust-bridge.md<br>SESSION_ACCESS → rust-bridge.md<br>CHECKIN_ACCESS → rust-bridge.md<br>LIBRARY_ACCESS → rust-bridge.md<br>CGYY_ACCESS → rust-bridge.md<br>SERVICE → rust-bridge.md<br>ModuleAccess → rust-bridge.md<br>bounded_read → rust-bridge.md<br>bounded_session → rust-bridge.md<br>bounded_submit → rust-bridge.md<br>with_session_read → rust-bridge.md<br>with_session_read_in → rust-bridge.md<br>with_session_write → rust-bridge.md<br>with_session_submit → rust-bridge.md<br>with_module_read → rust-bridge.md<br>SubmitOutcome → rust-bridge.md<br>with_module_submit → rust-bridge.md<br>service → rust-bridge.md |
 | `rust/crates/ginkgo_flutter_bridge/src/api/live/session.rs` | login → rust-bridge.md<br>restore_session → rust-bridge.md<br>sign_out → rust-bridge.md<br>set_route → rust-bridge.md<br>clear_cache → rust-bridge.md<br>verify_credential_storage → rust-bridge.md |
 | `rust/crates/ginkgo_flutter_bridge/src/api/live/utilities.rs` | edit_tasks → rust-bridge.md<br>load_notices → rust-bridge.md<br>load_demo_notices → rust-bridge.md<br>load_career_events → rust-bridge.md<br>load_campus_activities → rust-bridge.md<br>load_campus_card_balance → rust-bridge.md<br>load_demo_campus_card_balance → rust-bridge.md<br>load_cgyy → rust-bridge.md<br>execute_cgyy → rust-bridge.md<br>load_demo_cgyy → rust-bridge.md<br>load_library_books → rust-bridge.md<br>load_shuttle_timetable → rust-bridge.md<br>load_library_holdings → rust-bridge.md<br>export_learning_snapshots → rust-bridge.md<br>import_learning_snapshots → rust-bridge.md<br>load_library_loans → rust-bridge.md<br>check_android_update → rust-bridge.md |
 | `rust/crates/ginkgo_flutter_bridge/src/api/mirror.rs` | init_app → rust-bridge.md<br>ClassroomSort → rust-bridge.md<br>ClassroomQuery → rust-bridge.md<br>SectionState → rust-bridge.md<br>ClassroomRow → rust-bridge.md<br>ClassroomBuilding → rust-bridge.md<br>FailureCode → rust-bridge.md<br>ClassroomResponse → rust-bridge.md<br>load_demo_classrooms → rust-bridge.md<br>RuleExamples → rust-bridge.md<br>load_rule_examples → rust-bridge.md<br>ScheduleTerm → rust-bridge.md<br>ScheduleWeek → rust-bridge.md<br>ScheduleCourse → rust-bridge.md<br>ScheduleExam → rust-bridge.md<br>ScheduleResponse → rust-bridge.md<br>load_demo_schedule → rust-bridge.md<br>GradeCourse → rust-bridge.md<br>GradeSummary → rust-bridge.md<br>GradeResponse → rust-bridge.md<br>load_demo_grades → rust-bridge.md<br>TodayCourse → rust-bridge.md<br>TodayResponse → rust-bridge.md<br>load_demo_today → rust-bridge.md<br>HomeworkStatus → rust-bridge.md<br>HomeworkItem → rust-bridge.md<br>HomeworkResponse → rust-bridge.md<br>load_demo_homework → rust-bridge.md<br>QueryDates → rust-bridge.md<br>load_query_dates → rust-bridge.md<br>DemoScope → rust-bridge.md<br>query_demo_classrooms → rust-bridge.md<br>CheckInStatus → rust-bridge.md<br>CheckInCourse → rust-bridge.md<br>CheckInResponse → rust-bridge.md<br>CheckInQrResponse → rust-bridge.md<br>load_demo_checkin → rust-bridge.md<br>load_demo_checkin_qr → rust-bridge.md<br>LibraryVenue → rust-bridge.md<br>LibraryArea → rust-bridge.md<br>LibrarySlot → rust-bridge.md<br>LibrarySeat → rust-bridge.md<br>LibraryBooking → rust-bridge.md<br>LibraryVenuesResponse → rust-bridge.md<br>LibraryAreasResponse → rust-bridge.md<br>LibrarySlotsResponse → rust-bridge.md<br>LibrarySeatsResponse → rust-bridge.md<br>LibraryBookingsResponse → rust-bridge.md<br>LibraryDemoResponse → rust-bridge.md<br>library_venue → rust-bridge.md<br>library_area → rust-bridge.md<br>library_slot → rust-bridge.md<br>library_seat → rust-bridge.md<br>library_booking → rust-bridge.md<br>load_demo_library → rust-bridge.md |
@@ -466,8 +472,9 @@
 | `rust/crates/ginkgo_upstream/src/test_support.rs` | MockTransport → rust-upstream-foundation.md<br>with_responses → rust-upstream-foundation.md<br>with_results → rust-upstream-foundation.md<br>requests → rust-upstream-foundation.md<br>request_count → rust-upstream-foundation.md<br>TranscriptTransport → rust-upstream-foundation.md<br>new → rust-upstream-foundation.md<br>assert_finished → rust-upstream-foundation.md<br>requests → rust-upstream-foundation.md |
 | `shared/app_preferences.dart` | AppAppearance → dart-shared.md<br>AppAccent → dart-shared.md<br>PreferencesWriter → dart-shared.md<br>PreferencesReader → dart-shared.md<br>AppPreferences → dart-shared.md<br>AppPreferencesScope → dart-shared.md |
 | `shared/checkin_sessions.dart` | checkinSessionKey → dart-shared.md<br>uniqueCheckinSessions → dart-shared.md |
+| `shared/checkin_visibility.dart` | checkinCourseKey → dart-shared.md<br>normalizeCheckinCourseName → dart-shared.md<br>nonStudentCourseNamesFromHomework → dart-shared.md<br>personalCheckInCourses → dart-shared.md<br>matchCheckInForTodayCourse → dart-shared.md |
 | `shared/course_visibility.dart` | CourseVisibility → dart-shared.md<br>CourseVisibilityScope → dart-shared.md |
-| `shared/homework_visibility.dart` | personalHomeworkItems → dart-shared.md |
+| `shared/homework_visibility.dart` | isNonStudentCourseRole → dart-shared.md<br>homeworkCourseRoleLabel → dart-shared.md<br>personalHomeworkItems → dart-shared.md |
 | `shared/query_cache_scope.dart` | QueryCacheScope → dart-shared.md |
 | `shared/reminder_controller.dart` | ReminderController → dart-shared.md |
 | `shared/reminder_rules.dart` | schoolInstant → dart-shared.md<br>checkinWindowOpen → dart-shared.md |
@@ -487,6 +494,7 @@
 | `widgets/diagnostic_hints.dart` | DiagnosticHintOverlay → dart-widgets.md |
 | `widgets/feature_intro.dart` | FeatureIntro → dart-widgets.md<br>FeatureSectionTitle → dart-widgets.md |
 | `widgets/ginkgo_mark.dart` | GinkgoMark → dart-widgets.md |
+| `widgets/ginkgo_primitives.dart` | GinkgoCard → dart-widgets.md<br>GinkgoButtonVariant → dart-widgets.md<br>GinkgoActionButton → dart-widgets.md<br>GinkgoProgressiveRow → dart-widgets.md |
 | `widgets/ginkgo_visuals.dart` | GinkgoIconTile → dart-widgets.md<br>GinkgoBadge → dart-widgets.md |
 | `widgets/liquid_vial_gauge.dart` | LiquidPalette → dart-widgets.md<br>LiquidVialWell → dart-widgets.md |
 | `widgets/loading_widgets.dart` | GinkgoActivity → dart-widgets.md<br>GinkgoLoadingView → dart-widgets.md<br>SectionFeedback → dart-widgets.md<br>SectionReveal → dart-widgets.md<br>PageRefreshShortcut → dart-widgets.md |
