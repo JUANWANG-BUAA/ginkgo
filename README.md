@@ -3,7 +3,7 @@
 > 课表、作业、签到码、图书馆座位、研讨室与校园账户查询，收进一个 Android 应用。
 > Flutter + Rust 本地直连学校系统或北航官方 WebVPN，不经过自建中转服务器；余额与发放记录按需读取、默认遮挡、不落盘。
 
-[![下载 Android 版](https://img.shields.io/badge/下载-Android%20Beta-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.11)
+[![下载 Android 版](https://img.shields.io/badge/下载-Android%20Beta-2f7d4a?style=flat-square)](https://github.com/JUANWANG-BUAA/ginkgo/releases/tag/android-v0.1.0-beta.12)
 [![项目主页](https://img.shields.io/badge/项目主页-juanwang--buaa.github.io%2Fginkgo-2f7d4a?style=flat-square)](https://juanwang-buaa.github.io/ginkgo/)
 [![架构设计](https://img.shields.io/badge/架构-Flutter%20%2B%20Rust%20窄接口-3d603d?style=flat-square)](docs/ARCHITECTURE-TOPOLOGY.md)
 [![许可](https://img.shields.io/badge/许可-MIT-2f7d4a?style=flat-square)](LICENSE)
@@ -13,8 +13,8 @@
 ## 当前版本与平台范围
 
 - **Android（唯一持续开发平台）**：基于 Flutter + Rust，手机端五栏底部导航，平板与宽屏切换侧栏。Windows 共用同一工程仅保编译；macOS / iOS 原生工程已归档冻结。
-- **最新公开版本**：**Android 0.1.0-beta.11**（`0.1.0-beta.11+21`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.11/Ginkgo-0.1.0-beta.11-android-arm64.apk) · [发布说明](docs/releases/android-beta11.md)
-- **工作树未发布增量**：在公开 Beta.11 之上新增 **财务收入查询**、**网费与校园网流量**、**课程评教状态检查** 三个独立只读模块，真机账号验收进度见 [MIRROR-TODO](docs/MIRROR-TODO.md)；共享网络与认证链保持 [Beta.9 冻结基线](docs/NETWORK-FREEZE.md)。
+- **最新公开版本**：**Android 0.1.0-beta.12**（`0.1.0-beta.12+22`）· [下载 ARM64 APK](https://github.com/JUANWANG-BUAA/ginkgo/releases/download/android-v0.1.0-beta.12/Ginkgo-0.1.0-beta.12-android-arm64.apk) · [发布说明](docs/releases/android-beta12.md)
+- **验收与冻结说明**：真机账号与写入验收进度见 [MIRROR-TODO](docs/MIRROR-TODO.md)；共享网络与认证链保持 [Beta.9 冻结基线](docs/NETWORK-FREEZE.md)。
 - **问题反馈**：[提交 Android Beta 反馈](https://github.com/JUANWANG-BUAA/ginkgo/issues/new?template=android-beta.md)（请勿附密码、Cookie、真实学号或未打码截图）。
 
 ---
@@ -127,7 +127,7 @@ flutter build apk --debug --target-platform android-arm64 --target lib/main.dart
 
 | 平台 | 当前状态 | 说明 |
 | --- | --- | --- |
-| **Android** | **主推 · 持续开发** | 当前公开版本 `0.1.0-beta.11`（ARM64 APK）；新模块与真实设备验收持续推进中 |
+| **Android** | **主推 · 持续开发** | 当前公开版本 `0.1.0-beta.12`（ARM64 APK）；新模块与真实设备验收持续推进中 |
 | Windows | 共用工程 · 仅保编译 | 与 Android 共用 Flutter + Rust 工作区（CI 持续验证编译），公开历史包 `0.1.0-alpha.6` |
 | macOS | 已冻结归档 | 独立原生 Swift/SwiftUI 客户端，保留源码与文档，见 [平台对照](docs/MIRROR-PARITY.md) |
 | iOS | 已冻结归档 | 独立原生 SwiftUI 壳，保留源码与构建说明，见 [docs/IOS.md](docs/IOS.md) |

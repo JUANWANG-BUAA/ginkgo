@@ -340,7 +340,7 @@
   "flutter/lib/workspace/workspace_tab_transition.dart": "87ea83dc3812269b96b459d6dc9da3806a43dd5c2e9ef28b1220c76bfeef3055",
   "flutter/lib/workspace/workspace_types.dart": "6372c6b0c28f3192379d8d3b44df32a91a002e45ac9c71a7f9a8ca7ab25737c5",
   "flutter/pubspec.lock": "08062421cbcbb59b52afecdbf3729eb9490c92b32ac6d7a0f8847b2f65b504dc",
-  "flutter/pubspec.yaml": "0782ce2d0b5ceb25aae0eb116e2d80d3426bff5ada1190a2c01c4583191c3e8a",
+  "flutter/pubspec.yaml": "9cba21b78942f3d967b414ec14d05124de6ca874ba977a9cec991ce74303264a",
   "rust/Cargo.lock": "70fe90480e245ec83dc17b3fe7420e1437cd19bf06f9c2811870f0bf73087421",
   "rust/Cargo.toml": "98a56077de2eda99f95a1ea0647c17ef9723c6761cdffbd73c552c079785d61a",
   "rust/crates/ginkgo_core/Cargo.toml": "839842ee7e5ab6f1d531cb95c3e4731136bff01c1a6719ac8ee029590afafb98",
